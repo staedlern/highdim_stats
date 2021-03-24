@@ -1,0 +1,167 @@
+---
+title: "Multivariate Regression"
+author: "Nicolas Städler"
+date: "3/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(caret)
+```
+
+## General Notation
+We will typicall denote an input variable by the symbol $X$. If $X$ is a vector, its components can be accessed
+by subscripts $X_j$. Quantative outputs will be denoted by $Y$, and qualitative outputs by $G$ (for group). We use uppercase letters such as $X$, $Y$ or $G$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
+
+For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). 
+
+We need data to construct prediction rules. We thus suppose we have available a set of measurments $(x_i,y_i)$, $i=1,\ldots,N$, known as the \emph{training data}, with which to construct our prediction rule.
+
+
+## Multivariate Regression and Least Squares
+
+We consider Multivariate Regression. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
+
+\[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
+
+The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X$, include $\hat\beta_0$ in the vector of coefficients $\hat\beta$, then we can write 
+
+\[\hat{Y}=X^T\hat\beta.\]
+
+How do we fit the linear model to a set of training data? In Multivariate Regression we typically use \emph{least squares}. In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
+
+\begin{align*}
+\rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
+&=(\bf y - \bf X \beta)^T (\bf y - \bf X \beta)\\
+&=\|\bf y - \bf X \beta\|^2.
+\end{align*}
+
+If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by 
+
+\[\hat\beta=(\bf X^T \bf X)^{-1}\bf X^T \bf y.\]
+
+## Overfitting and Generalization Error
+
+In statistics, overfitting is "the production of an analysis that corresponds too closely or exactly to a particular set of data, and may therefore fail to fit additional data or predict future observations reliably". An overfitted model is a statistical model that contains more parameters than can be justified by the data.
+
+A key goal of a learning method is prediction. Therefore the assessment of how the method generalizes beyond 
+the observed data is extremely important in practice. 
+
+When buliding a learning method we need to keep in mind the following 2 steps:
+
+1. Model building: in this step we build a series of models and identify the model which leads to best predictions. Often this step involves variable selection and/or the choice of tuning parameters
+
+2. Model assessment: once we have identified the model, we check its performance on new data.
+
+The prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
+
+\begin{align*}
+\rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
+&=\sigma^2_{\epsilon}+(E[\hat{f}(x_0)]-f(x_0))^2+ E(\hat{f}(x_0)-E\hat{f}(x_0))^2\\
+&=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
+\end{align*}
+
+In the Model building step we aim to estimate the prediction error. There are different approaches for that:
+
+1. Information criteria's: AIC, BIC, $C_p$ statistic
+2. Cross-validation.
+
+We end this section with a small simulation example. We generate training and test data from a univariate regression model $Y\sim \beta_1 X_1+\epsilon, \; \beta=2,\;\epsilon\sim N(0,1)$ 
+
+```{r}
+set.seed(1)
+n <- 10
+p <- 10
+beta <- c(2,rep(0,p-1))
+alpha <- 0
+x_train <- matrix(rnorm(n*p),n,p)
+y_train <- alpha+x_train%*%beta+rnorm(n,sd=1)
+data_train <- data.frame(cbind(y_train,x_train))
+colnames(data_train) <- c("y",paste0("x",1:p))
+x_test <- matrix(rnorm(n*p),n,p)
+y_test <- x_test%*%beta+rnorm(n,sd=1)
+data_test <- data.frame(cbind(y_test,x_test))
+colnames(data_test) <- c("y",paste0("x",1:p))
+```
+
+We fit a model with $p=10$ variables
+
+```{r}
+fit.full <- lm(y~.,data=data_train)
+summary(fit.full)
+
+```
+
+
+
+We fit a model with $p=9$ variables
+
+```{r}
+fit1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8,data=data_train)
+summary(fit1)
+(rss <- sum((fit1$residuals)^2))
+AIC(fit1)
+BIC(fit1)
+yhat.lm <- predict(fit1)
+ypred.lm <- predict(fit1,newdata = data_test)
+
+```
+
+
+```{r}
+fit2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8,data=data_train)
+summary(fit2)
+(rss <- sum((fit2$residuals)^2))
+AIC(fit2)
+BIC(fit2)
+yhat.lm2 <- predict(fit2)
+ypred.lm2 <- predict(fit2,newdata = data_test)
+sum((ypred.lm2-data_test$y)^2)
+
+train.control <- trainControl(method = "LOOCV")
+# Train the model
+train(formula(fit2), data = data_train, method = "lm",
+      trControl = train.control)$results["RMSE"]
+```
+
+```{r}
+fit3 <- lm(y~x1+x2+x3+x4,data=data_train)
+summary(fit3)
+(rss <- sum((fit3$residuals)^2))
+AIC(fit3)
+BIC(fit3)
+yhat.lm3 <- predict(fit3)
+ypred.lm3 <- predict(fit3,newdata = data_test)
+sum((ypred.lm3-data_test$y)^2)
+train(formula(fit3), data = data_train, method = "lm",
+      trControl = train.control)$results["RMSE"]
+```
+
+```{r}
+fit4 <- glm(y~x1,data=data_train)
+summary(fit4)
+(rss <- sum((fit4$residuals)^2))
+AIC(fit4)
+BIC(fit4)
+yhat.lm4 <- predict(fit4)
+ypred.lm4 <- predict(fit4,newdata = data_test)
+sum((ypred.lm4-data_test$y)^2)
+train(formula(fit4), data = data_train, method = "lm",
+      trControl = train.control)$results["RMSE"]
+```
+
+
+## Variable Selection
+
+## Ridge Regression
+
+## Lasso
+
+
+
+
