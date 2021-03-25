@@ -6,26 +6,27 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,results="hide")
 ```
 
 
 ```{r}
 library(caret)
+library(tidyverse)
 ```
 
 ## General Notation
 We will typicall denote an input variable by the symbol $X$. If $X$ is a vector, its components can be accessed
 by subscripts $X_j$. Quantative outputs will be denoted by $Y$, and qualitative outputs by $G$ (for group). We use uppercase letters such as $X$, $Y$ or $G$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
 
-For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). 
+For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). $\hat Y$ is the outcome of a learning rule $\hat{f}(X)$.
 
-We need data to construct prediction rules. We thus suppose we have available a set of measurments $(x_i,y_i)$, $i=1,\ldots,N$, known as the \emph{training data}, with which to construct our prediction rule.
+We need data to construct learning rules. We thus suppose we have available a set of measurments $(x_i,y_i)$, $i=1,\ldots,N$, known as the training data, with which to construct $\hat{f}(X)$. 
 
 
 ## Multivariate Regression and Least Squares
 
-We consider Multivariate Regression. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
+We will discuss in this course several learning rules. In this section we consider Multivariate Regression. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
 
 \[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
 
@@ -33,7 +34,7 @@ The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X
 
 \[\hat{Y}=X^T\hat\beta.\]
 
-How do we fit the linear model to a set of training data? In Multivariate Regression we typically use \emph{least squares}. In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
+How do we fit the linear model to a set of training data? In Multivariate Regression we typically use least squares. In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
 
 \begin{align*}
 \rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
@@ -45,7 +46,15 @@ If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by
 
 \[\hat\beta=(\bf X^T \bf X)^{-1}\bf X^T \bf y.\]
 
-## Overfitting and Generalization Error
+Thus, the learning rule at the new input point $X_0$ is
+
+\begin{align*}
+\hat{Y}&=\hat{f}(X_0)\\
+&=X_0^T\hat\beta\\
+&=X_0^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
+\end{align*}
+
+## Statistical Learning
 
 In statistics, overfitting is "the production of an analysis that corresponds too closely or exactly to a particular set of data, and may therefore fail to fit additional data or predict future observations reliably". An overfitted model is a statistical model that contains more parameters than can be justified by the data.
 
@@ -54,11 +63,15 @@ the observed data is extremely important in practice.
 
 When buliding a learning method we need to keep in mind the following 2 steps:
 
-1. Model building: in this step we build a series of models and identify the model which leads to best predictions. Often this step involves variable selection and/or the choice of tuning parameters
+1. Training step: in this step we build a series of models and we choose the model which leads to the least prediction error. This step often involves model training steps such as variable selection and the choice of tuning parameters.
 
-2. Model assessment: once we have identified the model, we check its performance on new data.
+2. Testing step: once we have identified the learning method, we test its performance on new data.
 
-The prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
+If we assume that 
+
+\[Y=f(X)+\epsilon\]
+
+where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
 
 \begin{align*}
 \rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
@@ -66,97 +79,131 @@ The prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x
 &=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
 \end{align*}
 
-In the Model building step we aim to estimate the prediction error. There are different approaches for that:
+To perform the Training step we need to estimate the prediction error. There are different approaches to do that. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
 
-1. Information criteria's: AIC, BIC, $C_p$ statistic
-2. Cross-validation.
+We illustrate this with a small simulation example. We simulate data for training and testing. We start by generating $p=15$ covariates. We simulated the outcome from a univariate regression model only depending the 
+first covariate
 
-We end this section with a small simulation example. We generate training and test data from a univariate regression model $Y\sim \beta_1 X_1+\epsilon, \; \beta=2,\;\epsilon\sim N(0,1)$ 
+\[Y\sim \beta_1 X_1+\epsilon, \; \beta_1=2,\;\epsilon\sim N(0,1).\]
 
 ```{r}
 set.seed(1)
-n <- 10
-p <- 10
-beta <- c(2,rep(0,p-1))
-alpha <- 0
-x_train <- matrix(rnorm(n*p),n,p)
-y_train <- alpha+x_train%*%beta+rnorm(n,sd=1)
+n <- 20
+p <- 50
+# simulate covariates
+x_train <- matrix(rnorm(n*(p-1)),n,p-1)
+x_test <- matrix(rnorm(n*(p-1)),n,p-1)
+
+# simulate outcome
+beta0 <- 0
+beta <- c(2,rep(0,p-2))
+y_train <- beta0+x_train%*%beta+rnorm(n,sd=1)
+y_test <- beta0+x_test%*%beta+rnorm(n,sd=1)
+
+# train and test data as data.frames
 data_train <- data.frame(cbind(y_train,x_train))
-colnames(data_train) <- c("y",paste0("x",1:p))
-x_test <- matrix(rnorm(n*p),n,p)
-y_test <- x_test%*%beta+rnorm(n,sd=1)
+colnames(data_train) <- c("y",paste0("x",1:ncol(x_train)))
 data_test <- data.frame(cbind(y_test,x_test))
-colnames(data_test) <- c("y",paste0("x",1:p))
+colnames(data_test) <- c("y",paste0("x",1:ncol(x_train)))
 ```
 
-We fit a model with $p=10$ variables
+Now let's forget about how the data was generated and let's try to build
+a learning method based on linear regression. We investigate 4 different models in the traing phase.
 
-```{r}
-fit.full <- lm(y~.,data=data_train)
-summary(fit.full)
+We start by fitting a linear model based on all $p=15$ covariates
 
-```
-
-
-
-We fit a model with $p=9$ variables
-
-```{r}
-fit1 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8,data=data_train)
+```{r, show=TRUE}
+fit1 <- lm(y~.,data=data_train)
 summary(fit1)
-(rss <- sum((fit1$residuals)^2))
-AIC(fit1)
-BIC(fit1)
-yhat.lm <- predict(fit1)
-ypred.lm <- predict(fit1,newdata = data_test)
-
+aic1 <- bic1 <- cv1 <- NA
 ```
-
+The summary reveals that some coefficients cannot be defined because of singularities. In fact the least-squares estimator is only defined if $p<n$. We fit a model with $p=9$ covariates and calculate the AIC, BIC and 
+the leave-one-out cross-validation error.
 
 ```{r}
 fit2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8,data=data_train)
 summary(fit2)
-(rss <- sum((fit2$residuals)^2))
-AIC(fit2)
-BIC(fit2)
-yhat.lm2 <- predict(fit2)
-ypred.lm2 <- predict(fit2,newdata = data_test)
-sum((ypred.lm2-data_test$y)^2)
-
-train.control <- trainControl(method = "LOOCV")
-# Train the model
-train(formula(fit2), data = data_train, method = "lm",
-      trControl = train.control)$results["RMSE"]
+aic2 <- AIC(fit2)
+bic2 <- BIC(fit2)
+cv2 <- train(formula(fit2), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
 ```
+
+
+We repeat the step using only the $p=5$ first covariates
 
 ```{r}
 fit3 <- lm(y~x1+x2+x3+x4,data=data_train)
 summary(fit3)
-(rss <- sum((fit3$residuals)^2))
-AIC(fit3)
-BIC(fit3)
-yhat.lm3 <- predict(fit3)
-ypred.lm3 <- predict(fit3,newdata = data_test)
-sum((ypred.lm3-data_test$y)^2)
-train(formula(fit3), data = data_train, method = "lm",
-      trControl = train.control)$results["RMSE"]
+aic3 <- AIC(fit3)
+bic3 <- BIC(fit3)
+cv3 <- train(formula(fit3), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
 ```
+
+The forth model is a univariate regression using only the first covariate
 
 ```{r}
-fit4 <- glm(y~x1,data=data_train)
+fit4 <- lm(y~x1,data=data_train)
 summary(fit4)
-(rss <- sum((fit4$residuals)^2))
-AIC(fit4)
-BIC(fit4)
-yhat.lm4 <- predict(fit4)
-ypred.lm4 <- predict(fit4,newdata = data_test)
-sum((ypred.lm4-data_test$y)^2)
-train(formula(fit4), data = data_train, method = "lm",
-      trControl = train.control)$results["RMSE"]
+aic4 <- AIC(fit4)
+bic4 <- BIC(fit4)
+cv4 <- train(formula(fit4), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
 ```
 
+We compare the AIC, BIC and the cross-validation error of the four models
+
+```{r, echo=FALSE}
+res <- data.frame(
+  model=c("M1","M2","M3","M4"),
+  aic=c(aic1,aic2,aic3,aic4),
+  bic=c(bic1,bic2,bic3,bic4),
+  cv.error=c(cv1,cv2,cv3,cv4)
+  )
+knitr::kable(res,digits = 2)
+```
+
+Finally we show the performance on the training 
+
+```{r, echo=FALSE}
+dtrain <- data_train%>%
+  dplyr::select("y","x1")
+dtrain$m2 <- predict(fit2,newdata=data_train)
+dtrain$m3 <- predict(fit3,newdata=data_train)
+dtrain$m4 <- predict(fit4,newdata=data_train)
+dtrain_long <- pivot_longer(dtrain,
+                              cols=c("m2","m3","m4"),
+                              names_to="model",values_to="yhat")
+dtrain_long%>%
+  ggplot(.,aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=yhat,col=model))
+```
+
+and test data.
+
+```{r, echo=FALSE}
+dtest <- data_test%>%
+  dplyr::select("y","x1")
+dtest$m2 <- predict(fit2,newdata=data_test)
+dtest$m3 <- predict(fit3,newdata=data_test)
+dtest$m4 <- predict(fit4,newdata=data_test)
+dtest_long <- pivot_longer(dtest,
+                              cols=c("m2","m3","m4"),
+                              names_to="model",values_to="yhat")
+dtest_long%>%
+  ggplot(.,aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=yhat,col=model))
+```
 
 ## Variable Selection
+
+In this approach we retain only a subset of the variables, and eliminate the rest from the model. Least squares regression is used to estimate the coefficients of the inputs that are retained. There are different approaches to select subsets. We discuss here only Forward stepwise selection. We start with the intercept, and then sequentially add into the model the covariate that most improves the fit.  
 
 ## Ridge Regression
 
