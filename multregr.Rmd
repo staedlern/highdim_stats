@@ -56,18 +56,176 @@ Thus, the learning rule at the new input point $X_0$ is
 
 ## Statistical Learning
 
-In statistics, overfitting is "the production of an analysis that corresponds too closely or exactly to a particular set of data, and may therefore fail to fit additional data or predict future observations reliably". An overfitted model is a statistical model that contains more parameters than can be justified by the data.
-
-A key goal of a learning method is prediction. Therefore the assessment of how the method generalizes beyond 
+A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
 the observed data is extremely important in practice. 
 
-When buliding a learning method we need to keep in mind the following 2 steps:
+When buliding a good learning rule $\hat{f}(X)$ we need to keep in mind the following 2 fundamental steps in statistical learning:
 
-1. Training step: in this step we build a series of models and we choose the model which leads to the least prediction error. This step often involves model training steps such as variable selection and the choice of tuning parameters.
+1. Training step: In this step we explore based on training data a series of learning rules $\hat{f}_k(X)$, $k=1,...,K$. We compare the prediction performance of each rule. We choose the rule with the least prediction error.
 
-2. Testing step: once we have identified the learning method, we test its performance on new data.
+2. Testing step: In this step we test the performance of the best learning rule $\hat{f}(X)$ identified in the Trainig step based on independent test data.
 
-If we assume that 
+To perform the Training step we need to estimate the prediction error for the different learning methods. There are several approaches to do so. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
+
+## Subset selection in regression
+
+We illustrate the Training and Testing steps based on linear regression.
+
+First we simulate training and test data. We generate $p=15$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$. We assume the outcome $Y$ depends only on the first covariate and follows $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, $\beta_1=2$, $\epsilon_i\sim N(0,1)$. We assume the size of the training and test data is $n:=n_{\rm train}=n_{\rm test}=20$.
+
+```{r}
+set.seed(1)
+n <- 20
+p <- 15
+# simulate covariates
+x_train <- matrix(rnorm(n*p),n,p)
+x_test <- matrix(rnorm(n*p),n,p)
+
+# simulate outcome
+beta0 <- 0
+beta <- c(2,0,0,0,2,rep(0,p-5))
+y_train <- beta0+x_train%*%beta+rnorm(n,sd=1)
+y_test <- beta0+x_test%*%beta+rnorm(n,sd=1)
+
+# train and test data as data.frames
+data_train <- data.frame(cbind(y_train,x_train))
+colnames(data_train) <- c("y",paste0("x",1:ncol(x_train)))
+data_test <- data.frame(cbind(y_test,x_test))
+colnames(data_test) <- c("y",paste0("x",1:ncol(x_train)))
+```
+
+In this example we build a series of $K=4$ candidate learning rules.  
+
+1. Linear regression including all $p=15$ covariates
+2. Linear regression including covariates $X_{10},\ldots,X_{15}$ 
+3. Linear regression including covariates $X_{1},\ldots,X_{5}$ covariates
+4. Linear regression including only $X_1$.
+
+If we introduce the so-called set of active variables $S_k=\{j\in (1,\ldots,p); \beta_{j}\neq 0\}$ the 4 learning rules are given by the equations 
+
+\begin{align*}
+\hat{f}_k(X_0)&=X_0^T\hat\beta_{S_k}\\
+&=X_0^T(\bf X_{S_k}^T \bf X_{S_k})^{-1}\bf X_{S_k}^T \bf y,
+\end{align*}
+where $S_{1}=\{1,\ldots,p\}$, $S_{2}=\{10, 11, 12, 13, 14, 15\}$, $S_{3}=\{1, 2, 3, 4, 5\}$ and $S_{4}=\{1\}$.
+
+```{r, show=TRUE}
+fit1 <- lm(y~.,data=data_train)
+fit2 <- lm(y~x10+x11+x12+x13+x14+x15,data=data_train)
+fit3 <- lm(y~x1+x2+x3+x4+x5,data=data_train)
+fit4 <- lm(y~x1,data=data_train)
+```
+
+We now compare the different learning rules based on AIC, BIC and leave-one-out cross-validation (LOOCV).
+
+```{r, echo=FALSE}
+res <- data.frame(
+  LearningRule=c("LR1","LR2","LR3","LR4")
+  )
+res$AIC <- res$BIC <- res$LOOCV <- res$RSStrain <- res$RSStest <- NA
+res$AIC <- c(AIC(fit1),AIC(fit2),AIC(fit3),AIC(fit4))
+res$BIC <- c(BIC(fit1),BIC(fit2),BIC(fit3),BIC(fit4))
+
+library(caret)
+res$LOOCV[1] <- train(formula(fit1), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
+res$LOOCV[2] <- train(formula(fit2), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
+res$LOOCV[3] <- train(formula(fit3), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
+res$LOOCV[4] <- train(formula(fit4), data = data_train, 
+             method = "lm",
+             trControl = trainControl(method = "LOOCV"))$results$RMSE
+
+res$RSStrain[1] <- mean((data_train$y-predict(fit1))^2)
+res$RSStrain[2] <- mean((data_train$y-predict(fit2))^2)
+res$RSStrain[3] <- mean((data_train$y-predict(fit3))^2)
+res$RSStrain[4] <- mean((data_train$y-predict(fit4))^2)
+
+res$RSStest[1] <- mean((data_test$y-predict(fit1,newdata=data_test))^2)
+res$RSStest[2] <- mean((data_test$y-predict(fit2,newdata=data_test))^2)
+res$RSStest[3] <- mean((data_test$y-predict(fit3,newdata=data_test))^2)
+res$RSStest[4] <- mean((data_test$y-predict(fit4,newdata=data_test))^2)
+
+
+knitr::kable(res,digits = 2)
+```
+
+We note that learning rule 4 is achieves the smallest prediction error on test data which coincides with 
+the outcome from LOOCV. Note the 
+
+## Forward stepwise selection 
+
+In the previous section we compared learning methods based on 4 different subsets. For $p$ potential covariates there are $2^p$ possible subsets. Hence the number of potential learning methods grows exponentially with $p$. When an exhaustive search is not possible, we can seek a good path through them. One of the most common search methods is forward stepwise selection. This starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. In that way we create a series of learning methods and we can choose the best one as described above.
+
+```{r, echo=FALSE}
+# Train the model
+step.model <- train(y ~., data = data_train,
+                    method = "leapForward", 
+                    tuneGrid=data.frame(nvmax=1:15),
+                    trControl = trainControl(method = "LOOCV"),
+                    trace = FALSE
+                    )
+step.model$bestTune
+# Model accuracy
+step.model$results
+# Final model coefficients
+coef(step.model$finalModel,2)
+# Summary of the model
+summary(step.model$finalModel)
+```
+
+## Ridge Regression
+
+Subset selection and forward regression outlined above all work by either including or
+excluding covariates, i.e. contrain specific regression coefficients to be zero.
+An alternative is Ridge Regression, which regularises the problem by shrinking
+regression coefficients towards zero. This discourages complex models because
+models that overfit tend to have larger coefficients. Shrinkage is achieved through
+minimisation the penalised negative residual sum of squares, with
+a penalty on the magnitude of the coefficients,
+
+\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|^2
+\end{align*}
+
+The minimization problem can be solved in closed from. We obtain
+
+\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|^2\\
+&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
+\end{align*}
+
+$\lambda$ the amount of shrinkage. Note that for "no penalization", $\lambda=0$, The Ridge Regression coincides with 
+least squares. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero.
+
+In the context of statistical learning we would proceed as follows
+
+1. Choose a grid $0<\lambda_1<\lambda_2<\ldots\lambda_K$
+2. Define a series of learning rule
+
+\begin{align*}
+Y_{\rm new}&=\hat{f}_k(X_{\rm new})\\
+&=X_{\rm new}\hat \hat{\beta}^{\rm Ridge}_{\lambda_k}
+\end{align*}
+
+3. Use Cross-validation to find the optimal learning rule
+
+Example....
+
+Before moving the next topic briefly mention two important aspects of Ridge Regression. A disadvantage of Ridge Regression is that it does not perform variable selection. Regression coefficients are only shrunken towards zero. This makes interpration of the optimal learning method more challenging. Another conceptually interesting aspect of Ridge Regression is its relationship to Bayesian statistics...
+
+
+
+
+
+
+## Lasso
+
+## Details on the Prediction Error
 
 \[Y=f(X)+\epsilon\]
 
@@ -79,136 +237,20 @@ where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction e
 &=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
 \end{align*}
 
-To perform the Training step we need to estimate the prediction error. There are different approaches to do that. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
+## Caret Package
 
-We illustrate this with a small simulation example. We simulate data for training and testing. We start by generating $p=15$ covariates. We simulated the outcome from a univariate regression model only depending the 
-first covariate
+The caret package (short for Classification And REgression Training) is a set of functions that attempt to streamline the process for creating predictive models. The package contains tools for:
 
-\[Y\sim \beta_1 X_1+\epsilon, \; \beta_1=2,\;\epsilon\sim N(0,1).\]
+- data splitting
+- pre-processing
+- feature selection
+- model tuning using resampling
+- variable importance estimation
 
-```{r}
-set.seed(1)
-n <- 20
-p <- 50
-# simulate covariates
-x_train <- matrix(rnorm(n*(p-1)),n,p-1)
-x_test <- matrix(rnorm(n*(p-1)),n,p-1)
+as well as other functionality.
 
-# simulate outcome
-beta0 <- 0
-beta <- c(2,rep(0,p-2))
-y_train <- beta0+x_train%*%beta+rnorm(n,sd=1)
-y_test <- beta0+x_test%*%beta+rnorm(n,sd=1)
-
-# train and test data as data.frames
-data_train <- data.frame(cbind(y_train,x_train))
-colnames(data_train) <- c("y",paste0("x",1:ncol(x_train)))
-data_test <- data.frame(cbind(y_test,x_test))
-colnames(data_test) <- c("y",paste0("x",1:ncol(x_train)))
-```
-
-Now let's forget about how the data was generated and let's try to build
-a learning method based on linear regression. We investigate 4 different models in the traing phase.
-
-We start by fitting a linear model based on all $p=15$ covariates
-
-```{r, show=TRUE}
-fit1 <- lm(y~.,data=data_train)
-summary(fit1)
-aic1 <- bic1 <- cv1 <- NA
-```
-The summary reveals that some coefficients cannot be defined because of singularities. In fact the least-squares estimator is only defined if $p<n$. We fit a model with $p=9$ covariates and calculate the AIC, BIC and 
-the leave-one-out cross-validation error.
-
-```{r}
-fit2 <- lm(y~x1+x2+x3+x4+x5+x6+x7+x8,data=data_train)
-summary(fit2)
-aic2 <- AIC(fit2)
-bic2 <- BIC(fit2)
-cv2 <- train(formula(fit2), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-```
+There are many different modeling functions in R. Some have different syntax for model training and/or prediction. The package started off as a way to provide a uniform interface the functions themselves, as well as a way to standardize common tasks (such parameter tuning and variable importance).
 
 
-We repeat the step using only the $p=5$ first covariates
-
-```{r}
-fit3 <- lm(y~x1+x2+x3+x4,data=data_train)
-summary(fit3)
-aic3 <- AIC(fit3)
-bic3 <- BIC(fit3)
-cv3 <- train(formula(fit3), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-```
-
-The forth model is a univariate regression using only the first covariate
-
-```{r}
-fit4 <- lm(y~x1,data=data_train)
-summary(fit4)
-aic4 <- AIC(fit4)
-bic4 <- BIC(fit4)
-cv4 <- train(formula(fit4), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-```
-
-We compare the AIC, BIC and the cross-validation error of the four models
-
-```{r, echo=FALSE}
-res <- data.frame(
-  model=c("M1","M2","M3","M4"),
-  aic=c(aic1,aic2,aic3,aic4),
-  bic=c(bic1,bic2,bic3,bic4),
-  cv.error=c(cv1,cv2,cv3,cv4)
-  )
-knitr::kable(res,digits = 2)
-```
-
-Finally we show the performance on the training 
-
-```{r, echo=FALSE}
-dtrain <- data_train%>%
-  dplyr::select("y","x1")
-dtrain$m2 <- predict(fit2,newdata=data_train)
-dtrain$m3 <- predict(fit3,newdata=data_train)
-dtrain$m4 <- predict(fit4,newdata=data_train)
-dtrain_long <- pivot_longer(dtrain,
-                              cols=c("m2","m3","m4"),
-                              names_to="model",values_to="yhat")
-dtrain_long%>%
-  ggplot(.,aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=yhat,col=model))
-```
-
-and test data.
-
-```{r, echo=FALSE}
-dtest <- data_test%>%
-  dplyr::select("y","x1")
-dtest$m2 <- predict(fit2,newdata=data_test)
-dtest$m3 <- predict(fit3,newdata=data_test)
-dtest$m4 <- predict(fit4,newdata=data_test)
-dtest_long <- pivot_longer(dtest,
-                              cols=c("m2","m3","m4"),
-                              names_to="model",values_to="yhat")
-dtest_long%>%
-  ggplot(.,aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=yhat,col=model))
-```
-
-## Variable Selection
-
-In this approach we retain only a subset of the variables, and eliminate the rest from the model. Least squares regression is used to estimate the coefficients of the inputs that are retained. There are different approaches to select subsets. We discuss here only Forward stepwise selection. We start with the intercept, and then sequentially add into the model the covariate that most improves the fit.  
-
-## Ridge Regression
-
-## Lasso
-
-
-
-
+Read https://cran.r-project.org/web/packages/caret/vignettes/caret.html for a short intro and 
+https://topepo.github.io/caret/ for a long introduction.
