@@ -162,20 +162,21 @@ the outcome from LOOCV. Note the
 In the previous section we compared learning methods based on 4 different subsets. For $p$ potential covariates there are $2^p$ possible subsets. Hence the number of potential learning methods grows exponentially with $p$. When an exhaustive search is not possible, we can seek a good path through them. One of the most common search methods is forward stepwise selection. This starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. In that way we create a series of learning methods and we can choose the best one as described above.
 
 ```{r, echo=FALSE}
-# Train the model
-step.model <- train(y ~., data = data_train,
-                    method = "leapForward", 
-                    tuneGrid=data.frame(nvmax=1:15),
-                    trControl = trainControl(method = "LOOCV"),
-                    trace = FALSE
+tc <- trainControl(method = "cv", number = 10)
+fit.forward <- train(y ~., data = data_train,
+                     method = "leapForward", 
+                     tuneGrid=data.frame(nvmax=1:15),
+                     trControl = tc,
+                     trace = FALSE
                     )
-step.model$bestTune
-# Model accuracy
-step.model$results
-# Final model coefficients
-coef(step.model$finalModel,2)
-# Summary of the model
-summary(step.model$finalModel)
+# nvmax
+fit.forward$bestTune
+# accuracy
+fit.forward$results
+# summary of the model
+summary(fit.forward$finalModel)
+# final model coefficients
+coef(fit.forward$finalModel,2)
 ```
 
 ## Ridge Regression
@@ -214,10 +215,27 @@ Y_{\rm new}&=\hat{f}_k(X_{\rm new})\\
 
 3. Use Cross-validation to find the optimal learning rule
 
-Example....
+```{r}
+lambda.grid <- 10^seq(-3, 3, length = 100)
+fit.ridge<-train(y ~., 
+                 data = data_train,
+                 method = "glmnet",
+                 preProcess = c("center", "scale"),
+                 tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                 trControl = tc
+) 
 
-Before moving the next topic briefly mention two important aspects of Ridge Regression. A disadvantage of Ridge Regression is that it does not perform variable selection. Regression coefficients are only shrunken towards zero. This makes interpration of the optimal learning method more challenging. Another conceptually interesting aspect of Ridge Regression is its relationship to Bayesian statistics...
+```
 
+
+Before moving the next topic briefly mention two important aspects of Ridge Regression. Although Ridge Regression works in high-dimenions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
+
+Least squares regression becomes unstalbe (high variance) with highly correlated covariates. Ridge regression counter acts this by shrinking low-variance components more than high-variance components.
+
+Finally Ridge Regression beviewed as the maximum a posetrior (MAP) estimate of hierarchical bayesian model: 
+\[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
+with prior distribution on the regression coefficients
+\[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p\]
 
 
 
