@@ -1,0 +1,67 @@
+---
+title: "Classification and Survival Analysis"
+author: "Nicolas Städler"
+date: "3/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,results="hide")
+```
+
+
+```{r}
+library(caret)
+library(mlbench)
+library(glmnet)
+library(tidyverse)
+```
+
+We so far focused on linear regression. We will now extend to situation where response is binary (classification) and where response is time-to-event. 
+
+## Classification
+
+We focus on the binary situation where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the success probability $p(x)=P(G=1|X=x;\beta)$ using the logistic regression approach
+
+\[\rm{logit}(x;\beta)=log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
+
+In logistic regression we estimate the regression parameter by maximizing the log-likelihood
+
+\begin{align*}
+l(\beta|\bf G,\bf X)&=\sum_{i=1}^{n}(1-g_i)\log(1-p(x_i;\beta))+g_i\log p(x_i;\beta)\\
+&=\sum_{i=1}^{n}g_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
+\end{align*}
+
+Prediction based on new input data $X_{\rm new}$ is obtained as
+
+\begin{align*}
+\hat{G}(X_{\rm new})&=1\quad \rm{if}\quad P(G=1|X_{\rm new};\beta)>0.5. 
+\end{align*}
+
+In the following we use the 0-1 loss and use 10-fold cross-validation to approximate the prediction error.
+
+Similar as in linear regression in the high-dimensional context where $n$ small compared to $p$ the maximum likelihood estimater (i.e. binomial regression). We will discuss in the following forward regression, L1-penalized likelihood and support vector machines as alternative methods.
+
+## Example Dataset
+
+To illustrate the approaches we use the Sonar dataset from the mlbench package.
+```{r}
+data(Sonar)
+
+
+```
+
+
+
+## Survival Analysis
+
+
+
+## Exercises
+
+1. Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
+ridge regression and lasso regression
+
+2. Calculate the Ridge and the Lasso solution for orthogonal covariates.
+
+3. 

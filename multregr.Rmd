@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE,results="hide")
 
 ```{r}
 library(caret)
+library(glmnet)
 library(tidyverse)
 ```
 
@@ -203,6 +204,13 @@ The minimization problem can be solved in closed from. We obtain
 $\lambda$ the amount of shrinkage. Note that for "no penalization", $\lambda=0$, The Ridge Regression coincides with 
 least squares. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero.
 
+```{r}
+fit.ridge.glmnet <-glmnet(x=x_train,y=y_train,alpha=0) 
+plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
+
+```
+
+
 In the context of statistical learning we would proceed as follows
 
 1. Choose a grid $0<\lambda_1<\lambda_2<\ldots\lambda_K$
@@ -216,7 +224,9 @@ Y_{\rm new}&=\hat{f}_k(X_{\rm new})\\
 3. Use Cross-validation to find the optimal learning rule
 
 ```{r}
-lambda.grid <- 10^seq(-3, 3, length = 100)
+lambda.max <- 10
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
 fit.ridge<-train(y ~., 
                  data = data_train,
                  method = "glmnet",
@@ -225,12 +235,32 @@ fit.ridge<-train(y ~.,
                  trControl = tc
 ) 
 
+#
+plot(fit.ridge)
+# Best lambda
+fit.ridge$bestTune$lambda
+# Model coefficients
+coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)
+# Make predictions
+yhat <- fit.ridge %>% predict(test.data)
+```
+
+```{r}
+models <- list(forward= fit.forward,ridge = fit.ridge)
+resamples(models) %>% summary( metric = "RMSE")
 ```
 
 
-Before moving the next topic briefly mention two important aspects of Ridge Regression. Although Ridge Regression works in high-dimenions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
+We discuss now some important properties of Ridge Regression.
+
+### Shrinkage property
+
+Although Ridge Regression works in high-dimenions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
 
 Least squares regression becomes unstalbe (high variance) with highly correlated covariates. Ridge regression counter acts this by shrinking low-variance components more than high-variance components.
+
+
+### Bayesian interpretation
 
 Finally Ridge Regression beviewed as the maximum a posetrior (MAP) estimate of hierarchical bayesian model: 
 \[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
@@ -238,10 +268,89 @@ with prior distribution on the regression coefficients
 \[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p\]
 
 
+## The Lasso
+
+A ridge solution can be hard to interpret because it is not sparse (none of the $\beta_j$'s is set exactly to $0$). 
+
+The Lasso works similar to Ridge but shrinkage is achieved by penalizing the L1 norm of the regression coefficients instead of the Euclidean (L2) norm
+
+\begin{align*}
+\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|.
+\end{align*}
+
+The following Figure shows the Lasso solution for a grid of lambda values. Interestingly, we note that the Lasso
+shrinks some coefficients to exactly zero. This is an important feature of the L1 penalty.
+
+```{r}
+fit.lasso.glmnet <-glmnet(x=x_train,y=y_train,alpha=1) 
+plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
+```
+
+To identify the optimal model we proceed as in Ridge Regression.
+
+```{r}
+mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
+sx <- scale(x,scale=apply(x, 2, mysd))
+sx <- as.matrix(sx, ncol=20, nrow=100)
+sy <- as.vector(scale(y, scale=mysd(y)))
+max(abs(colSums(sx*sy)))/100
+## [1] 0.1758808
+fitGLM <- glmnet(sx,sy)
+max(fitGLM$lambda)
+## [1] 0.1758808
+
+fit.lasso.glmnet <-glmnet(x=x_train,y=y_train,
+                          alpha=1,
+                          standardize=FALSE,
+                          intercept=FALSE) 
+max(fit.lasso.glmnet$lambda)
+max(abs(t(x_train)%*%y_train))/nrow(x_train)
+```
 
 
+```{r}
+lambda.max <- max(abs(t(x_train)%*%y_train))/nrow(x_train)
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.lasso<-train(y ~., 
+                 data = data_train,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                 trControl = tc
+) 
 
-## Lasso
+#
+plot(fit.lasso)
+# Best lambda
+fit.lasso$bestTune$lambda
+# Model coefficients
+coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)
+# Make predictions
+yhat <- fit.lasso %>% predict(test.data)
+```
+
+We discuss now some important properties of the Lasso.
+
+### Variable Selection
+The Lasso does not only shrink coefficients to zero but also performs variable selection and therefore 
+leads to more interpretabel models. To understand the difference between L1 and L2 penalization the following Geometric interpretation is helpful:
+
+The lasso performs L1 shrinkage, so that there are "corners'' in the constraint, which in two dimensions corresponds to a diamond. If the sum of squares "hits'' one of these corners, then the coefficient corresponding to the axis is shrunk to zero.
+
+As p increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set equal to zero. Hence, the lasso performs shrinkage and (effectively) subset selection.
+
+For the Lasso we can define the selecte variables
+
+$$S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}\neq 0\}$$
+
+An interesting question is whether the Lasso does a good job in variable selection. In particular, does $S^{\rm Lasso}_{\lambda}$ agree with the true set of active variables $S_0=\{j\in (1,\ldots,p); \beta_{j}\neq 0\}$, does Lasso typically under or over select variables, i.e. $S^{\rm Lasso}_{\lambda}\subset S_0$ or $S_0 \subset S^{\rm Lasso}_{\lambda}$? These questions were an active field of mathematical statistics. We briefly discuss two results of this research.
+
+
+### Numerical Optimization and Soft Thresholding
+
+In contrast to Ridge Regression, there is no closed form solution to the Lasso optimization problem. 
+
+
 
 ## Details on the Prediction Error
 
@@ -272,3 +381,13 @@ There are many different modeling functions in R. Some have different syntax for
 
 Read https://cran.r-project.org/web/packages/caret/vignettes/caret.html for a short intro and 
 https://topepo.github.io/caret/ for a long introduction.
+
+
+## Exercises
+
+1. Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
+ridge regression and lasso regression
+
+2. Calculate the Ridge and the Lasso solution for orthogonal covariates.
+
+3. 
