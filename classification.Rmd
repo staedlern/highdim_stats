@@ -15,6 +15,7 @@ library(caret)
 library(mlbench)
 library(glmnet)
 library(tidyverse)
+library(e1071)
 ```
 
 We so far focused on linear regression. We will now extend to situation where response is binary (classification) and where response is time-to-event. 
@@ -42,16 +43,60 @@ In the following we use the 0-1 loss and use 10-fold cross-validation to approxi
 
 Similar as in linear regression in the high-dimensional context where $n$ small compared to $p$ the maximum likelihood estimater (i.e. binomial regression). We will discuss in the following forward regression, L1-penalized likelihood and support vector machines as alternative methods.
 
-## Example Dataset
+### Example Dataset
 
-To illustrate the approaches we use the Sonar dataset from the mlbench package.
+To illustrate the approaches we use the Sonar dataset from the mlbench package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands.
+
 ```{r}
 data(Sonar)
 
+set.seed(107)
+inTrain <- createDataPartition(
+  y = Sonar$Class,
+  ## the outcome data are needed
+  p = .5,
+  ## The percentage of data in the
+  ## training set
+  list = FALSE
+)
+dtrain <- Sonar[ inTrain,]
+dtest  <- Sonar[-inTrain,]
 
 ```
 
+### Logistic Regression and Forward selection
+```{r}
+tc <- trainControl(method = "cv", number = 10)
+fit.forward <- train(Class ~1, 
+                     data = dtrain,
+                     method = "glmStepAIC", 
+                     family = "binomial",
+                     direction ="forward",
+                     trControl = tc,
+                     trace = FALSE
+                    )
+# nvmax
+fit.forward$bestTune
+# accuracy
+fit.forward$results
+# summary of the model
+summary(fit.forward$finalModel)
+# final model coefficients
+coef(fit.forward$finalModel,2)
 
+```
+
+ctrl <- trainControl(method = "repeatedcv", repeats = 3)
+
+plsFit <- train(
+  Class ~ .,
+  data = training,
+  method = "pls",
+  preProc = c("center", "scale"),
+  tuneLength = 15,
+  ## added:
+  trControl = ctrl
+)
 
 ## Survival Analysis
 
