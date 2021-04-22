@@ -6,42 +6,43 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,results="hide")
+knitr::opts_chunk$set(echo = TRUE,results="hide",warnings=FALSE)
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 library(caret)
 library(mlbench)
 library(glmnet)
 library(tidyverse)
 library(e1071)
+library(MASS)
 ```
 
 We so far focused on linear regression. We will now extend to situation where response is binary (classification) and where response is time-to-event. 
 
 ## Classification
 
-We focus on the binary situation where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the success probability $p(x)=P(G=1|X=x;\beta)$ using the logistic regression approach
+We focus on the binary situation where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $p(x)=P(G=1|X=x;\beta)$ using the logistic regression approach with logit link function
 
 \[\rm{logit}(x;\beta)=log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
-In logistic regression we estimate the regression parameter by maximizing the log-likelihood
+In logistic regression we estimate the regression parameter $\beta$ by maximizing the log-likelihood
 
 \begin{align*}
 l(\beta|\bf G,\bf X)&=\sum_{i=1}^{n}(1-g_i)\log(1-p(x_i;\beta))+g_i\log p(x_i;\beta)\\
 &=\sum_{i=1}^{n}g_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
 \end{align*}
 
-Prediction based on new input data $X_{\rm new}$ is obtained as
+Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ is obtained as
 
 \begin{align*}
-\hat{G}(X_{\rm new})&=1\quad \rm{if}\quad P(G=1|X_{\rm new};\beta)>0.5. 
+\hat{G}(X_{\rm new})&=1\quad \rm{if}\quad p(X_{\rm new};\hat\beta)>0.5. 
 \end{align*}
 
-In the following we use the 0-1 loss and use 10-fold cross-validation to approximate the prediction error.
+The quality of the prediction is judged based on the missclassification error on test data.
 
-Similar as in linear regression in the high-dimensional context where $n$ small compared to $p$ the maximum likelihood estimater (i.e. binomial regression). We will discuss in the following forward regression, L1-penalized likelihood and support vector machines as alternative methods.
+Similar as in linear regression, in the high-dimensional context where $n$ is small compared to $p$ the maximum likelihood estimater (i.e. standard logistic regression) does often lead to overfitting and poor generalisation error. We will discuss in the following forward regression, L1-penalized likelihood and support vector machines as alternative methods.
 
 ### Example Dataset
 
@@ -60,46 +61,238 @@ inTrain <- createDataPartition(
   list = FALSE
 )
 dtrain <- Sonar[ inTrain,]
+xtrain <- as.matrix(dtrain[,-61])
+ytrain <- dtrain$Class
 dtest  <- Sonar[-inTrain,]
+xtest <- as.matrix(dtest[,-61])
+ytest <- dtest$Class
 
 ```
 
-### Logistic Regression and Forward selection
+### Logistic regression, Forward selection and L1 penalization
+
+We first run logistic regression once with only an intercept and once with all the covariates. We
+note that glm reports convergence problems when using all variables. This indicates that the model could be to complex to fit.
+
+In order to compare the performance of the different methods we setup trainControl. We use 10 fold cross-validation
+
 ```{r}
-tc <- trainControl(method = "cv", number = 10)
-fit.forward <- train(Class ~1, 
-                     data = dtrain,
-                     method = "glmStepAIC", 
-                     family = "binomial",
-                     direction ="forward",
-                     trControl = tc,
-                     trace = FALSE
-                    )
-# nvmax
-fit.forward$bestTune
-# accuracy
-fit.forward$results
-# summary of the model
-summary(fit.forward$finalModel)
-# final model coefficients
-coef(fit.forward$finalModel,2)
+tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accuracy
 
+# tc <- trainControl(method = "cv", number = 10, # 10-fold CV, performance=ROC
+#                    summaryFunction = twoClassSummary,
+#                    classProbs = TRUE)
 ```
 
-ctrl <- trainControl(method = "repeatedcv", repeats = 3)
 
-plsFit <- train(
-  Class ~ .,
-  data = training,
-  method = "pls",
-  preProc = c("center", "scale"),
-  tuneLength = 15,
-  ## added:
-  trControl = ctrl
+```{r}
+fit.0 <-  glm(Class~1,family=binomial,data=dtrain)
+fit.full <-  glm(Class~.,family=binomial,data=dtrain)
+fit.full.caret <- train(Class ~., 
+                        data = dtrain, 
+                        method = "glm", 
+                        family = "binomial",
+                        trControl = tc)
+```
+
+Next we use forward selection.
+
+```{r}
+upper.model <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
+fit.fw <- stepAIC(fit.0,
+                  scope=upper.model,
+                  direction = "forward", 
+                  steps=10,
+                  trace = FALSE)
+summary(fit.fw)
+broom::tidy(fit.fw)
+```
+
+
+```{r}
+fit.fw.caret <- train(x=xtrain,
+                      y=ytrain, 
+                      method = "glmStepAIC", 
+                      family = "binomial",
+                      direction ="forward",
+                      steps=10,
+                      trControl = tc,
+                      trace = FALSE
 )
+# accuracy
+fit.fw.caret$results
+# summary of the model
+summary(fit.fw.caret$finalModel)
+```
 
-## Survival Analysis
+Next, we use L1-penalized regression
 
+\begin{align*}
+\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-l(\beta|\bf G,\bf X)+\lambda\|\beta\|.
+\end{align*}
+
+
+```{r}
+fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
+plot(fit.l1,xvar="lambda",label=TRUE)
+cvfit <- cv.glmnet(x=xtrain, y=ytrain, family = "binomial", type.measure = "class",alpha=1)
+cvfit$lambda.min
+plot(cvfit)
+```
+
+```{r}
+lambda.grid <- fit.l1$lambda
+fit.l1.caret<-train(x=xtrain,
+                 y=ytrain,
+                 method = "glmnet",
+                 family="binomial",
+                 preProc = c("center","scale"),
+                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+#
+ggplot(fit.l1.caret)
+# Best lambda
+fit.l1.caret$bestTune$lambda
+# Model coefficients
+coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
+# Make predictions
+confusionMatrix(data =fit.l1.caret %>% predict(xtest), ytest)
+confusionMatrix(data =fit.fw.caret %>% predict(xtest), ytest)
+confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
+```
+
+Finally we compare all models
+```{r}
+models <- list(full=fit.full.caret,
+               fw=fit.fw.caret,
+               l1=fit.l1.caret)
+summary(resamples(models),metric = "Accuracy")
+```
+
+```{r}
+coef(fit.l1,s=cvfit$lambda.min)
+coef(fit.fw)
+```
+
+
+## Survival analysis
+
+Another important endpoint in many areas is time-to-event. We will give a very brief introduction into survival analysis and show the cox proportional hazards model can be used to address high-dimensional problems. For subject $i$ we denote the event time with $T_i$. Unfortunately, typically we do for each subject observe the event time as a subject may be censored due to:
+
+* Loss to follow-up
+* Withdrawal from study
+* No event by end of fixed study period.
+
+Therefore in practise we observe the survival time $Y_i$ (which e) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event $=0$ in case of censoring).
+
+A fundamental quantity in survival analysis is the survival probability
+
+\[S(t)=P(T>t)=1-F(t).\]
+
+The Kaplan-Meier method is the most common way to estimate survival times and probabilities.
+The survival probability can be estimated using the Kaplan-Meier method.
+
+
+The Cox proportional hazards model is commonly used for the study of the relationship beteween predictor variables and survival time. The Cox model assumes a semi-parametric form for the hazard, or the instantaneous rate at which events occur
+
+\[h(t|X)=h_0(t)exp(X^T\beta).\]
+
+$\lambda_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. In the classic setting $n>p$, inference is made via the partial likelihood. In the high-dimensional context we can penalize the negative log of the partial likelihood.
+
+If you are interested to learn more about survival analysis I recommend you to have a look at this tutorial https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html.
+
+
+### Example Dataset
+Gene expression data for 7399 genes measured on 240 patients, as well as censored survival times, for these patients. We start by reading the data and plotting the estimated surival curve.
+
+```{r}
+# load packages for survival analysis
+library(survival)
+library(survminer)
+
+# read data
+x <- read.table("data/lymphx.txt")%>%# gene expression (covariates)
+  as.matrix
+y <- read.table("data/lymphtime.txt",header = TRUE)%>%# survival time and event variable
+  as.matrix
+dat <- data.frame(cbind(y,x))
+
+# kaplan meier estimate
+fit.surv <- survfit(Surv(time, status) ~ 1, data = dat)
+ggsurvplot(fit.surv)
+```
+
+For example the estimated probability of surviving beyond 10 years is obtained as
+
+```{r}
+summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
+```
+
+We now perform L1-penalized cox regression using glmnet.
+
+```{r}
+fit.l1 <- glmnet(x, y, family = "cox",alpha=1)
+plot(fit.l1,xvar="lambda")
+
+set.seed(1)
+cvfit <- cv.glmnet(x,y,family="cox",type.measure = "C")
+plot(cvfit)
+
+cvfit$lambda.min
+cvfit$lambda.1se
+
+betahat <- coef(fit.l1,s=cvfit$lambda.1se)
+names(betahat) <- colnames(x)
+Shat <- rownames(betahat)[which(betahat != 0)]
+
+fm <- as.formula(paste0("Surv(time, status) ~ 0 +",paste(Shat,collapse = "+")))
+fit.shat <- coxph(fm,data=dat,x=TRUE,y=TRUE)
+```
+
+
+library(pec)
+# cox backward selection with adsl variables
+fm <- Surv(AVAL, Delta) ~ 0 + A1 + A2 + A3+GROUP
+fitcoxbw <- pec::selectCox(fm, data = dt_tte, rule = "aic")
+print(survminer::ggforest(coxph(fitcoxbw$fit$sformula, data = dt_tte)))
+
+
+
+```{r}
+library(party)
+# Condicional Inferences Trees
+fm <- Surv(time, status) ~ .
+fitcforest <- pec::pecCforest(fm, data =dat[,1:20], 
+                              control = party::cforest_classical(ntree = 1000))
+
+# Survival Random Forests
+fitrsf <- randomForestSRC::rfsrc(fm, data = dt_tte, forest = TRUE, 
+                                 ntree = 1000, splitrule = "logrank", 
+                                 na.action = "na.impute")
+
+# Variable Importance
+varimp <- randomForestSRC::vimp(fitrsf, importance = "permute")$importance
+data.frame(varimp)%>%
+  tibble::rownames_to_column("NAME")%>%
+  ggplot()+
+  geom_point(aes(x = reorder(NAME, varimp), y = varimp), size = 3, shape = 18)+
+  labs(title = "Variable Importance Random Survival Forest")+
+  xlab("Variable")+
+  ylab("Variable importance")+
+  coord_flip()
+```
+
+```{r}
+models <- list("cox.shat"=fit.shat)
+fitpec <- pec::pec(
+  object=models, 
+  data = dat, 
+  formula = Surv(time, status) ~ 1, 
+  splitMethod = "cv10", B = 1, keep.index = TRUE, keep.matrix = TRUE)
+plot(fitpec)
+```
 
 
 ## Exercises
