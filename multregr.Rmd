@@ -6,11 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,results="hide")
+knitr::opts_chunk$set(echo = TRUE,results="hide",warning=FALSE)
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 library(caret)
 library(glmnet)
 library(tidyverse)
@@ -23,6 +23,19 @@ by subscripts $X_j$. Quantative outputs will be denoted by $Y$, and qualitative 
 For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). $\hat Y$ is the outcome of a learning rule $\hat{f}(X)$.
 
 We need data to construct learning rules. We thus suppose we have available a set of measurments $(x_i,y_i)$, $i=1,\ldots,N$, known as the training data, with which to construct $\hat{f}(X)$. 
+
+## Statistical Learning
+
+A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
+the observed data is extremely important in practice. 
+
+When buliding a good learning rule $\hat{f}(X)$ we need to keep in mind the following 2 fundamental steps in statistical learning:
+
+1. Training step: In this step we explore based on training data a series of learning rules $\hat{f}_k(X)$, $k=1,...,K$. We compare the prediction performance of each rule. We choose the rule with the least prediction error.
+
+2. Testing step: In this step we test the performance of the best learning rule $\hat{f}(X)$ identified in the Trainig step based on independent test data.
+
+To perform the Training step we need to estimate the prediction error for the different learning methods. There are several approaches to do so. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
 
 
 ## Multivariate Regression and Least Squares
@@ -55,18 +68,86 @@ Thus, the learning rule at the new input point $X_0$ is
 &=X_0^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
 \end{align*}
 
-## Statistical Learning
+## Overfitting and High-dimesionality
 
-A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
-the observed data is extremely important in practice. 
+```{r}
+set.seed(1)
+n <- 20
+p <- 50
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+xtest <- matrix(rnorm(n*p),n,p)
 
-When buliding a good learning rule $\hat{f}(X)$ we need to keep in mind the following 2 fundamental steps in statistical learning:
+# simulate outcome
+beta0 <- 0
+beta <- c(2,rep(0,p-1))
+ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=1)
+ytest <- beta0+xtest%*%beta+rnorm(n,sd=1)
 
-1. Training step: In this step we explore based on training data a series of learning rules $\hat{f}_k(X)$, $k=1,...,K$. We compare the prediction performance of each rule. We choose the rule with the least prediction error.
+# train and test data as data.frames
+dtrain <- data.frame(cbind(ytrain,xtrain))
+colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
+dtest <- data.frame(cbind(ytest,xtest))
+colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
+```
 
-2. Testing step: In this step we test the performance of the best learning rule $\hat{f}(X)$ identified in the Trainig step based on independent test data.
 
-To perform the Training step we need to estimate the prediction error for the different learning methods. There are several approaches to do so. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
+```{r}
+fit <- lm(y~x1,data=dtrain)
+dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+```
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:9,collapse="+")))
+fit <- lm(fm,data=dtrain)
+summary(fit)
+dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+```
+
+
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
+fit <- lm(fm,data=dtrain)
+summary(fit)
+dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+```
+
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
+fit <- lm(fm,data=dtrain)
+summary(fit)
+dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+```
+
+We note by including more noise variables into the model we improve the fit to the training data. However, on the performance on the test data continuously gets worse. Ultimately we get a perfect fit if $p=n-1$. In other words there are no residual degrees of freedom. Also for $p\leq n-1$ the matrix $\bf X^T \bf X$ becomes singular
+
 
 ## Subset selection in regression
 
@@ -242,7 +323,7 @@ fit.ridge$bestTune$lambda
 # Model coefficients
 coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)
 # Make predictions
-yhat <- fit.ridge %>% predict(test.data)
+yhat <- fit.ridge %>% predict(data_test)
 ```
 
 ```{r}
@@ -288,7 +369,7 @@ plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
 
 To identify the optimal model we proceed as in Ridge Regression.
 
-```{r}
+```{r eval=FALSE}
 mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
 sx <- scale(x,scale=apply(x, 2, mysd))
 sx <- as.matrix(sx, ncol=20, nrow=100)
@@ -326,7 +407,7 @@ fit.lasso$bestTune$lambda
 # Model coefficients
 coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)
 # Make predictions
-yhat <- fit.lasso %>% predict(test.data)
+yhat <- fit.lasso %>% predict(data_train)
 ```
 
 We discuss now some important properties of the Lasso.
