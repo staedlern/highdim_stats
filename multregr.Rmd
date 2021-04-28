@@ -68,42 +68,49 @@ Thus, the learning rule at the new input point $X_0$ is
 &=X_0^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
 \end{align*}
 
-## Overfitting and High-dimesionality
+## Overfitting and High-dimensionality
+
+Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
+but explain more than the signal alone: it also models the error. Hence, it overfits the data. In high-dimensional
+settings overfitting is a real threat. The number of explanatory variables exceeds the number of observations. It
+is thus possible to form a linear combination of the covariates that perfectly explains the response, including the
+noise.
+Large estimates of regression coefficients are often an indication of overfitting. Augmentation of the estimation
+procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a
+consequence it decreases the probability of overfitting. Overfitting is illustrated in the next example.
 
 ```{r}
 set.seed(1)
-n <- 20
-p <- 50
+n <- 10
+p <- 9
+beta <- c(1,rep(0,p-1))
+
 # simulate covariates
-xtrain <- matrix(rnorm(n*p),n,p)
-xtest <- matrix(rnorm(n*p),n,p)
+x <- matrix(rnorm(n*p),n,p)
+y <- x%*%beta+rnorm(n,sd=0.5)
 
-# simulate outcome
-beta0 <- 0
-beta <- c(2,rep(0,p-1))
-ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=1)
-ytest <- beta0+xtest%*%beta+rnorm(n,sd=1)
+# lm
+fit <- lm(y~0+x)
+summary(fit)
+coef(fit)
+```
+As $\beta = (1, 0, \ldots, 0)$, many regression coefficient are clearly over-estimated.
 
-# train and test data as data.frames
-dtrain <- data.frame(cbind(ytrain,xtrain))
-colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
-dtest <- data.frame(cbind(ytest,xtest))
-colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
+The fitted values are plotted against the values of the first covariates in the right bottom panel of
+As a reference the line x = y is added, which represents the ‘true’ model. The fitted model follows
+the ‘true’ relationship. But it also captures the deviations from this line that represent the errors.
+
+```{r}
+t.d <-data.frame(x=x[,1],y=y,yhat=predict(fit)) 
+t.d%>%
+  ggplot(.,aes(x=x))+
+  geom_point(aes(y=y),size=2)+
+  geom_line(aes(y=yhat),col="red")+
+  geom_abline(yintercept=0,xintercept=1,col="blue",lty=2)
 ```
 
 
-```{r}
-fit <- lm(y~x1,data=dtrain)
-dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-```
-```{r}
+```{r, eval=FALSE}
 fm <- as.formula(paste0("y~",paste0("x",1:9,collapse="+")))
 fit <- lm(fm,data=dtrain)
 summary(fit)
@@ -118,7 +125,7 @@ dtest%>%
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
 fit <- lm(fm,data=dtrain)
 summary(fit)
@@ -132,7 +139,7 @@ dtest%>%
   geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
 ```
 
-```{r}
+```{r, eval=FALSE}
 fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
 fit <- lm(fm,data=dtrain)
 summary(fit)
@@ -147,6 +154,65 @@ dtest%>%
 ```
 
 We note by including more noise variables into the model we improve the fit to the training data. However, on the performance on the test data continuously gets worse. Ultimately we get a perfect fit if $p=n-1$. In other words there are no residual degrees of freedom. Also for $p\leq n-1$ the matrix $\bf X^T \bf X$ becomes singular
+
+## Collinearity and High-dimensionality
+
+Recall collinearity in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred as super-collinearity.
+
+```{r}
+set.seed(1)
+n <- 20
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+x3 <- x1+rnorm(n,sd=0.25)
+x4 <- x1
+y <- 2*x1+rnorm(n)
+dat <- data.frame(y,x1,x2,x3,x4)
+```
+
+```{r}
+dat%>%
+  ggplot(.,aes(x=x1,y=x2))+
+  geom_point()+
+  ggtitle("no collinearity")
+
+dat%>%
+  ggplot(.,aes(x=x1,y=x3))+
+  geom_point()+
+  ggtitle("collinearity")
+
+dat%>%
+  ggplot(.,aes(x=x1,y=x4))+
+  geom_point()+
+  ggtitle("super collinearity")
+```
+
+In the presence of collinearity, the estimate of one variable's impact on the dependent variable Y while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. 
+
+Add Figure with "shaky" plain.
+
+```{r}
+set.seed(1)
+summary(lm(y~x1+x2,data=dat))
+summary(lm(y~x1+x3,data=dat))
+summary(lm(y~x1+x4,data=dat))
+```
+In the case of super-collinearity the OLS is not defined as rank of the design matrix is 1 and therefore the matrix $\bf X^T \bf X$ is singular and therefore not invertable. 
+
+```{r}
+x <- as.matrix(dat[,-1])
+det(t(x)%*%x)
+```
+
+High-dimensional problems with $p>n$ always suffer from super-collinearity: the rank of the design matrix is maximally equal to $n$ which implies that the columns of $\bf X$ are linearly dependent. The OLD estimator cannot be calculated in this situation.
+
+```{r}
+xtx <- t(xtest)%*%xtest
+det(xtx)
+#solve(txt)
+```
+
+## Contrainted Least Squares
 
 
 ## Subset selection in regression
