@@ -110,7 +110,38 @@ t.d%>%
 ```
 
 
-```{r, eval=FALSE}
+```{r}
+set.seed(1)
+n <- 20
+p <- 50
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+xtest <- matrix(rnorm(n*p),n,p)
+# simulate outcome
+beta0 <- 0
+beta <- c(2,rep(0,p-1))
+ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=1)
+ytest <- beta0+xtest%*%beta+rnorm(n,sd=1)
+# train and test data as data.frames
+dtrain <- data.frame(cbind(ytrain,xtrain))
+colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
+dtest <- data.frame(cbind(ytest,xtest))
+colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
+```
+
+
+```{r}
+fit <- lm(y~x1,data=dtrain)
+dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+```
+```{r}
 fm <- as.formula(paste0("y~",paste0("x",1:9,collapse="+")))
 fit <- lm(fm,data=dtrain)
 summary(fit)
@@ -125,7 +156,7 @@ dtest%>%
 ```
 
 
-```{r, eval=FALSE}
+```{r}
 fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
 fit <- lm(fm,data=dtrain)
 summary(fit)
@@ -139,7 +170,7 @@ dtest%>%
   geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
 ```
 
-```{r, eval=FALSE}
+```{r}
 fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
 fit <- lm(fm,data=dtrain)
 summary(fit)
@@ -153,7 +184,7 @@ dtest%>%
   geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
 ```
 
-We note by including more noise variables into the model we improve the fit to the training data. However, on the performance on the test data continuously gets worse. Ultimately we get a perfect fit if $p=n-1$. In other words there are no residual degrees of freedom. Also for $p\leq n-1$ the matrix $\bf X^T \bf X$ becomes singular
+We note by including more noise variables into the model we improve the fit to the training data. However, on the performance on the test data continuously gets worse. Ultimately we get a perfect fit if $p=n-1$. In other words there are no residual degrees of freedom. Also for $p\leq n-1$ the matrix $\bf X^T \bf X$ becomes singular. A rule of thumb is that residual degrees of freedom should be at least 10.
 
 ## Collinearity and High-dimensionality
 
@@ -213,6 +244,10 @@ det(xtx)
 ```
 
 ## Contrainted Least Squares
+
+Large estimates of regression coefficients are often an indication of overfitting. Augmentation of the estimation
+procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a
+consequence it decreases the probability of overfitting.
 
 
 ## Subset selection in regression
