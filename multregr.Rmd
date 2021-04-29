@@ -245,9 +245,8 @@ det(xtx)
 
 ## Contrainted Least Squares
 
-Large estimates of regression coefficients are often an indication of overfitting. Augmentation of the estimation
-procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a
-consequence it decreases the probability of overfitting.
+We have seen that OLS falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the estimation
+procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize $\rm{RSS}(\beta)$ under some contstraints on the parameter $\beta$.
 
 
 ## Subset selection in regression
@@ -368,23 +367,29 @@ Subset selection and forward regression outlined above all work by either includ
 excluding covariates, i.e. contrain specific regression coefficients to be zero.
 An alternative is Ridge Regression, which regularises the problem by shrinking
 regression coefficients towards zero. This discourages complex models because
-models that overfit tend to have larger coefficients. Shrinkage is achieved through
-minimisation the penalised negative residual sum of squares, with
-a penalty on the magnitude of the coefficients,
+models that overfit tend to have larger coefficients. We can formulate Ridge Regression as the constrained optimization problem
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|^2
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}_{\|\beta\|^2\leq c}\frac{1}{n}\rm{RSS}(\beta).
 \end{align*}
 
-The minimization problem can be solved in closed from. We obtain
+The constrained estimation interpretation of the ridge regression estimator is illustrated in the figure. It shows the levels sets of the $\rm{RSS}(\beta)$ which are ellipsoids and centered around zero the circular ridge
+parameter constraint parametrized by some $c > 0$. The ridge regression estimator
+is then the point where the smallest level set hits the constraint. Exactly at that point the $\rm{RSS}(\beta)$ is
+minimized over those $\beta$’s that live inside the constraint.
+
+![](ridge_geometry.JPG)
+
+Alternatively Ridge Regression can be cast as 
+minimisation of the penalised residual sum of squares, with
+a penalty on the magnitude of the coefficients
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|^2\\
-&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|^2.
 \end{align*}
 
-$\lambda$ the amount of shrinkage. Note that for "no penalization", $\lambda=0$, The Ridge Regression coincides with 
-least squares. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero.
+Both formulation are equivalent. However we will use more often the penalisation definition.
+$\lambda$ the amount of penalisation. Note that for "no penalization", $\lambda=0$, The Ridge Regression coincides with OLS. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero.
 
 ```{r}
 fit.ridge.glmnet <-glmnet(x=x_train,y=y_train,alpha=0) 
@@ -392,7 +397,99 @@ plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
 
 ```
 
+The Ridge optimization problem has the closed form solution
 
+\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y,
+\end{align*}
+
+which can be easily verified by taking the derivative of the loss function $l_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and equating it to zero. Note that for $\lambda>0$ the matrix $\bf X^T \bf X+\lambda \bf I$ has always full rank and therefore the Ridge Regression is well defined in the high-dimensional context (in contrast to OLS).
+
+
+### Choice of penalty parameter
+
+We proceed as explained in the section on statistical learning. We define a grid 
+of penalty parameters $0<\lambda_1<\lambda_2<\ldots\lambda_K$ and choose the optimal $\lambda_{\rm opt}$ by either a re-sampling approach or by using an information criteria. In glmnet we can use cross-validation
+
+```{r}
+cv.ridge.glmnet <-cv.glmnet(x=x_train,y=y_train,alpha=0) 
+plot(cv.ridge.glmnet)
+cv.ridge.glmnet$lambda.min
+```
+
+Although Ridge Regression involves all $p$ covariate the degrees of freedom $df$ is smaller then $p$ as we imposed constraints. One can show that the degrees of freedom for Ridge Regression equals 
+
+\[\rm DF^{\rm Ridge}(\lambda)=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
+where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
+
+```{r}
+fit.svd <- svd(x_train)
+fit.svd$d
+df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
+```
+
+In our example the residual degrees of freedom is $n-DF^{\rm Ridge}(\lambda_{\rm opt})=$`r round(nrow(x_train)-df_lambdaopt,2)` which lies within our "rule of thumb" of minimum of $5-10$ residual degrees of freedom to avoid overfitting.
+
+### Shrinkage property
+
+We noted that another challenge in multivariate regression is collinearity. In particular, we have seen that OLS becomes unstable with highly correlated covariates. Ridge regression counter acts this by shrinking low-variance components more than high-variance components. 
+
+We note that $\bf \hat Y^{OLS}$ can be viewed has $\bf Y$ orthogonally projected onto the hyperplane spanned the column space of $\bf X$. In term of principle components we get
+
+\[\bf \hat Y^{OLS}=\sum_{j=1}^{p}u_j u_j^T y.\]
+
+Similar we can represent the Ridge projection as
+
+\[\bf \hat Y^{Ridge}=\sum_{j=1}^{p}u_j \frac{d_j^2}{d_j^2+\lambda}u_j^T y.\]
+
+This shows that the largest shrinkage is in the direction of the last principle component which in return is the component with largest variance. This is illustrated in Figure XXX.
+
+Although Ridge Regression works in high-dimenions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
+
+### Bayesian interpretation
+
+Finally Ridge Regression beviewed as the maximum a posetrior (MAP) estimate of hierarchical bayesian model: 
+\[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
+with prior distribution on the regression coefficients
+\[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p\]
+
+### Towards non-parametric regression
+
+Some times it is extremely unlikely that the true function $f(X)$ is actually linear in $X$. Consider the following example
+```{r}
+# define function
+n <- 101
+x <- seq(0, 1, length.out = n)
+fx <- sin(2 * pi * x)
+
+# generate noisy data
+set.seed(1)
+y <- fx + rnorm(n, sd = 0.5)
+
+plot(x, y)             # data
+lines(x, fx, lwd = 2)  # f(x)
+legend("topright", legend = "f(x)", lty = 1, lwd = 2, bty = "n")
+```
+
+One approach to find a non-parametric approximation are so-called smoothing splines. They write 
+\[\hat f(x)=\sum_{j=1}^{N}N_j(x)\hat\beta_j,\]
+where $N_j(x)$'s are the natural cubic spline basis. The coefficients $\beta$ are the solution to the Ridge Regression 
+
+\[\|\bf Y- \bf N \beta\|^2+\lambda \beta^T\Omega\beta,\]
+with design matrix $\bf N$ has $jth$ column $(N_j(x_1),\ldots,N_j(x_n))^T$. In practice we can fit 
+smoothing spline using the function smooth.spline. The penalty term is specified by setting the degree of freedom or by cross-validation.
+
+```{r}
+fit.smsp <- smooth.spline(x, y, df = 10)
+fit.smsp.cv <- smooth.spline(x, y)
+plot(x, y)
+lines(x, fx, lwd = 2)
+lines(x, fit.smsp$y, lty = 2, col = 2,lwd=3)
+lines(x, fit.smsp.cv$y, lty = 3, col=3,lwd=3)
+```
+
+
+## Caret package
 In the context of statistical learning we would proceed as follows
 
 1. Choose a grid $0<\lambda_1<\lambda_2<\ldots\lambda_K$
@@ -431,23 +528,6 @@ yhat <- fit.ridge %>% predict(data_test)
 models <- list(forward= fit.forward,ridge = fit.ridge)
 resamples(models) %>% summary( metric = "RMSE")
 ```
-
-
-We discuss now some important properties of Ridge Regression.
-
-### Shrinkage property
-
-Although Ridge Regression works in high-dimenions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
-
-Least squares regression becomes unstalbe (high variance) with highly correlated covariates. Ridge regression counter acts this by shrinking low-variance components more than high-variance components.
-
-
-### Bayesian interpretation
-
-Finally Ridge Regression beviewed as the maximum a posetrior (MAP) estimate of hierarchical bayesian model: 
-\[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
-with prior distribution on the regression coefficients
-\[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p\]
 
 
 ## The Lasso
@@ -530,21 +610,17 @@ An interesting question is whether the Lasso does a good job in variable selecti
 
 ### Numerical Optimization and Soft Thresholding
 
-In contrast to Ridge Regression, there is no closed form solution to the Lasso optimization problem. 
+In contrast to Ridge Regression, there is no closed form solution to the Lasso optimization problem. In the case of orthonormal design matrix $\bf X$, ie. $\bf X^T\bf X=\bf I$, we have
 
+\[\rm{RSS}(\beta)=(Y-X\beta)^T(Y-X\beta)=\|\hat\beta-\beta\|^2\]
 
+and therefore 
 
-## Details on the Prediction Error
+\[\hat\beta^{\rm Lasso}=\rm{argmin} (\hat\beta_j^{\rm OLS}-\beta_j)^2+\lambda |\beta_j|\]
 
-\[Y=f(X)+\epsilon\]
+Soft Thresholding also plays an important role in the efficient optimization of the Lasso problem for non orthonormal design matrix. Essentially the algorithm iterates in a coordinate-wise fashion and in each step solves soft thresholing problem. The process is iterated until convergence.
 
-where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
-
-\begin{align*}
-\rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
-&=\sigma^2_{\epsilon}+(E[\hat{f}(x_0)]-f(x_0))^2+ E(\hat{f}(x_0)-E\hat{f}(x_0))^2\\
-&=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
-\end{align*}
+## Elastic Net
 
 ## Caret Package
 
@@ -563,6 +639,21 @@ There are many different modeling functions in R. Some have different syntax for
 
 Read https://cran.r-project.org/web/packages/caret/vignettes/caret.html for a short intro and 
 https://topepo.github.io/caret/ for a long introduction.
+
+In this section we explore the caret package to compare performance of the different regression approaches based on a real data example.
+
+
+## Details on the Prediction Error
+
+\[Y=f(X)+\epsilon\]
+
+where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
+
+\begin{align*}
+\rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
+&=\sigma^2_{\epsilon}+(E[\hat{f}(x_0)]-f(x_0))^2+ E(\hat{f}(x_0)-E\hat{f}(x_0))^2\\
+&=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
+\end{align*}
 
 
 ## Exercises
