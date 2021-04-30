@@ -532,23 +532,61 @@ resamples(models) %>% summary( metric = "RMSE")
 
 ## The Lasso
 
-A ridge solution can be hard to interpret because it is not sparse (none of the $\beta_j$'s is set exactly to $0$). 
+In Ridge Regression we minimize the $\rm RSS(\beta)$ given constrains on the L2-norm of the regression coefficients
 
-The Lasso works similar to Ridge but shrinkage is achieved by penalizing the L1 norm of the regression coefficients instead of the Euclidean (L2) norm
+\[\|\beta\|^2_2=\sum_{j=1}^p \beta^2_j \leq c.\] 
+
+An other very popular approach in high-dimensional statistics is the Lasso. The Lasso works very similar. The only difference is that constraints are imposed on the so-called L1-norm of the coefficients
+
+\[\|\beta\|_1=\sum_{j=1}^p |\beta_j| \leq c.\]
+
+The change in the form of the constraints has important implications. The following figure illustrates the geometry of the Lasso optimization.
+
+![](lasso_geometry.JPG)
+
+Geometrically the Lasso contraints is a diamond with "corners" (Ridge contraint is a circle). If the sum of squares "hits'' one of these corners, then the coefficient corresponding to the axis is shrunk to zero. As $p$ increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set equal to zero. Hence, the Lasso performs not only shrinkage but it also  sets some coefficients to zero and therefore simultaneously also performs variable selection. A disadvantage of the "diamond" geometry is that there is no closed form solution (Lasso optimisation problem is not differentiable at the corners of the diamond).
+
+Similar to Ridge the Lasso can be formulated as a penalisation problem
 
 \begin{align*}
-\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|.
+\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|_1.
 \end{align*}
 
-The following Figure shows the Lasso solution for a grid of lambda values. Interestingly, we note that the Lasso
-shrinks some coefficients to exactly zero. This is an important feature of the L1 penalty.
+The following Figure shows the Lasso solution for a grid of lambda values. We see that the Lasso shrinks some coefficients to exactly zero.
 
 ```{r}
 fit.lasso.glmnet <-glmnet(x=x_train,y=y_train,alpha=1) 
 plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
 ```
 
-To identify the optimal model we proceed as in Ridge Regression.
+To identify an optimal model we define a grid 
+of penalty parameters $0<\lambda_1<\lambda_2<\ldots\lambda_K$ and choose the optimal $\lambda_{\rm opt}$ by cross-validation.
+
+```{r}
+cv.lasso.glmnet <-cv.glmnet(x=x_train,y=y_train,alpha=1) 
+plot(cv.lasso.glmnet)
+cv.lasso.glmnet$lambda.1se
+```
+
+The optimal Lasso regression coefficient can be optained as
+
+```{r}
+beta.lasso <- coef(fit.lasso.glmnet, s = cv.lasso.glmnet$lambda.1se)
+names(beta.lasso) <- colnames(x_train)
+beta.lasso
+```
+
+and we can identify the selected variables
+
+$$S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}\neq 0\}$$
+
+as
+
+```{r}
+Shat <- rownames(beta.lasso)[which(beta.lasso != 0)]
+Shat
+```
+
 
 ```{r eval=FALSE}
 mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
@@ -593,13 +631,39 @@ yhat <- fit.lasso %>% predict(data_train)
 
 We discuss now some important properties of the Lasso.
 
+### Numerical Optimization and Soft Thresholding
+
+We mentioned in the beginning that in general the Lasso optimization problem has not a closed from solution. The reason is that the absolute value funtion $|\beta_j|$ is not differential at zero.
+
+In the case of orthonormal design matrix $\bf X$, ie. $\bf X^T\bf X=\bf I$, we have
+
+\[\rm{RSS}(\beta)&=(Y-X\beta)^T(Y-X\beta)\\
+&=\sum_{j=1}^p(\beta_j-\hat\beta_j^{\rm OLS})^2\]
+
+and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems
+
+\[\rm{minimize}\quad \left(\hat\beta_j^{\rm OLS}-\beta_j\right)^2+\lambda |\beta_j|.\]
+
+In the exercises we will show that the solution is
+
+\[\hat \beta_{\lambda,j}^{\rm Lasso}=\rm{sign}(\hat\beta_j^{\rm OLS})\left(|\hat\beta_j^{\rm OLS}|-0.5\lambda\right)_{+}.\]
+
+This function is depicted in the next figure. It is also referred to as the soft-thresholing function.
+
+```{r}
+softthreshold <- function(x,lambda=1){
+  sign(x)*pmax(abs(x)-0.5*lambda,0)
+}
+curve(softthreshold,xlim=c(-2,2),xlab="beta ols",ylab="beta lasso")
+```
+
+
+In general there is no closed-form solution for the Lasso. The optimization has to be performed numerically. An very efficient algorithm is implemented in glmnet. It is based on coordinate-wise optimization, where one coefficient is updated at a time using the soft-thresholding function. This is done iteratively until some convergence criteria is met.
+
 ### Variable Selection
 The Lasso does not only shrink coefficients to zero but also performs variable selection and therefore 
 leads to more interpretabel models. To understand the difference between L1 and L2 penalization the following Geometric interpretation is helpful:
 
-The lasso performs L1 shrinkage, so that there are "corners'' in the constraint, which in two dimensions corresponds to a diamond. If the sum of squares "hits'' one of these corners, then the coefficient corresponding to the axis is shrunk to zero.
-
-As p increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set equal to zero. Hence, the lasso performs shrinkage and (effectively) subset selection.
 
 For the Lasso we can define the selecte variables
 
@@ -607,20 +671,7 @@ $$S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}
 
 An interesting question is whether the Lasso does a good job in variable selection. In particular, does $S^{\rm Lasso}_{\lambda}$ agree with the true set of active variables $S_0=\{j\in (1,\ldots,p); \beta_{j}\neq 0\}$, does Lasso typically under or over select variables, i.e. $S^{\rm Lasso}_{\lambda}\subset S_0$ or $S_0 \subset S^{\rm Lasso}_{\lambda}$? These questions were an active field of mathematical statistics. We briefly discuss two results of this research.
 
-
-### Numerical Optimization and Soft Thresholding
-
-In contrast to Ridge Regression, there is no closed form solution to the Lasso optimization problem. In the case of orthonormal design matrix $\bf X$, ie. $\bf X^T\bf X=\bf I$, we have
-
-\[\rm{RSS}(\beta)=(Y-X\beta)^T(Y-X\beta)=\|\hat\beta-\beta\|^2\]
-
-and therefore 
-
-\[\hat\beta^{\rm Lasso}=\rm{argmin} (\hat\beta_j^{\rm OLS}-\beta_j)^2+\lambda |\beta_j|\]
-
-Soft Thresholding also plays an important role in the efficient optimization of the Lasso problem for non orthonormal design matrix. Essentially the algorithm iterates in a coordinate-wise fashion and in each step solves soft thresholing problem. The process is iterated until convergence.
-
-## Elastic Net
+### Elastic Net
 
 ## Caret Package
 
@@ -641,6 +692,27 @@ Read https://cran.r-project.org/web/packages/caret/vignettes/caret.html for a sh
 https://topepo.github.io/caret/ for a long introduction.
 
 In this section we explore the caret package to compare performance of the different regression approaches based on a real data example.
+
+## Diabetes Example
+
+These data consist of
+observations on 442 patients, with the response of interest being a quantitative
+measure of disease progression one year after baseline. There are ten baseline
+variables—age, sex, body-mass index, average blood pressure, and six blood
+serum measurements—plus quadratic terms, giving a total of 64 features.
+
+```{r}
+data("diabetes")
+x <- diabetes$x2
+y <- diabetes$y
+
+fit <- glmnet(x,y,alpha=1)
+plot(fit,xvar="lambda",label=TRUE)
+fit.cv <- cv.glmnet(x,y,alpha=1)
+plot(fit.cv)
+fit.cv$lambda.1se
+coef(fit,s=fit.cv$lambda.1se)
+```
 
 
 ## Details on the Prediction Error
