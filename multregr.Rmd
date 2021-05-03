@@ -11,9 +11,11 @@ knitr::opts_chunk$set(echo = TRUE,results="hide",warning=FALSE)
 
 
 ```{r, echo=FALSE}
+library(knitr)
 library(caret)
 library(glmnet)
 library(tidyverse)
+library(MASS)
 ```
 
 ## General Notation
@@ -699,21 +701,176 @@ These data consist of
 observations on 442 patients, with the response of interest being a quantitative
 measure of disease progression one year after baseline. There are ten baseline
 variables—age, sex, body-mass index, average blood pressure, and six blood
-serum measurements—plus quadratic terms, giving a total of 64 features.
+serum measurements—plus quadratic terms, giving a total of 64 features.The statisticians were asked to construct a model that predicted response y from covariates
+x1, x2,... ,x10. Two hopes were evident here, that the model would produce accurate baseline
+predictions of response for future patients, and also that the form of the model would suggest
+which covariates were important factors in disease progression.
 
-```{r}
+```{r, eval=FALSE}
+library(lars)
 data("diabetes")
-x <- diabetes$x2
-y <- diabetes$y
+x <- diabetes$x #mean=0, L2 norm=1
+xs <- scale(diabetes$x) #mean=0, var=1
+x2 <- diabetes$x2
+x2s <- scale(x2)
+y <- diabetes$y-mean(diabetes$y)
+ys <- scale(y)
 
-fit <- glmnet(x,y,alpha=1)
-plot(fit,xvar="lambda",label=TRUE)
-fit.cv <- cv.glmnet(x,y,alpha=1)
-plot(fit.cv)
-fit.cv$lambda.1se
-coef(fit,s=fit.cv$lambda.1se)
+# Lasso
+fit <- glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
+plot(fit,xvar="norm",label=TRUE) # Fig 6.2 in SLS
+fit.cv <- cv.glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
+plot(fit.cv) # Fig 6.5
+
 ```
 
+
+```{r}
+dat <- read.csv("data/diabetes_raw.csv")
+colnames(dat) <- c("age","sex","bmi","map","tc","ldl","hdl","tch","ltg","glu","y")
+x <- apply(dat[,-11],2,FUN=function(x){
+  x <- x-mean(x)
+  x/sqrt(sum(x^2))
+})
+x2 <- cbind(x,x^2)
+colnames(x2)[11:20] <- paste0(colnames(x2)[1:10],"2")
+xint <- model.matrix(~0+.^2,data=data.frame(x))
+xx <- cbind(x2,xint)
+head(diabetes$x2[,""])
+head(x[,"age"]^2)
+age2 <- dat$age^2
+age2c <- age2-mean(age2)
+head(age2c/sqrt(sum(age2c^2)))
+
+head((dat$age^2-mean(dat$age^2))/sqrt(sum((dat$age^2-mean(dat$age^2))^2)))
+head(diabetes$x2[,"age^2"])
+```
+
+```{r}
+library(lars)
+data("diabetes")
+x2s <- scale(diabetes$x2)
+colnames(x2s) <- gsub(":",".",colnames(x2s))
+y <- diabetes$y-mean(diabetes$y)
+dat <- as.data.frame(cbind(y,x2s))
+
+# Forward regression
+fit0 <- lm(y~1,data=dat)
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,upper=paste("~", paste(colnames(x2s), collapse=" + "))
+                             ),
+                  trace = FALSE
+                  )
+kable(as.data.frame(fit.fw$anova),digits=2)
+```
+
+```{r}
+#summary(fit.fw)
+beta.fw <- coef(fit.fw)
+kable(broom::tidy(fit.fw),digits=2)
+```
+
+```{r}
+# Ridge
+set.seed(1515)
+fit.ridge <- glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
+fit.ridge.cv <- cv.glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
+plot(fit.ridge.cv)
+fit.ridge.cv$lambda.1se
+beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
+```
+
+```{r}
+# Lasso
+set.seed(1515)
+fit.lasso <- glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
+fit.lasso.cv <- cv.glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
+plot(fit.lasso.cv)
+fit.lasso.cv$lambda.1se
+beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
+```
+
+
+```{r}
+res.coef <- data.frame(fw=0,ridge=as.numeric(beta.ridge),lasso=as.numeric(beta.lasso))
+rownames(res.coef) <- rownames(beta.ridge)
+res.coef[names(beta.fw),"fw"] <- beta.fw
+res.coef$coef <- rownames(res.coef)
+res.coef.l <- pivot_longer(res.coef,cols=c("fw","ridge","lasso"),names_to="method")
+
+res.coef.l%>%
+  dplyr::filter(coef!="(Intercept)")%>%
+  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
+  ggplot(.,aes(x=coef,y=value,fill=method))+
+  geom_bar(stat="identity",position="dodge")+
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  xlab("")+ylab("beta")
+```
+
+
+We finally show how we can use the caret package to perform Forward, Ridge and Lasso regression. 
+With the caret package we can also easily compare the 3 methods.
+
+```{r, echo=FALSE}
+tc <- trainControl(method = "cv", number = 10)
+lw <- ~.
+up <- formula(paste("~", paste(colnames(x2s), collapse=" + ") ))
+fit.fw.caret <- train(x=x2s,
+                      y=y,
+                      method = "lmStepAIC", 
+                      scope = list(upper=up),
+                      direction ="forward",
+                      trControl = tc,
+                      trace = FALSE
+)
+  
+# nvmax
+fit.fw.caret$bestTune
+# accuracy
+fit.fw.caret$results
+# summary of the model
+summary(fit.forward$finalModel)
+# final model coefficients
+coef(fit.forward$finalModel,2)
+```
+
+```{r}
+lambda.grid <- fit.ridge$lambda
+fit.ridge.caret<-train(x=x2s,
+                       y=y, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                       trControl = tc
+) 
+
+#
+plot(fit.ridge.caret)
+# Best lambda
+fit.ridge.caret$bestTune$lambda
+# Model coefficients
+coef(fit.ridge.caret$finalModel,fit.ridge.caret$bestTune$lambda)
+# Make predictions
+yhat <- fit.ridge.caret %>% predict(dat)
+```
+
+```{r}
+lambda.grid <- fit.lasso$lambda
+fit.lasso.caret<-train(x=x2s,
+                       y=y, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                       trControl = tc
+) 
+
+#
+plot(fit.lasso.caret)
+# Best lambda
+fit.lasso.caret$bestTune$lambda
+# Model coefficients
+coef(fit.lasso.caret$finalModel,fit.lasso.caret$bestTune$lambda)
+# Make predictions
+yhat <- fit.lasso.caret %>% predict(dat)
+```
 
 ## Details on the Prediction Error
 
