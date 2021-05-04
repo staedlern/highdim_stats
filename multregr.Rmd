@@ -5,8 +5,11 @@ date: "3/19/2021"
 output: html_document
 ---
 
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmin}{argmin}
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,results="hide",warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE)
 ```
 
 
@@ -16,6 +19,8 @@ library(caret)
 library(glmnet)
 library(tidyverse)
 library(MASS)
+library(lars)
+library(gridExtra)
 ```
 
 ## General Notation
@@ -77,33 +82,34 @@ but explain more than the signal alone: it also models the error. Hence, it over
 settings overfitting is a real threat. The number of explanatory variables exceeds the number of observations. It
 is thus possible to form a linear combination of the covariates that perfectly explains the response, including the
 noise.
-Large estimates of regression coefficients are often an indication of overfitting. Augmentation of the estimation
-procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a
-consequence it decreases the probability of overfitting. Overfitting is illustrated in the next example.
+Large estimates of regression coefficients are often an indication of overfitting. Overfitting is illustrated in the next example.
+
+We simulate training data with $p=9$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$ and outcome $Y$ which depends only on the first covariate according to $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, $\beta_1$, $\epsilon_i\sim N(0,0.5)$. The size of the training data is $n=10$.
 
 ```{r}
 set.seed(1)
 n <- 10
 p <- 9
-beta <- c(1,rep(0,p-1))
+beta <- c(2,rep(0,p-1))
 
 # simulate covariates
-x <- matrix(rnorm(n*p),n,p)
-y <- x%*%beta+rnorm(n,sd=0.5)
+xtrain <- matrix(rnorm(n*p),n,p)
+ytrain <- xtrain%*%beta+rnorm(n,sd=0.5)
+dtrain <- data.frame(xtrain)
+dtrain$y <- ytrain
 
 # lm
-fit <- lm(y~0+x)
-summary(fit)
+fit <- lm(y~-1+.,data=dtrain)
 coef(fit)
 ```
-As $\beta = (1, 0, \ldots, 0)$, many regression coefficient are clearly over-estimated.
+As the true coefficients are $\beta = (1, 0, \ldots, 0),$ many regression coefficient are clearly over-estimated.
 
-The fitted values are plotted against the values of the first covariates in the right bottom panel of
-As a reference the line x = y is added, which represents the ‘true’ model. The fitted model follows
+In the next plot the fitted values are plotted against the values of the first covariate.
+As a reference the line $x = y$ is added, which represents the ‘true’ model. The fitted model follows
 the ‘true’ relationship. But it also captures the deviations from this line that represent the errors.
 
-```{r}
-t.d <-data.frame(x=x[,1],y=y,yhat=predict(fit)) 
+```{r, echo=FALSE}
+t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit)) 
 t.d%>%
   ggplot(.,aes(x=x))+
   geom_point(aes(y=y),size=2)+
@@ -111,139 +117,73 @@ t.d%>%
   geom_abline(yintercept=0,xintercept=1,col="blue",lty=2)
 ```
 
-
-```{r}
-set.seed(1)
-n <- 20
-p <- 50
-# simulate covariates
-xtrain <- matrix(rnorm(n*p),n,p)
-xtest <- matrix(rnorm(n*p),n,p)
-# simulate outcome
-beta0 <- 0
-beta <- c(2,rep(0,p-1))
-ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=1)
-ytest <- beta0+xtest%*%beta+rnorm(n,sd=1)
-# train and test data as data.frames
-dtrain <- data.frame(cbind(ytrain,xtrain))
-colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
-dtest <- data.frame(cbind(ytest,xtest))
-colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
-```
-
-
-```{r}
-fit <- lm(y~x1,data=dtrain)
-dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-```
-```{r}
-fm <- as.formula(paste0("y~",paste0("x",1:9,collapse="+")))
-fit <- lm(fm,data=dtrain)
-summary(fit)
-dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-```
-
-
-```{r}
-fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
-fit <- lm(fm,data=dtrain)
-summary(fit)
-dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-```
-
-```{r}
-fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
-fit <- lm(fm,data=dtrain)
-summary(fit)
-dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-```
-
-We note by including more noise variables into the model we improve the fit to the training data. However, on the performance on the test data continuously gets worse. Ultimately we get a perfect fit if $p=n-1$. In other words there are no residual degrees of freedom. Also for $p\leq n-1$ the matrix $\bf X^T \bf X$ becomes singular. A rule of thumb is that residual degrees of freedom should be at least 10.
+In this example the model fits the data perfectly. The residual degrees of freedom to estimate the error is n-p=`r n-p`. A rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
 
 ## Collinearity and High-dimensionality
 
-Recall collinearity in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred as super-collinearity.
+Recall that collinearity in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred as super-collinearity.
 
-```{r}
+The following figures show examples of two covariates with no-, high- and super-collinearity.
+
+```{r, include=FALSE}
 set.seed(1)
 n <- 20
 x1 <- rnorm(n)
 x2 <- rnorm(n)
 x3 <- x1+rnorm(n,sd=0.25)
 x4 <- x1
-y <- 2*x1+rnorm(n)
-dat <- data.frame(y,x1,x2,x3,x4)
+dat <- data.frame(x1,x2,x3,x4)
+dat$y <- 2*dat$x1+rnorm(n)
 ```
 
-```{r}
-dat%>%
+```{r, echo=FALSE}
+gp1 <- dat%>%
   ggplot(.,aes(x=x1,y=x2))+
   geom_point()+
   ggtitle("no collinearity")
 
-dat%>%
+gp2 <- dat%>%
   ggplot(.,aes(x=x1,y=x3))+
   geom_point()+
   ggtitle("collinearity")
 
-dat%>%
+gp3 <- dat%>%
   ggplot(.,aes(x=x1,y=x4))+
   geom_point()+
   ggtitle("super collinearity")
+
+grid.arrange(gp1,gp2,gp3,ncol=3)
 ```
 
-In the presence of collinearity, the estimate of one variable's impact on the dependent variable Y while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. 
+In the presence of collinearity, the estimate of one variable's impact on the dependent variable Y while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. Intuitively this can be explained based on the following figure which shows the response y and two highly correlated covariates x1 and x2. We note that OLS derived plain deviates from the truth and further see that the exact position of OLS derived plain is uncertain.
 
-Add Figure with "shaky" plain.
+![](collinearity.JPG)
 
+
+As an example we fit the following the two models 
 ```{r}
-set.seed(1)
-summary(lm(y~x1+x2,data=dat))
-summary(lm(y~x1+x3,data=dat))
-summary(lm(y~x1+x4,data=dat))
+modela <- lm(y~x1+x2,data=dat)
+modelb <- lm(y~x1+x3,data=dat)
 ```
-In the case of super-collinearity the OLS is not defined as rank of the design matrix is 1 and therefore the matrix $\bf X^T \bf X$ is singular and therefore not invertable. 
+
+We see that variance of the estimated regression coefficients is larger in model 2 where x1 and x3 exhibit high collinearity.
 
 ```{r}
-x <- as.matrix(dat[,-1])
+# variance of model a
+diag(vcov(modela))
+
+#variance of model b
+diag(vcov(modelb))
+```
+
+In the case of super-collinearity the OLS is not well-defined as the rank of the design matrix is 0 and therefore the matrix $\bf X^T \bf X$ is singular and therefore not invertible. In our example, if we include x4 into the design matrix, the design matrix has not full rank
+
+```{r}
+x <- as.matrix(dat[,-5])
 det(t(x)%*%x)
 ```
 
-High-dimensional problems with $p>n$ always suffer from super-collinearity: the rank of the design matrix is maximally equal to $n$ which implies that the columns of $\bf X$ are linearly dependent. The OLD estimator cannot be calculated in this situation.
-
-```{r}
-xtx <- t(xtest)%*%xtest
-det(xtx)
-#solve(txt)
-```
+High-dimensional problems with $p>n$ always suffer from super-collinearity: the rank of the design matrix is maximally equal to $n$ which implies that the columns of $\bf X$ are linearly dependent. The OLS estimator cannot be calculated in this situation.
 
 ## Contrainted Least Squares
 
@@ -251,116 +191,40 @@ We have seen that OLS falls short in the high-dimensional context. It leads to o
 procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize $\rm{RSS}(\beta)$ under some contstraints on the parameter $\beta$.
 
 
-## Subset selection in regression
+## Subset selection
 
-We illustrate the Training and Testing steps based on linear regression.
+The most traditional approach to impose constraints is subset selection. In this approach we retrain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
 
-First we simulate training and test data. We generate $p=15$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$. We assume the outcome $Y$ depends only on the first covariate and follows $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, $\beta_1=2$, $\epsilon_i\sim N(0,1)$. We assume the size of the training and test data is $n:=n_{\rm train}=n_{\rm test}=20$.
-
-```{r}
-set.seed(1)
-n <- 20
-p <- 15
-# simulate covariates
-x_train <- matrix(rnorm(n*p),n,p)
-x_test <- matrix(rnorm(n*p),n,p)
-
-# simulate outcome
-beta0 <- 0
-beta <- c(2,0,0,0,2,rep(0,p-5))
-y_train <- beta0+x_train%*%beta+rnorm(n,sd=1)
-y_test <- beta0+x_test%*%beta+rnorm(n,sd=1)
-
-# train and test data as data.frames
-data_train <- data.frame(cbind(y_train,x_train))
-colnames(data_train) <- c("y",paste0("x",1:ncol(x_train)))
-data_test <- data.frame(cbind(y_test,x_test))
-colnames(data_test) <- c("y",paste0("x",1:ncol(x_train)))
-```
-
-In this example we build a series of $K=4$ candidate learning rules.  
-
-1. Linear regression including all $p=15$ covariates
-2. Linear regression including covariates $X_{10},\ldots,X_{15}$ 
-3. Linear regression including covariates $X_{1},\ldots,X_{5}$ covariates
-4. Linear regression including only $X_1$.
-
-If we introduce the so-called set of active variables $S_k=\{j\in (1,\ldots,p); \beta_{j}\neq 0\}$ the 4 learning rules are given by the equations 
 
 \begin{align*}
-\hat{f}_k(X_0)&=X_0^T\hat\beta_{S_k}\\
-&=X_0^T(\bf X_{S_k}^T \bf X_{S_k})^{-1}\bf X_{S_k}^T \bf y,
+\hat{\beta}_{S}&=\rm{argmin}_{\beta_j=0\;\rm{for\; all}\;j\notin S}\rm{RSS}(\beta)\\
+&=(\bf X_S^T \bf X_S)^{-1}\bf X_S^T \bf y.
 \end{align*}
-where $S_{1}=\{1,\ldots,p\}$, $S_{2}=\{10, 11, 12, 13, 14, 15\}$, $S_{3}=\{1, 2, 3, 4, 5\}$ and $S_{4}=\{1\}$.
 
-```{r, show=TRUE}
-fit1 <- lm(y~.,data=data_train)
-fit2 <- lm(y~x10+x11+x12+x13+x14+x15,data=data_train)
-fit3 <- lm(y~x1+x2+x3+x4+x5,data=data_train)
-fit4 <- lm(y~x1,data=data_train)
+In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose the optimal subset by either a re-sampling approach or by using an information criteria. There are a number of different strategies for choosing the sequence of subsets. Best subsets regression consists of looking at possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are backward stepwise selection which starts with the full model and sequentially deletes covariates, whereas forward stepwise selection starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
+
+In R we can use stepAIC for subset selection. It uses AIC to select the optimal subset. For example to perform forward stepwise selection we proceed
+
+```{r}
+# Forward regression
+fit0 <- lm(y~1,data=dtrain)
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,upper=paste("~", paste(colnames(dtrain[,-10]), collapse=" + "))
+                             ),
+                  trace = FALSE
+                  )
 ```
 
-We now compare the different learning rules based on AIC, BIC and leave-one-out cross-validation (LOOCV).
+The subset selection 
 
-```{r, echo=FALSE}
-res <- data.frame(
-  LearningRule=c("LR1","LR2","LR3","LR4")
-  )
-res$AIC <- res$BIC <- res$LOOCV <- res$RSStrain <- res$RSStest <- NA
-res$AIC <- c(AIC(fit1),AIC(fit2),AIC(fit3),AIC(fit4))
-res$BIC <- c(BIC(fit1),BIC(fit2),BIC(fit3),BIC(fit4))
-
-library(caret)
-res$LOOCV[1] <- train(formula(fit1), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-res$LOOCV[2] <- train(formula(fit2), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-res$LOOCV[3] <- train(formula(fit3), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-res$LOOCV[4] <- train(formula(fit4), data = data_train, 
-             method = "lm",
-             trControl = trainControl(method = "LOOCV"))$results$RMSE
-
-res$RSStrain[1] <- mean((data_train$y-predict(fit1))^2)
-res$RSStrain[2] <- mean((data_train$y-predict(fit2))^2)
-res$RSStrain[3] <- mean((data_train$y-predict(fit3))^2)
-res$RSStrain[4] <- mean((data_train$y-predict(fit4))^2)
-
-res$RSStest[1] <- mean((data_test$y-predict(fit1,newdata=data_test))^2)
-res$RSStest[2] <- mean((data_test$y-predict(fit2,newdata=data_test))^2)
-res$RSStest[3] <- mean((data_test$y-predict(fit3,newdata=data_test))^2)
-res$RSStest[4] <- mean((data_test$y-predict(fit4,newdata=data_test))^2)
-
-
-knitr::kable(res,digits = 2)
+```{r}
+kable(as.data.frame(fit.fw$anova),digits=2)
 ```
 
-We note that learning rule 4 is achieves the smallest prediction error on test data which coincides with 
-the outcome from LOOCV. Note the 
+The regression coefficients of the optimal model are
 
-## Forward stepwise selection 
-
-In the previous section we compared learning methods based on 4 different subsets. For $p$ potential covariates there are $2^p$ possible subsets. Hence the number of potential learning methods grows exponentially with $p$. When an exhaustive search is not possible, we can seek a good path through them. One of the most common search methods is forward stepwise selection. This starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. In that way we create a series of learning methods and we can choose the best one as described above.
-
-```{r, echo=FALSE}
-tc <- trainControl(method = "cv", number = 10)
-fit.forward <- train(y ~., data = data_train,
-                     method = "leapForward", 
-                     tuneGrid=data.frame(nvmax=1:15),
-                     trControl = tc,
-                     trace = FALSE
-                    )
-# nvmax
-fit.forward$bestTune
-# accuracy
-fit.forward$results
-# summary of the model
-summary(fit.forward$finalModel)
-# final model coefficients
-coef(fit.forward$finalModel,2)
+```{r}
+kable(broom::tidy(fit.fw),digits=2)
 ```
 
 ## Ridge Regression
@@ -372,7 +236,7 @@ regression coefficients towards zero. This discourages complex models because
 models that overfit tend to have larger coefficients. We can formulate Ridge Regression as the constrained optimization problem
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}_{\|\beta\|^2\leq c}\frac{1}{n}\rm{RSS}(\beta).
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}_{\|\beta\|^2\leq c}\rm{RSS}(\beta).
 \end{align*}
 
 The constrained estimation interpretation of the ridge regression estimator is illustrated in the figure. It shows the levels sets of the $\rm{RSS}(\beta)$ which are ellipsoids and centered around zero the circular ridge
@@ -387,16 +251,15 @@ minimisation of the penalised residual sum of squares, with
 a penalty on the magnitude of the coefficients
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|^2.
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}\rm{RSS}(\beta)+\lambda\|\beta\|^2.
 \end{align*}
 
 Both formulation are equivalent. However we will use more often the penalisation definition.
 $\lambda$ the amount of penalisation. Note that for "no penalization", $\lambda=0$, The Ridge Regression coincides with OLS. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero.
 
 ```{r}
-fit.ridge.glmnet <-glmnet(x=x_train,y=y_train,alpha=0) 
+fit.ridge.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=0) 
 plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
-
 ```
 
 The Ridge optimization problem has the closed form solution
@@ -414,7 +277,7 @@ We proceed as explained in the section on statistical learning. We define a grid
 of penalty parameters $0<\lambda_1<\lambda_2<\ldots\lambda_K$ and choose the optimal $\lambda_{\rm opt}$ by either a re-sampling approach or by using an information criteria. In glmnet we can use cross-validation
 
 ```{r}
-cv.ridge.glmnet <-cv.glmnet(x=x_train,y=y_train,alpha=0) 
+cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0) 
 plot(cv.ridge.glmnet)
 cv.ridge.glmnet$lambda.min
 ```
@@ -425,12 +288,12 @@ Although Ridge Regression involves all $p$ covariate the degrees of freedom $df$
 where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
 
 ```{r}
-fit.svd <- svd(x_train)
-fit.svd$d
-df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
+fit.svd <- svd(xtrain)
+#fit.svd$d
+(df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se)))
 ```
 
-In our example the residual degrees of freedom is $n-DF^{\rm Ridge}(\lambda_{\rm opt})=$`r round(nrow(x_train)-df_lambdaopt,2)` which lies within our "rule of thumb" of minimum of $5-10$ residual degrees of freedom to avoid overfitting.
+In our example the residual degrees of freedom is $n-DF^{\rm Ridge}(\lambda_{\rm opt})=$`r round(nrow(xtrain)-df_lambdaopt,2)` which lies within our "rule of thumb" of minimum of $5-10$ residual degrees of freedom to avoid overfitting.
 
 ### Shrinkage property
 
@@ -458,6 +321,7 @@ with prior distribution on the regression coefficients
 ### Towards non-parametric regression
 
 Some times it is extremely unlikely that the true function $f(X)$ is actually linear in $X$. Consider the following example
+
 ```{r}
 # define function
 n <- 101
@@ -490,48 +354,6 @@ lines(x, fit.smsp$y, lty = 2, col = 2,lwd=3)
 lines(x, fit.smsp.cv$y, lty = 3, col=3,lwd=3)
 ```
 
-
-## Caret package
-In the context of statistical learning we would proceed as follows
-
-1. Choose a grid $0<\lambda_1<\lambda_2<\ldots\lambda_K$
-2. Define a series of learning rule
-
-\begin{align*}
-Y_{\rm new}&=\hat{f}_k(X_{\rm new})\\
-&=X_{\rm new}\hat \hat{\beta}^{\rm Ridge}_{\lambda_k}
-\end{align*}
-
-3. Use Cross-validation to find the optimal learning rule
-
-```{r}
-lambda.max <- 10
-lambda.min <- 10^{-6}*lambda.max
-lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
-fit.ridge<-train(y ~., 
-                 data = data_train,
-                 method = "glmnet",
-                 preProcess = c("center", "scale"),
-                 tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
-                 trControl = tc
-) 
-
-#
-plot(fit.ridge)
-# Best lambda
-fit.ridge$bestTune$lambda
-# Model coefficients
-coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)
-# Make predictions
-yhat <- fit.ridge %>% predict(data_test)
-```
-
-```{r}
-models <- list(forward= fit.forward,ridge = fit.ridge)
-resamples(models) %>% summary( metric = "RMSE")
-```
-
-
 ## The Lasso
 
 In Ridge Regression we minimize the $\rm RSS(\beta)$ given constrains on the L2-norm of the regression coefficients
@@ -551,13 +373,13 @@ Geometrically the Lasso contraints is a diamond with "corners" (Ridge contraint 
 Similar to Ridge the Lasso can be formulated as a penalisation problem
 
 \begin{align*}
-\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-\frac{1}{n}\rm{RSS}(\beta)+\lambda\|\beta\|_1.
+\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}\rm{RSS}(\beta)+\lambda\|\beta\|_1.
 \end{align*}
 
 The following Figure shows the Lasso solution for a grid of lambda values. We see that the Lasso shrinks some coefficients to exactly zero.
 
 ```{r}
-fit.lasso.glmnet <-glmnet(x=x_train,y=y_train,alpha=1) 
+fit.lasso.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=1) 
 plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
 ```
 
@@ -565,16 +387,16 @@ To identify an optimal model we define a grid
 of penalty parameters $0<\lambda_1<\lambda_2<\ldots\lambda_K$ and choose the optimal $\lambda_{\rm opt}$ by cross-validation.
 
 ```{r}
-cv.lasso.glmnet <-cv.glmnet(x=x_train,y=y_train,alpha=1) 
+cv.lasso.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=1) 
 plot(cv.lasso.glmnet)
-cv.lasso.glmnet$lambda.1se
+cv.lasso.glmnet$lambda.min
 ```
 
 The optimal Lasso regression coefficient can be optained as
 
 ```{r}
-beta.lasso <- coef(fit.lasso.glmnet, s = cv.lasso.glmnet$lambda.1se)
-names(beta.lasso) <- colnames(x_train)
+beta.lasso <- coef(fit.lasso.glmnet, s = cv.lasso.glmnet$lambda.min)
+names(beta.lasso) <- colnames(xtrain)
 beta.lasso
 ```
 
@@ -589,48 +411,6 @@ Shat <- rownames(beta.lasso)[which(beta.lasso != 0)]
 Shat
 ```
 
-
-```{r eval=FALSE}
-mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
-sx <- scale(x,scale=apply(x, 2, mysd))
-sx <- as.matrix(sx, ncol=20, nrow=100)
-sy <- as.vector(scale(y, scale=mysd(y)))
-max(abs(colSums(sx*sy)))/100
-## [1] 0.1758808
-fitGLM <- glmnet(sx,sy)
-max(fitGLM$lambda)
-## [1] 0.1758808
-
-fit.lasso.glmnet <-glmnet(x=x_train,y=y_train,
-                          alpha=1,
-                          standardize=FALSE,
-                          intercept=FALSE) 
-max(fit.lasso.glmnet$lambda)
-max(abs(t(x_train)%*%y_train))/nrow(x_train)
-```
-
-
-```{r}
-lambda.max <- max(abs(t(x_train)%*%y_train))/nrow(x_train)
-lambda.min <- 10^{-6}*lambda.max
-lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
-fit.lasso<-train(y ~., 
-                 data = data_train,
-                 method = "glmnet",
-                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
-                 trControl = tc
-) 
-
-#
-plot(fit.lasso)
-# Best lambda
-fit.lasso$bestTune$lambda
-# Model coefficients
-coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)
-# Make predictions
-yhat <- fit.lasso %>% predict(data_train)
-```
-
 We discuss now some important properties of the Lasso.
 
 ### Numerical Optimization and Soft Thresholding
@@ -639,8 +419,10 @@ We mentioned in the beginning that in general the Lasso optimization problem has
 
 In the case of orthonormal design matrix $\bf X$, ie. $\bf X^T\bf X=\bf I$, we have
 
-\[\rm{RSS}(\beta)&=(Y-X\beta)^T(Y-X\beta)\\
-&=\sum_{j=1}^p(\beta_j-\hat\beta_j^{\rm OLS})^2\]
+\begin{align*}
+\rm{RSS}(\beta)&=(Y-X\beta)^T(Y-X\beta)\\
+&=\sum_{j=1}^p(\beta_j-\hat\beta_j^{\rm OLS})^2
+\end{align*}
 
 and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems
 
@@ -652,7 +434,7 @@ In the exercises we will show that the solution is
 
 This function is depicted in the next figure. It is also referred to as the soft-thresholing function.
 
-```{r}
+```{r, echo=FALSE}
 softthreshold <- function(x,lambda=1){
   sign(x)*pmax(abs(x)-0.5*lambda,0)
 }
@@ -675,6 +457,431 @@ An interesting question is whether the Lasso does a good job in variable selecti
 
 ### Elastic Net
 
+## Diabetes Example
+
+These data consist of
+observations on 442 patients, with the response of interest being a quantitative
+measure of disease progression one year after baseline. There are ten baseline
+variables—age, sex, body-mass index, average blood pressure, and six blood
+serum measurements—plus quadratic terms, giving a total of 64 features.The statisticians were asked to construct a model that predicted response y from covariates
+x1, x2,... ,x10. Two hopes were evident here, that the model would produce accurate baseline
+predictions of response for future patients, and also that the form of the model would suggest
+which covariates were important factors in disease progression.
+
+We with splitting into train - and test data.
+
+```{r}
+library(lars)
+data("diabetes")
+data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(data) <- gsub(":",".",colnames(data))
+train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
+data_train <- data[train_ind,]
+xtrain <- as.matrix(data_train[,-1])
+ytrain <- data_train[,1]
+data_test <- data[-train_ind,]
+xtest <- as.matrix(data_test[,-1])
+ytest <- data_test[,1]
+```
+
+
+We perform Forward Regression.
+```{r}
+# Forward regression
+fit0 <- lm(y~1,data=data_train)
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,upper=paste("~", paste(colnames(data_train[,-1]), collapse=" + "))
+                             ),
+                  trace = FALSE
+                  )
+#summary(fit.fw)
+```
+
+The variable selection process is as follows
+
+```{r}
+kable(as.data.frame(fit.fw$anova),digits=2)
+```
+
+And the final regression coefficients are
+
+```{r}
+kable(broom::tidy(fit.fw),digits=2)
+```
+
+We continue with Ridge Regression
+
+```{r}
+# Ridge
+set.seed(1515)
+fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
+fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
+plot(fit.ridge,xvar="lambda")
+plot(fit.ridge.cv)
+#fit.ridge.cv$lambda.1se
+```
+
+Finally we run the Lasso
+
+```{r}
+# Lasso
+set.seed(1515)
+fit.lasso <- glmnet(xtrain,ytrain,alpha=1)
+fit.lasso.cv <- cv.glmnet(xtrain,ytrain,alpha=1)
+plot(fit.lasso,xvar="lambda")
+plot(fit.lasso.cv)
+#fit.lasso.cv$lambda.1se
+```
+
+We compare the 3 approaches based on their root-mean-square error (RMSE)
+
+```{r}
+# RMSE
+pred.fw <- predict(fit.fw,newdata=data_test)
+pred.ridge <- as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))
+pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
+res.rmse <- data.frame(rmse=c(RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)),
+                       method=c("fw","ridge","lasso"))
+kable(res.rmse,digits = 2)
+```
+
+And we plot the final regression coefficients
+
+```{r, echo=FALSE}
+beta.fw <- coef(fit.fw)
+beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
+beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
+res.coef <- data.frame(fw=0,ridge=as.numeric(beta.ridge),lasso=as.numeric(beta.lasso))
+rownames(res.coef) <- rownames(beta.ridge)
+res.coef[names(beta.fw),"fw"] <- beta.fw
+res.coef$coef <- rownames(res.coef)
+res.coef.l <- pivot_longer(res.coef,cols=c("fw","ridge","lasso"),names_to="method")
+
+res.coef.l%>%
+  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
+  ggplot(.,aes(x=coef,y=value,fill=method))+
+  geom_bar(stat="identity",position = position_dodge(width = .7),width=0.8)+
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  xlab("")+ylab("beta")
+```
+
+
+
+```{r, eval=FALSE,echo=FALSE}
+data("diabetes")
+x <- diabetes$x #mean=0, L2 norm=1
+xs <- scale(diabetes$x) #mean=0, var=1
+x2 <- diabetes$x2
+x2s <- scale(x2)
+y <- diabetes$y-mean(diabetes$y)
+ys <- scale(y)
+
+# Lasso
+fit <- glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
+plot(fit,xvar="norm",label=TRUE) # Fig 6.2 in SLS
+fit.cv <- cv.glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
+plot(fit.cv) # Fig 6.5
+
+```
+
+```{r, eval=FALSE,echo=FALSE}
+data("diabetes")
+dat <- read.csv("data/diabetes_raw.csv")
+colnames(dat) <- c("age","sex","bmi","map","tc","ldl","hdl","tch","ltg","glu","y")
+# x <- apply(dat[,-11],2,FUN=function(x){
+#   x <- x-mean(x)
+#   x/sqrt(sum(x^2))
+# })
+x <- scale(dat[,-11])/(sqrt(nrow(dat)-1))
+head(x[,"age"])
+head(diabetes$x2[,"age"])
+head(diabetes$x2[,"age^2"])
+age2 <- dat$age^2
+age2c <- age2-mean(age2)
+age2sc <- age2c/sqrt(sum(age2c^2))
+xage2 <- (x[,"age"])^2
+xage2c <- xage2-mean(xage2)
+xage2sc <- xage2c/sqrt(sum(xage2c^2))
+head(xage2sc)
+
+x2 <- scale(x^2)/sqrt((nrow(x)-1))
+colnames(x2) <- paste0(colnames(x2),"^2")
+xint <- scale(model.matrix(~0+.^2,data=data.frame(x)))/sqrt((nrow(x)-1))
+head(xint[,"age:sex"])
+head(diabetes$x2[,"age:sex"])
+
+xfull <- cbind(x,x2,xint)[,colnames(diabetes$x2)]
+```
+
+```{r, eval=FALSE,echo=FALSE}
+library(lars)
+data("diabetes")
+x2s <- scale(diabetes$x2)
+colnames(x2s) <- gsub(":",".",colnames(x2s))
+y <- diabetes$y-mean(diabetes$y)
+dat <- as.data.frame(cbind(y,x2s))
+
+# Forward regression
+fit0 <- lm(y~1,data=dat)
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,upper=paste("~", paste(colnames(x2s), collapse=" + "))
+                             ),
+                  trace = FALSE
+                  )
+kable(as.data.frame(fit.fw$anova),digits=2)
+
+#summary(fit.fw)
+beta.fw <- coef(fit.fw)
+kable(broom::tidy(fit.fw),digits=2)
+
+# Ridge
+set.seed(1515)
+fit.ridge <- glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
+fit.ridge.cv <- cv.glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
+plot(fit.ridge.cv)
+fit.ridge.cv$lambda.1se
+beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
+
+# Lasso
+set.seed(1515)
+fit.lasso <- glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
+fit.lasso.cv <- cv.glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
+plot(fit.lasso.cv)
+fit.lasso.cv$lambda.1se
+beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
+
+
+res.coef.l%>%
+  dplyr::filter(coef!="(Intercept)")%>%
+  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
+  ggplot(.,aes(x=coef,y=value,fill=method))+
+  geom_bar(stat="identity",position = position_dodge(width = .7),width=0.8)+
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  xlab("")+ylab("beta")
+```
+
+We finally show how we can use the caret package to perform Ridge and Lasso regression. 
+With the caret package we can also easily compare the 3 methods.
+
+```{r}
+tc <- trainControl(method = "cv", number = 10)
+
+## Ridge
+lambda.grid <- fit.ridge.cv$lambda
+fit.ridge.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.ridge.caret)
+# Best lambda
+fit.ridge.caret$bestTune$lambda
+# Model coefficients
+coef(fit.ridge.caret$finalModel,fit.ridge.cv$lambda.1se)%>%head
+# Make predictions
+fit.ridge.caret %>% predict(xtest,s=fit.ridge.cv$lambda.1se)%>%head
+
+## Lasso
+lambda.grid <- fit.lasso.cv$lambda
+fit.lasso.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.lasso.caret)
+# Best lambda
+fit.lasso.caret$bestTune$lambda
+# Model coefficients
+coef(fit.lasso.caret$finalModel,fit.lasso.caret$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso.caret %>% predict(xtest,s=fit.ridge.cv$lambda.1se)%>%head
+
+## Compare Ridge and Lasso
+models <- list(ridge= fit.ridge.caret,ridge = fit.lasso.caret)
+resamples(models) %>% summary( metric = "RMSE")
+```
+
+## Details on the Prediction Error
+
+\[Y=f(X)+\epsilon\]
+
+where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
+
+\begin{align*}
+\rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
+&=\sigma^2_{\epsilon}+(E[\hat{f}(x_0)]-f(x_0))^2+ E(\hat{f}(x_0)-E\hat{f}(x_0))^2\\
+&=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
+\end{align*}
+
+## Another Example
+
+We simulate data for training and testing.
+
+```{r}
+set.seed(1)
+n <- 20
+p <- 50
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+xtest <- matrix(rnorm(n*p),n,p)
+# simulate outcome
+beta0 <- 0
+beta <- c(2,0,0,0,2,rep(0,p-5))
+ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=1)
+ytest <- beta0+xtest%*%beta+rnorm(n,sd=1)
+# train and test data as data.frames
+dtrain <- data.frame(cbind(ytrain,xtrain))
+colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
+dtest <- data.frame(cbind(ytest,xtest))
+colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
+```
+
+Linear regression with only x1.
+
+```{r}
+fit <- lm(y~x1,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+
+Linear regression with 10 covariates.
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
+fit <- lm(fm,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+Linear regression with 19 covariates
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
+fit <- lm(fm,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+We note by including more noise variables into the model we improve the fit to the training data. However, on the performance on the test data continuously gets worse. Ultimately we get a perfect fit if $p=n-1$. In other words there are no residual degrees of freedom. Also for $p\leq n-1$ the matrix $\bf X^T \bf X$ becomes singular. 
+
+
+```{r, echo=FALSE, eval=FALSE}
+tc <- trainControl(method = "cv", number = 10)
+fit.forward <- train(y ~., data = dtrain,
+                     method = "leapForward", 
+                     tuneGrid=data.frame(nvmax=1:15),
+                     trControl = tc,
+                     trace = FALSE
+                    )
+# nvmax
+fit.forward$bestTune
+# accuracy
+fit.forward$results
+# summary of the model
+summary(fit.forward$finalModel)
+# final model coefficients
+coef(fit.forward$finalModel,2)
+```
+
+
+Now we perform Ridge regession
+
+```{r}
+lambda.max <- 10
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.ridge<-train(y ~., 
+                 data = dtrain,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+# Cv plot
+plot(fit.ridge)
+# Best lambda
+fit.ridge$bestTune$lambda
+# Model coefficients
+coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)%>%head
+# Make predictions
+fit.ridge %>% predict(dtest)%>%head
+```
+
+
+```{r, eval=FALSE}
+lambda.max <- max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.lasso<-train(y ~., 
+                 data = dtrain,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+# Cv plot
+plot(fit.lasso)
+# Best lambda
+fit.lasso$bestTune$lambda
+# Model coefficients
+coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso %>% predict(dtest)%>%head
+```
+
+
+```{r, eval=FALSE}
+models <- list(forward= fit.forward,ridge = fit.ridge)
+resamples(models) %>% summary( metric = "RMSE")
+```
+
+
+That is how to calculate lambda_max
+```{r}
+# with scaling
+mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
+sx <- scale(xtrain,scale=apply(xtrain, 2, mysd))
+sx <- as.matrix(sx, ncol=20, nrow=100)
+sy <- as.vector(scale(ytrain, scale=mysd(ytrain)))
+max(abs(colSums(sx*sy)))/nrow(xtrain)
+fitglmnet <- glmnet(sx,sy)
+max(fitglmnet$lambda)
+
+# no scaling
+fit.lasso <-glmnet(x=xtrain,y=ytrain,
+                   alpha=1,
+                   standardize=FALSE,
+                   intercept=FALSE) 
+max(fit.lasso$lambda)
+max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
+```
+
 ## Caret Package
 
 The caret package (short for Classification And REgression Training) is a set of functions that attempt to streamline the process for creating predictive models. The package contains tools for:
@@ -695,194 +902,6 @@ https://topepo.github.io/caret/ for a long introduction.
 
 In this section we explore the caret package to compare performance of the different regression approaches based on a real data example.
 
-## Diabetes Example
-
-These data consist of
-observations on 442 patients, with the response of interest being a quantitative
-measure of disease progression one year after baseline. There are ten baseline
-variables—age, sex, body-mass index, average blood pressure, and six blood
-serum measurements—plus quadratic terms, giving a total of 64 features.The statisticians were asked to construct a model that predicted response y from covariates
-x1, x2,... ,x10. Two hopes were evident here, that the model would produce accurate baseline
-predictions of response for future patients, and also that the form of the model would suggest
-which covariates were important factors in disease progression.
-
-```{r, eval=FALSE}
-library(lars)
-data("diabetes")
-x <- diabetes$x #mean=0, L2 norm=1
-xs <- scale(diabetes$x) #mean=0, var=1
-x2 <- diabetes$x2
-x2s <- scale(x2)
-y <- diabetes$y-mean(diabetes$y)
-ys <- scale(y)
-
-# Lasso
-fit <- glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
-plot(fit,xvar="norm",label=TRUE) # Fig 6.2 in SLS
-fit.cv <- cv.glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
-plot(fit.cv) # Fig 6.5
-
-```
-
-
-```{r}
-dat <- read.csv("data/diabetes_raw.csv")
-colnames(dat) <- c("age","sex","bmi","map","tc","ldl","hdl","tch","ltg","glu","y")
-x <- apply(dat[,-11],2,FUN=function(x){
-  x <- x-mean(x)
-  x/sqrt(sum(x^2))
-})
-x2 <- cbind(x,x^2)
-colnames(x2)[11:20] <- paste0(colnames(x2)[1:10],"2")
-xint <- model.matrix(~0+.^2,data=data.frame(x))
-xx <- cbind(x2,xint)
-head(diabetes$x2[,""])
-head(x[,"age"]^2)
-age2 <- dat$age^2
-age2c <- age2-mean(age2)
-head(age2c/sqrt(sum(age2c^2)))
-
-head((dat$age^2-mean(dat$age^2))/sqrt(sum((dat$age^2-mean(dat$age^2))^2)))
-head(diabetes$x2[,"age^2"])
-```
-
-```{r}
-library(lars)
-data("diabetes")
-x2s <- scale(diabetes$x2)
-colnames(x2s) <- gsub(":",".",colnames(x2s))
-y <- diabetes$y-mean(diabetes$y)
-dat <- as.data.frame(cbind(y,x2s))
-
-# Forward regression
-fit0 <- lm(y~1,data=dat)
-fit.fw <- stepAIC(fit0,direction="forward",
-                  scope=list(lower=fit0,upper=paste("~", paste(colnames(x2s), collapse=" + "))
-                             ),
-                  trace = FALSE
-                  )
-kable(as.data.frame(fit.fw$anova),digits=2)
-```
-
-```{r}
-#summary(fit.fw)
-beta.fw <- coef(fit.fw)
-kable(broom::tidy(fit.fw),digits=2)
-```
-
-```{r}
-# Ridge
-set.seed(1515)
-fit.ridge <- glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
-fit.ridge.cv <- cv.glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
-plot(fit.ridge.cv)
-fit.ridge.cv$lambda.1se
-beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
-```
-
-```{r}
-# Lasso
-set.seed(1515)
-fit.lasso <- glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
-fit.lasso.cv <- cv.glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
-plot(fit.lasso.cv)
-fit.lasso.cv$lambda.1se
-beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
-```
-
-
-```{r}
-res.coef <- data.frame(fw=0,ridge=as.numeric(beta.ridge),lasso=as.numeric(beta.lasso))
-rownames(res.coef) <- rownames(beta.ridge)
-res.coef[names(beta.fw),"fw"] <- beta.fw
-res.coef$coef <- rownames(res.coef)
-res.coef.l <- pivot_longer(res.coef,cols=c("fw","ridge","lasso"),names_to="method")
-
-res.coef.l%>%
-  dplyr::filter(coef!="(Intercept)")%>%
-  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
-  ggplot(.,aes(x=coef,y=value,fill=method))+
-  geom_bar(stat="identity",position="dodge")+
-  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
-  xlab("")+ylab("beta")
-```
-
-
-We finally show how we can use the caret package to perform Forward, Ridge and Lasso regression. 
-With the caret package we can also easily compare the 3 methods.
-
-```{r, echo=FALSE}
-tc <- trainControl(method = "cv", number = 10)
-lw <- ~.
-up <- formula(paste("~", paste(colnames(x2s), collapse=" + ") ))
-fit.fw.caret <- train(x=x2s,
-                      y=y,
-                      method = "lmStepAIC", 
-                      scope = list(upper=up),
-                      direction ="forward",
-                      trControl = tc,
-                      trace = FALSE
-)
-  
-# nvmax
-fit.fw.caret$bestTune
-# accuracy
-fit.fw.caret$results
-# summary of the model
-summary(fit.forward$finalModel)
-# final model coefficients
-coef(fit.forward$finalModel,2)
-```
-
-```{r}
-lambda.grid <- fit.ridge$lambda
-fit.ridge.caret<-train(x=x2s,
-                       y=y, 
-                       method = "glmnet",
-                       tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
-                       trControl = tc
-) 
-
-#
-plot(fit.ridge.caret)
-# Best lambda
-fit.ridge.caret$bestTune$lambda
-# Model coefficients
-coef(fit.ridge.caret$finalModel,fit.ridge.caret$bestTune$lambda)
-# Make predictions
-yhat <- fit.ridge.caret %>% predict(dat)
-```
-
-```{r}
-lambda.grid <- fit.lasso$lambda
-fit.lasso.caret<-train(x=x2s,
-                       y=y, 
-                       method = "glmnet",
-                       tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
-                       trControl = tc
-) 
-
-#
-plot(fit.lasso.caret)
-# Best lambda
-fit.lasso.caret$bestTune$lambda
-# Model coefficients
-coef(fit.lasso.caret$finalModel,fit.lasso.caret$bestTune$lambda)
-# Make predictions
-yhat <- fit.lasso.caret %>% predict(dat)
-```
-
-## Details on the Prediction Error
-
-\[Y=f(X)+\epsilon\]
-
-where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
-
-\begin{align*}
-\rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
-&=\sigma^2_{\epsilon}+(E[\hat{f}(x_0)]-f(x_0))^2+ E(\hat{f}(x_0)-E\hat{f}(x_0))^2\\
-&=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
-\end{align*}
 
 
 ## Exercises
@@ -890,6 +909,10 @@ where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction e
 1. Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
 ridge regression and lasso regression
 
-2. Calculate the Ridge and the Lasso solution for orthogonal covariates.
+2. Riboflavin data set from hdi package
 
-3. 
+3. Calculate the Ridge and the Lasso solution for orthogonal covariates.
+
+4. Write down the log-likelihood of the model
+$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
+$n\times p$ design matrix.
