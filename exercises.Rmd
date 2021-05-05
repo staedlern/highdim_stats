@@ -1,0 +1,205 @@
+---
+title: "Exercises"
+author: "Nicolas Städler"
+date: "3/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE)
+```
+
+
+```{r, echo=FALSE}
+library(knitr)
+library(caret)
+library(glmnet)
+library(tidyverse)
+library(MASS)
+library(lars)
+library(gridExtra)
+```
+
+
+
+## Another Example
+
+We simulate data for training and testing.
+
+```{r}
+set.seed(1)
+n <- 20
+p <- 50
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+xtest <- matrix(rnorm(n*p),n,p)
+# simulate outcome
+beta0 <- 0
+beta <- c(2,0,0,0,2,rep(0,p-5))
+ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=0.5)
+ytest <- beta0+xtest%*%beta+rnorm(n,sd=0.5)
+# train and test data as data.frames
+dtrain <- data.frame(cbind(ytrain,xtrain))
+colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
+dtest <- data.frame(cbind(ytest,xtest))
+colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
+```
+
+Linear regression with only x1.
+
+```{r}
+fit <- lm(y~x1,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+
+Linear regression with 10 covariates.
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
+fit <- lm(fm,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+Linear regression with 19 covariates
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
+fit <- lm(fm,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+Leap Forward Regression.
+
+
+```{r, echo=FALSE}
+tc <- trainControl(method = "cv", number = 10)
+fit.forward <- train(y ~., data = dtrain,
+                     method = "leapForward", 
+                     tuneGrid=data.frame(nvmax=1:15),
+                     trControl = tc,
+                     trace = FALSE
+                    )
+# nvmax
+fit.forward$bestTune
+# accuracy
+fit.forward$results
+# summary of the model
+summary(fit.forward$finalModel)
+# final model coefficients
+coef(fit.forward$finalModel,2)
+```
+
+
+Now we perform Ridge regession
+
+```{r}
+lambda.max <- 10
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.ridge<-train(y ~., 
+                 data = dtrain,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+# Cv plot
+plot(fit.ridge)
+# Best lambda
+fit.ridge$bestTune$lambda
+# Model coefficients
+coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)%>%head
+# Make predictions
+fit.ridge %>% predict(dtest)%>%head
+```
+
+
+```{r}
+lambda.max <- max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.lasso<-train(y ~., 
+                 data = dtrain,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+# Cv plot
+plot(fit.lasso)
+# Best lambda
+fit.lasso$bestTune$lambda
+# Model coefficients
+coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso %>% predict(dtest)%>%head
+```
+
+
+```{r}
+models <- list(forward= fit.forward,ridge = fit.ridge,lasso=fit.lasso)
+resamples(models) %>% summary( metric = "RMSE")
+```
+
+That is how to calculate lambda_max
+```{r}
+# with scaling
+mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
+sx <- scale(xtrain,scale=apply(xtrain, 2, mysd))
+sx <- as.matrix(sx, ncol=20, nrow=100)
+sy <- as.vector(scale(ytrain, scale=mysd(ytrain)))
+max(abs(colSums(sx*sy)))/nrow(xtrain)
+fitglmnet <- glmnet(sx,sy)
+max(fitglmnet$lambda)
+
+# no scaling
+fit.lasso <-glmnet(x=xtrain,y=ytrain,
+                   alpha=1,
+                   standardize=FALSE,
+                   intercept=FALSE) 
+max(fit.lasso$lambda)
+max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
+```
+
+### Example based on simulated data
+
+Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
+ridge regression and lasso regression
+
+### Riboflavin data set from hdi package
+
+### Ridge and Lasso for the orthonormal design
+
+Calculate the Ridge and the Lasso solution for orthogonal covariates.
+
+### Log-likelihood of Regression Model
+
+Write down the log-likelihood of the model
+$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
+$n\times p$ design matrix.
+
+### P-values for High-dimensional Regression
+
