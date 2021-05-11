@@ -6,11 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,results="hide",warnings=FALSE)
+knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
 ```
 
 
-```{r, echo=FALSE}
+```{r,include=FALSE}
 library(caret)
 library(mlbench)
 library(glmnet)
@@ -19,11 +19,11 @@ library(e1071)
 library(MASS)
 ```
 
-We so far focused on linear regression. We will now extend to situation where response is binary (classification) and where response is time-to-event. 
+We so far focused on the linear regression model. We will now extend to the situation where the response is binary or time-to-event. The former is also referred to as classification.
 
 ## Classification
 
-We focus on the binary situation where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $p(x)=P(G=1|X=x;\beta)$ using the logistic regression approach with logit link function
+We focus on the binary situation where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $p(x;\beta)=P(G=1|X=x;\beta)$ using the logistic regression approach with logit link function
 
 \[\rm{logit}(x;\beta)=log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
@@ -34,7 +34,7 @@ l(\beta|\bf G,\bf X)&=\sum_{i=1}^{n}(1-g_i)\log(1-p(x_i;\beta))+g_i\log p(x_i;\b
 &=\sum_{i=1}^{n}g_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
 \end{align*}
 
-Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ is obtained as
+Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ can be obtained via the predicted probablity of success $p(X_{\rm new};\hat \beta)$, e.g. 
 
 \begin{align*}
 \hat{G}(X_{\rm new})&=1\quad \rm{if}\quad p(X_{\rm new};\hat\beta)>0.5. 
@@ -42,7 +42,13 @@ Given an estimate $\hat \beta$ (from training data), prediction based on new inp
 
 The quality of the prediction is judged based on the missclassification error on test data.
 
-Similar as in linear regression, in the high-dimensional context where $n$ is small compared to $p$ the maximum likelihood estimater (i.e. standard logistic regression) does often lead to overfitting and poor generalisation error. We will discuss in the following forward regression, L1-penalized likelihood and support vector machines as alternative methods.
+Similar as in linear regression, in the high-dimensional context where $n$ is small compared to $p$, the maximum likelihood estimator does often lead to overfitting and a poor generalisation error. We will in the following generalize the previously introduced idea of regularization to classification. In the context of linear regression we penalized the residual sum of squares (RSS). We extend this and penalize the negative log-likelihood with an elastic net penalty
+
+
+\begin{align*}
+\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-l(\beta|\bf G,\bf X)+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
+\end{align*}
+
 
 ### Example Dataset
 
@@ -125,11 +131,7 @@ fit.fw.caret$results
 summary(fit.fw.caret$finalModel)
 ```
 
-Next, we use L1-penalized regression
-
-\begin{align*}
-\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-l(\beta|\bf G,\bf X)+\lambda\|\beta\|.
-\end{align*}
+Next, we use L1-penalized regression.
 
 
 ```{r}
@@ -244,7 +246,7 @@ cvfit$lambda.min
 cvfit$lambda.1se
 
 betahat <- coef(fit.l1,s=cvfit$lambda.1se)
-names(betahat) <- colnames(x)
+rownames(betahat) <- colnames(x)
 Shat <- rownames(betahat)[which(betahat != 0)]
 
 fm <- as.formula(paste0("Surv(time, status) ~ 0 +",paste(Shat,collapse = "+")))
@@ -252,23 +254,17 @@ fit.shat <- coxph(fm,data=dat,x=TRUE,y=TRUE)
 ```
 
 
-library(pec)
-# cox backward selection with adsl variables
-fm <- Surv(AVAL, Delta) ~ 0 + A1 + A2 + A3+GROUP
-fitcoxbw <- pec::selectCox(fm, data = dt_tte, rule = "aic")
-print(survminer::ggforest(coxph(fitcoxbw$fit$sformula, data = dt_tte)))
-
-
 
 ```{r}
 library(party)
+library(randomForestSRC)
 # Condicional Inferences Trees
 fm <- Surv(time, status) ~ .
 fitcforest <- pec::pecCforest(fm, data =dat[,1:20], 
                               control = party::cforest_classical(ntree = 1000))
 
 # Survival Random Forests
-fitrsf <- randomForestSRC::rfsrc(fm, data = dt_tte, forest = TRUE, 
+fitrsf <- randomForestSRC::rfsrc(fm, data = dat[,1:20], forest = TRUE, 
                                  ntree = 1000, splitrule = "logrank", 
                                  na.action = "na.impute")
 
@@ -285,6 +281,7 @@ data.frame(varimp)%>%
 ```
 
 ```{r}
+library(pec)
 models <- list("cox.shat"=fit.shat)
 fitpec <- pec::pec(
   object=models, 
