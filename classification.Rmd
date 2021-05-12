@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
 
 
 ```{r,include=FALSE}
+library(knitr)
 library(caret)
 library(mlbench)
 library(glmnet)
@@ -49,8 +50,125 @@ Similar as in linear regression, in the high-dimensional context where $n$ is sm
 \hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-l(\beta|\bf G,\bf X)+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
 \end{align*}
 
+### South African Heart Disease Data
+A retrospective sample of males in a heart-disease high-risk region
+of the Western Cape, South Africa. There are roughly two controls per
+case of CHD. Many of the CHD positive men have undergone blood
+pressure reduction treatment and other programs to reduce their risk
+factors after their CHD event. In some cases the measurements were
+made after these treatments. These data are taken from a larger
+dataset, described in  Rousseauw et al, 1983, South African Medical
+Journal. 
 
-### Example Dataset
+sbp		systolic blood pressure
+tobacco		cumulative tobacco (kg)
+ldl		low densiity lipoprotein cholesterol
+adiposity
+famhist		family history of heart disease (Present, Absent)
+typea		type-A behavior
+obesity
+alcohol		current alcohol consumption
+age		age at onset
+chd		response, coronary heart disease
+
+```{r}
+# data source: https://web.stanford.edu/~hastie/ElemStatLearn/
+dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
+dat <- dat[,vars]
+
+pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
+```
+```{r}
+fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,data=dat,family="binomial")
+broom::tidy(fit.logistic)
+```
+
+We proceed with backward selection.
+
+```{r}
+fit.bw <- stepAIC(fit.logistic,direction = "backward")
+```
+
+```{r}
+kable(as.data.frame(fit.bw$anova),digits=2)
+```
+
+And the final regression coefficients are
+
+```{r}
+kable(broom::tidy(fit.bw),digits=2)
+```
+
+
+Finally we run the Lasso approach
+
+```{r}
+x <- scale(data.matrix(dat[,-1]))
+y <- dat$chd
+fit.lasso <- glmnet(x=x,y=y,family="binomial")
+plot(fit.lasso,xvar = "lambda",label=TRUE)
+```
+This example was only for illustration. We now turn to a truly high-dimensional example.
+
+### Leukemia Dataset
+
+<!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
+
+Expression levels recorded for 3,571 genes in 72 patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). Data are represented as a 72 x 3,571 matrix x of gene expression values, and a vector y of 72 binary disease outcomes.
+
+
+```{r}
+set.seed(1)
+
+# get leukemia data
+library(varbvs) 
+data(leukemia)
+x <- leukemia$x
+y <- leukemia$y
+
+# set settings for glmnet 
+nfolds <- 10                  # number of cross-validation folds.
+alpha  <- 0.95                  # elastic net mixing parameter.
+lambda <- 10^(seq(0,-2,-0.05))  # lambda sequence.
+
+# run glmnet
+fit.glmnet <-glmnet(x,y,family = "binomial",lambda=lambda,alpha=alpha)
+
+# run cv.glmnet
+cv.glmnet <- cv.glmnet(x,y,family = "binomial",type.measure = "class",
+                       alpha = alpha,nfolds = nfolds,lambda = lambda)
+```
+
+
+The following Figure shows the Elastic net solution for the grid of lambda values.
+
+```{r}
+plot(fit.glmnet,xvar="lambda",label=TRUE)
+```
+
+We run 10-fold cross-validation and take $\lambda_{\rm opt}$ as the largets $\lambda$ within 1 standard error of the minimum classification error.
+
+```{r}
+plot(cv.glmnet)
+lambda.opt <- cv.glmnet$lambda.1se
+```
+
+The optimal coefficients can be optained as
+
+```{r}
+beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.1se)
+barplot(as.numeric(beta.glmnet)[-1],xlab="gene",ylab="beta glment")
+```
+
+Finally we predict the disease outcome using the fitted model and compare against the observed values.
+```{r}
+pred <- c(predict(fit.glmnet,x,s = lambda.opt,type = "class"))
+print(table(true = factor(y),pred = factor(pred)))
+```
+
+
+### Sonar Dataset
 
 To illustrate the approaches we use the Sonar dataset from the mlbench package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands.
 
@@ -72,10 +190,8 @@ ytrain <- dtrain$Class
 dtest  <- Sonar[-inTrain,]
 xtest <- as.matrix(dtest[,-61])
 ytest <- dtest$Class
-
 ```
 
-### Logistic regression, Forward selection and L1 penalization
 
 We first run logistic regression once with only an intercept and once with all the covariates. We
 note that glm reports convergence problems when using all variables. This indicates that the model could be to complex to fit.
@@ -210,6 +326,7 @@ If you are interested to learn more about survival analysis I recommend you to h
 Gene expression data for 7399 genes measured on 240 patients, as well as censored survival times, for these patients. We start by reading the data and plotting the estimated surival curve.
 
 ```{r}
+# data source: http://web.stanford.edu/~hastie/StatLearnSparsity/data.html
 # load packages for survival analysis
 library(survival)
 library(survminer)
@@ -235,27 +352,26 @@ summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
 We now perform L1-penalized cox regression using glmnet.
 
 ```{r}
-fit.l1 <- glmnet(x, y, family = "cox",alpha=1)
-plot(fit.l1,xvar="lambda")
-
 set.seed(1)
-cvfit <- cv.glmnet(x,y,family="cox",type.measure = "C")
-plot(cvfit)
+fit.coxnet <- glmnet(x, y, family = "cox",alpha=1)
+plot(fit.coxnet,xvar="lambda")
 
-cvfit$lambda.min
-cvfit$lambda.1se
+cv.coxnet <- cv.glmnet(x,y,family="cox")
+plot(cv.coxnet)
+#plot(cv.coxnet, xlim = c(log(0.05), log(0.5)), ylim = c(11.3,12.4))
 
-betahat <- coef(fit.l1,s=cvfit$lambda.1se)
-rownames(betahat) <- colnames(x)
+cv.coxnet$lambda.min
+
+betahat <- coef(fit.coxnet,s=cv.coxnet$lambda.min)
 Shat <- rownames(betahat)[which(betahat != 0)]
 
-fm <- as.formula(paste0("Surv(time, status) ~ 0 +",paste(Shat,collapse = "+")))
+fm <- as.formula(paste0("Surv(time, status) ~ 0+",paste(Shat,collapse = "+")))
 fit.shat <- coxph(fm,data=dat,x=TRUE,y=TRUE)
 ```
 
 
 
-```{r}
+```{r, eval=FALSE}
 library(party)
 library(randomForestSRC)
 # Condicional Inferences Trees
@@ -280,7 +396,7 @@ data.frame(varimp)%>%
   coord_flip()
 ```
 
-```{r}
+```{r, eval=FALSE}
 library(pec)
 models <- list("cox.shat"=fit.shat)
 fitpec <- pec::pec(

@@ -189,6 +189,9 @@ max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
 Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
 ridge regression and lasso regression
 
+### Prostate
+Take the prostate dataset. Run OLS, Best Subset, Ridge and Lasso. Show coefficients and compare test error.
+
 ### Riboflavin data set from hdi package
 
 ### Ridge and Lasso for the orthonormal design
