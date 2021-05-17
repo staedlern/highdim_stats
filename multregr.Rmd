@@ -6,11 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
 ```
 
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 library(knitr)
 library(caret)
 library(glmnet)
@@ -18,6 +18,8 @@ library(tidyverse)
 library(MASS)
 library(lars)
 library(gridExtra)
+library(stats)
+library(splines)
 ```
 
 ## General Notation
@@ -33,11 +35,11 @@ We need data to construct learning rules. We thus suppose we have available a se
 A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
 the observed data is extremely important in practice. 
 
-When buliding a good learning rule $\hat{f}(X)$ we need to keep in mind the following 2 fundamental steps in statistical learning:
+When buliding a good learning rule $\hat{f}(X)$ we need to keep in mind the following 2 fundamental steps:
 
 1. Training step: In this step we explore based on training data a series of learning rules $\hat{f}_k(X)$, $k=1,...,K$. We compare the prediction performance of each rule. We choose the rule with the least prediction error.
 
-2. Testing step: In this step we test the performance of the best learning rule $\hat{f}(X)$ identified in the Trainig step based on independent test data.
+2. Testing step: In this step we test the performance of the best learning rule $\hat{f}(X)$ based on independent test data.
 
 To perform the Training step we need to estimate the prediction error for the different learning methods. There are several approaches to do so. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
 
@@ -64,12 +66,12 @@ If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by
 
 \[\hat\beta=(\bf X^T \bf X)^{-1}\bf X^T \bf y.\]
 
-Thus, the learning rule at the new input point $X_0$ is
+Thus, the learning rule at the new input point $X_{\rm new}$ is
 
 \begin{align*}
-\hat{Y}&=\hat{f}(X_0)\\
-&=X_0^T\hat\beta\\
-&=X_0^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
+\hat{Y}&=\hat{f}(X_{\rm new})\\
+&=X_{\rm new}^T\hat\beta\\
+&=X_{\rm new}^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
 \end{align*}
 
 ## Overfitting and High-dimensionality
@@ -81,7 +83,7 @@ is thus possible to form a linear combination of the covariates that perfectly e
 noise.
 Large estimates of regression coefficients are often an indication of overfitting. Overfitting is illustrated in the next example.
 
-We simulate training data with $p=9$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$ and outcome $Y$ which depends only on the first covariate according to $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, $\beta_1$, $\epsilon_i\sim N(0,0.5)$. The size of the training data is $n=10$.
+We simulate training data with $p=9$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$. The outcome $Y$ depends only on the first covariate according to $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i\sim N(0,0.5)$. The size of the training data is $n=10$.
 
 ```{r}
 set.seed(1)
@@ -97,8 +99,13 @@ dtrain$y <- ytrain
 
 # lm
 fit <- lm(y~-1+.,data=dtrain)
+```
+The estimated regression coefficients are
+
+```{r}
 coef(fit)
 ```
+
 As the true coefficients are $\beta = (1, 0, \ldots, 0),$ many regression coefficient are clearly over-estimated.
 
 In the next plot the fitted values are plotted against the values of the first covariate.
@@ -111,10 +118,10 @@ t.d%>%
   ggplot(.,aes(x=x))+
   geom_point(aes(y=y),size=2)+
   geom_line(aes(y=yhat),col="red")+
-  geom_abline(yintercept=0,xintercept=1,col="blue",lty=2)
+  geom_abline(intercept=0,slope=1,col="blue",lty=2)
 ```
 
-In this example the model fits the data perfectly. The residual degrees of freedom to estimate the error is n-p=`r n-p`. A rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
+In this example the model fits the data perfectly. The residual degrees of freedom, $n-p$, to estimate the error is exactly `r n-p`. A rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
 
 ## Collinearity and High-dimensionality
 
@@ -152,12 +159,13 @@ gp3 <- dat%>%
 grid.arrange(gp1,gp2,gp3,ncol=3)
 ```
 
-In the presence of collinearity, the estimate of one variable's impact on the dependent variable Y while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. Intuitively this can be explained based on the following figure which shows the response y and two highly correlated covariates x1 and x2. We note that OLS derived plain deviates from the truth and further see that the exact position of OLS derived plain is uncertain.
+In the presence of collinearity, the estimate of one variable's impact on the dependent variable $Y$ while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. Intuitively this can be explained based on the following figure which shows the response Y and two highly correlated covariates x1 and x2: we note that 2-dimensional OLS hyperplain deviates from the true model; further we see that the exact position of OLS hyperplain is very uncertain.
 
 ![](collinearity.JPG)
 
 
-As an example we fit the following the two models 
+We illustrate this by fitting the following the two models 
+
 ```{r}
 modela <- lm(y~x1+x2,data=dat)
 modelb <- lm(y~x1+x3,data=dat)
@@ -173,7 +181,7 @@ diag(vcov(modela))
 diag(vcov(modelb))
 ```
 
-In the case of super-collinearity the OLS is not well-defined as the rank of the design matrix is 0 and therefore the matrix $\bf X^T \bf X$ is singular and therefore not invertible. In our example, if we include x4 into the design matrix, the design matrix has not full rank
+In the case of super-collinearity the OLS estimate is not defined as the rank of the design matrix is 0 and therefore the matrix $\bf X^T \bf X$ is singular and not invertible. In our example, if we include x4 into the design matrix, the design matrix has not full rank
 
 ```{r}
 x <- as.matrix(dat[,-5])
@@ -190,12 +198,12 @@ procedure with a constraint on the regression coefficients is a simple remedy to
 
 ## Subset selection
 
-The most traditional approach to impose constraints is subset selection. In this approach we retrain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
+The most traditional approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
 
 
 \begin{align*}
 \hat{\beta}_{S}&=\rm{argmin}_{\beta_j=0\;\rm{for\; all}\;j\notin S}\rm{RSS}(\beta)\\
-&=(\bf X_S^T \bf X_S)^{-1}\bf X_S^T \bf y.
+&=(\bf{X}_S^T \bf{X}_S)^{-1}\bf{X}_S^T \bf{y}.
 \end{align*}
 
 In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose the optimal subset by either a re-sampling approach or by using an information criteria. There are a number of different strategies for choosing the sequence of subsets. Best subsets regression consists of looking at possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are backward stepwise selection which starts with the full model and sequentially deletes covariates, whereas forward stepwise selection starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
@@ -212,16 +220,16 @@ fit.fw <- stepAIC(fit0,direction="forward",
                   )
 ```
 
-The subset selection 
+The selection process can be summarized
 
 ```{r}
-kable(as.data.frame(fit.fw$anova),digits=2)
+kable(as.data.frame(fit.fw$anova),digits=3)
 ```
 
 The regression coefficients of the optimal model are
 
 ```{r}
-kable(broom::tidy(fit.fw),digits=2)
+kable(broom::tidy(fit.fw),digits=3)
 ```
 
 ## Ridge Regression
@@ -233,11 +241,11 @@ regression coefficients towards zero. This discourages complex models because
 models that overfit tend to have larger coefficients. We can formulate Ridge Regression as the constrained optimization problem
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}_{\|\beta\|^2\leq c}\rm{RSS}(\beta).
+\hat{\beta}^{\rm Ridge}_{s}&=\rm{argmin}_{\|\beta\|^2\leq s}\rm{RSS}(\beta).
 \end{align*}
 
 The constrained estimation interpretation of the ridge regression estimator is illustrated in the figure. It shows the levels sets of the $\rm{RSS}(\beta)$ which are ellipsoids and centered around zero the circular ridge
-parameter constraint parametrized by some $c > 0$. The ridge regression estimator
+parameter constraint parametrized by some $s > 0$. The ridge regression estimator
 is then the point where the smallest level set hits the constraint. Exactly at that point the $\rm{RSS}(\beta)$ is
 minimized over those $\beta$’s that live inside the constraint.
 
@@ -251,8 +259,7 @@ a penalty on the magnitude of the coefficients
 \hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}\rm{RSS}(\beta)+\lambda\|\beta\|^2.
 \end{align*}
 
-Both formulation are equivalent. However we will use more often the penalisation definition.
-$\lambda$ the amount of penalisation. Note that for "no penalization", $\lambda=0$, The Ridge Regression coincides with OLS. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero.
+Both formulation are equivalent (one-to-one relationship between $s$ and $\lambda$). We will use more often the second "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that for "no penalization", $\lambda=0$, the Ridge Regression coincides with OLS. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero. 
 
 ```{r}
 fit.ridge.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=0) 
@@ -265,13 +272,13 @@ The Ridge optimization problem has the closed form solution
 \hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y,
 \end{align*}
 
-which can be easily verified by taking the derivative of the loss function $l_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and equating it to zero. Note that for $\lambda>0$ the matrix $\bf X^T \bf X+\lambda \bf I$ has always full rank and therefore the Ridge Regression is well defined in the high-dimensional context (in contrast to OLS).
+which can be easily verified by taking the derivative of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and equating it to zero. Note that for $\lambda>0$ the matrix $\bf X^T \bf X+\lambda \bf I$ has always full rank and therefore the Ridge Regression is well defined in the high-dimensional context (in contrast to OLS).
 
 
 ### Choice of penalty parameter
 
 We proceed as explained in the section on statistical learning. We define a grid 
-of penalty parameters $0<\lambda_1<\lambda_2<\ldots\lambda_K$ and choose the optimal $\lambda_{\rm opt}$ by either a re-sampling approach or by using an information criteria. In glmnet we can use cross-validation
+of penalty parameters $0<\lambda_1<\lambda_2<\ldots<\lambda_K<\infty$ and choose the optimal $\lambda_{\rm opt}$ by either a re-sampling approach or by using an information criteria. In glmnet we can use cross-validation
 
 ```{r}
 cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0) 
@@ -279,38 +286,40 @@ plot(cv.ridge.glmnet)
 cv.ridge.glmnet$lambda.min
 ```
 
-Although Ridge Regression involves all $p$ covariate the degrees of freedom $df$ is smaller then $p$ as we imposed constraints. One can show that the degrees of freedom for Ridge Regression equals 
+Although Ridge Regression involves all $p$ covariate the degrees of freedom $\rm{DF}$ is smaller then $p$ as we imposed constraints. One can show that the degrees of freedom for Ridge Regression equals 
 
 \[\rm DF^{\rm Ridge}(\lambda)=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
 where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
 
-```{r}
-fit.svd <- svd(xtrain)
-#fit.svd$d
-(df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se)))
+```{r, echo=FALSE}
+# get singular values
+fit.svd <- svd(xtrain) #fit.svd$d
+
+# ridge degree of freedom for lambdaopt
+df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
 ```
 
-In our example the residual degrees of freedom is $n-DF^{\rm Ridge}(\lambda_{\rm opt})=$`r round(nrow(xtrain)-df_lambdaopt,2)` which lies within our "rule of thumb" of minimum of $5-10$ residual degrees of freedom to avoid overfitting.
+In our example the residual degrees of freedom is $n-\rm{DF}^{\rm Ridge}(\lambda_{\rm opt})$=`r round(nrow(xtrain)-df_lambdaopt,2)` which lies within the "rule of thumb" of minimum of $5-10$ residual degrees of freedom to avoid overfitting.
 
 ### Shrinkage property
 
 We noted that another challenge in multivariate regression is collinearity. In particular, we have seen that OLS becomes unstable with highly correlated covariates. Ridge regression counter acts this by shrinking low-variance components more than high-variance components. 
 
-We note that $\bf \hat Y^{OLS}$ can be viewed has $\bf Y$ orthogonally projected onto the hyperplane spanned the column space of $\bf X$. In term of principle components we get
+We note that ${\bf \hat y}^{OLS}$ can be viewed has $\bf y$ orthogonally projected onto the hyperplane spanned the column space of $\bf X$. In term of principle components we get
 
-\[\bf \hat Y^{OLS}=\sum_{j=1}^{p}u_j u_j^T y.\]
+\[{\bf\hat y}^{OLS}=\sum_{j=1}^{p}u_j u_j^T y.\]
 
 Similar we can represent the Ridge projection as
 
-\[\bf \hat Y^{Ridge}=\sum_{j=1}^{p}u_j \frac{d_j^2}{d_j^2+\lambda}u_j^T y.\]
+\[{\bf\hat y}^{Ridge}=\sum_{j=1}^{p}u_j \frac{d_j^2}{d_j^2+\lambda}u_j^T y.\]
 
 This shows that the largest shrinkage is in the direction of the last principle component which in return is the component with largest variance. This is illustrated in Figure XXX.
 
-Although Ridge Regression works in high-dimenions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
+Although Ridge Regression works in high-dimensions, $p>>n$, a disadvantage is that it does not perform variable selection and therefore interpretation of the model is more challenging. 
 
 ### Bayesian interpretation
 
-Finally Ridge Regression beviewed as the maximum a posetrior (MAP) estimate of hierarchical bayesian model: 
+Ridge Regression beviewed as the maximum a posetrior (MAP) estimate of hierarchical bayesian model: 
 \[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
 with prior distribution on the regression coefficients
 \[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p\]
@@ -334,13 +343,31 @@ lines(x, fx, lwd = 2)  # f(x)
 legend("topright", legend = "f(x)", lty = 1, lwd = 2, bty = "n")
 ```
 
-One approach to find a non-parametric approximation are so-called smoothing splines. They write 
-\[\hat f(x)=\sum_{j=1}^{N}N_j(x)\hat\beta_j,\]
-where $N_j(x)$'s are the natural cubic spline basis. The coefficients $\beta$ are the solution to the Ridge Regression 
+One approach to find a non-parametric approximation are so-called smoothing splines. The approach starts by approximating $f(x)$ as natural cubic spline 
+
+\[f(x)\approx\sum_{j=1}^{N}N_j(x)\beta_j,\]
+where $N_j(x)$'s are an n-dimensional set of basis functions for representing this family of natural splines. For the coefficients $\beta_j$ we take the solution to the generalized ridge regression problem
 
 \[\|\bf Y- \bf N \beta\|^2+\lambda \beta^T\Omega\beta,\]
+
 with design matrix $\bf N$ has $jth$ column $(N_j(x_1),\ldots,N_j(x_n))^T$. In practice we can fit 
 smoothing spline using the function smooth.spline. The penalty term is specified by setting the degree of freedom or by cross-validation.
+
+```{r, eval=FALSE,include=FALSE}
+#https://www.hse.ru/data/2018/03/15/1164357459/5._Splines.html
+#https://cswr.nrhstat.org/3-5-splines.html
+my.knots <- sort(unique(x))[-c(1,101)]
+bs_mat <- ns(x,knots=my.knots)
+bmat2 <- splineDesign(knots=my.knots,x=x,outer.ok = TRUE)
+fit.smsp <- smooth.spline(x, y, all.knots = TRUE)
+
+x <- seq(0, 1, by=0.001)
+spl <- ns(x,df=6)
+plot(spl[,1]~x, ylim=c(min(spl),max(spl)), type='l', lwd=2, col=1, 
+     xlab="Cubic B-spline basis", ylab="")
+for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
+```
+
 
 ```{r}
 fit.smsp <- smooth.spline(x, y, df = 10)
@@ -453,6 +480,10 @@ $$S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}
 An interesting question is whether the Lasso does a good job in variable selection. In particular, does $S^{\rm Lasso}_{\lambda}$ agree with the true set of active variables $S_0=\{j\in (1,\ldots,p); \beta_{j}\neq 0\}$, does Lasso typically under or over select variables, i.e. $S^{\rm Lasso}_{\lambda}\subset S_0$ or $S_0 \subset S^{\rm Lasso}_{\lambda}$? These questions were an active field of mathematical statistics. We briefly discuss two results of this research.
 
 ### Elastic Net
+
+The elastic-net selects variables like
+the lasso, and shrinks together the coefficients of correlated predictors like
+ridge.
 
 ## Diabetes Example
 

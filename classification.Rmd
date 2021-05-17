@@ -20,7 +20,7 @@ library(e1071)
 library(MASS)
 ```
 
-We so far focused on the linear regression model. We will now extend to the situation where the response is binary or time-to-event. The former is also referred to as classification.
+We so far focused on the linear regression model. We will now extend to the setting where the response is binary or time-to-event. The former is also referred to as classification.
 
 ## Classification
 
@@ -31,47 +31,52 @@ We focus on the binary situation where response $G$ takes values $0$ and $1$, an
 In logistic regression we estimate the regression parameter $\beta$ by maximizing the log-likelihood
 
 \begin{align*}
-l(\beta|\bf G,\bf X)&=\sum_{i=1}^{n}(1-g_i)\log(1-p(x_i;\beta))+g_i\log p(x_i;\beta)\\
+\ell(\beta|\bf G,\bf X)&=\sum_{i=1}^{n}(1-g_i)\log(1-p(x_i;\beta))+g_i\log p(x_i;\beta)\\
 &=\sum_{i=1}^{n}g_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
 \end{align*}
 
-Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ can be obtained via the predicted probablity of success $p(X_{\rm new};\hat \beta)$, e.g. 
+Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ can be obtained via the predicted probablity of success $p(X_{\rm new};\hat \beta)$, e.g. the class labels corresponding to the maximum probability
 
 \begin{align*}
-\hat{G}(X_{\rm new})&=1\quad \rm{if}\quad p(X_{\rm new};\hat\beta)>0.5. 
+  \hat{G}(X_{\rm new})=\left\{
+    \begin{array}{ll}
+      1, & \mbox{if $p(X_{\rm new};\hat\beta)>0.5$}.\\
+      0, & \mbox{otherwise}.
+    \end{array}
+  \right.
 \end{align*}
-
-The quality of the prediction is judged based on the missclassification error on test data.
 
 Similar as in linear regression, in the high-dimensional context where $n$ is small compared to $p$, the maximum likelihood estimator does often lead to overfitting and a poor generalisation error. We will in the following generalize the previously introduced idea of regularization to classification. In the context of linear regression we penalized the residual sum of squares (RSS). We extend this and penalize the negative log-likelihood with an elastic net penalty
 
-
 \begin{align*}
-\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}-l(\beta|\bf G,\bf X)+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
+\hat{\beta}_{\alpha,\lambda}&=\rm{argmin}-\frac{1}{n}\ell(\beta|\bf G,\bf X)+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
 \end{align*}
 
+There are different measures to judge the quality of the predictions. We focus on the missclassification error  which is simply the fraction of missclassified test samples. Another important measure used in the context of classification is the receiver operating characteristic (ROC). 
+
 ### South African Heart Disease Data
-A retrospective sample of males in a heart-disease high-risk region
-of the Western Cape, South Africa. There are roughly two controls per
-case of CHD. Many of the CHD positive men have undergone blood
-pressure reduction treatment and other programs to reduce their risk
-factors after their CHD event. In some cases the measurements were
-made after these treatments. These data are taken from a larger
-dataset, described in  Rousseauw et al, 1983, South African Medical
-Journal. 
 
-sbp		systolic blood pressure
-tobacco		cumulative tobacco (kg)
-ldl		low densiity lipoprotein cholesterol
-adiposity
-famhist		family history of heart disease (Present, Absent)
-typea		type-A behavior
-obesity
-alcohol		current alcohol consumption
-age		age at onset
-chd		response, coronary heart disease
+We start with a "low" dimensional example illustrating the logistic regression model and comparing 
+the Lasso with traditional backward selection. The data in Figure 4.12 are a
+subset of the Coronary Risk-Factor Study (CORIS) baseline survey, carried
+out in three rural areas of the Western Cape, South Africa (Rousseauw et al, 1983, South African Medical
+Journal). The aim of the study was to establish the intensity of ischemic
+heart disease risk factors in that high-incidence region. The data represent
+white males between 15 and 64, and the response variable is the presence or
+absence of myocardial infarction (MI) at the time of the survey (the overall
+prevalence of MI was 5.1% in this region). There are 160 cases in our data
+set, and a sample of 302 controls. This example is taken from the book "Elements of Statistical Learning". The variables are:
 
-```{r}
+- sbp: systolic blood pressure
+- tobacco: cumulative tobacco (kg)
+- ldl: low densiity lipoprotein cholesterol adiposity
+- famhist: family history of heart disease (Present, Absent)
+- obesity
+- alcohol: current alcohol consumption
+- age: age at onset
+- chd: response, coronary heart disease.
+
+```{r,echo=FALSE}
 # data source: https://web.stanford.edu/~hastie/ElemStatLearn/
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
@@ -79,47 +84,66 @@ dat <- dat[,vars]
 
 pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
 ```
+
+We fit a logitstic-regression model. 
+There are some surprises in this table of coefficients, which must be in-
+terpreted with caution. Systolic blood pressure (sbp) is not significant! Nor
+is obesity, and its sign is negative. This confusion is a result of the corre-
+lation between the set of predictors. On their own, both sbp and obesity
+are significant, and with positive sign. However, in the presence of many other correlated variables, they are no longer needed (and can even get a
+negative sign).
+
 ```{r}
 fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,data=dat,family="binomial")
-broom::tidy(fit.logistic)
+kable(broom::tidy(fit.logistic),digits=3)
 ```
 
 We proceed with backward selection.
 
-```{r}
-fit.bw <- stepAIC(fit.logistic,direction = "backward")
+```{r, echo=FALSE}
+fit.bw <- stepAIC(fit.logistic,direction = "backward",trace=FALSE)
 ```
 
 ```{r}
-kable(as.data.frame(fit.bw$anova),digits=2)
+kable(as.data.frame(fit.bw$anova),digits=3)
 ```
 
 And the final regression coefficients are
 
 ```{r}
-kable(broom::tidy(fit.bw),digits=2)
+kable(broom::tidy(fit.bw),digits=3)
 ```
 
+How does one interpret a coefficient of $0.081$ (Std. Error = $0.026$) for
+tobacco, for example? Tobacco is measured in total lifetime usage in kilo-
+grams, with a median of $1.0$kg for the controls and $4.1$kg for the cases. Thus
+an increase of 1kg in lifetime tobacco usage accounts for an increase in the
+odds of coronary heart disease of $exp(0.081) = 1.084$ or $8.4$%. Incorporat-
+ing the standard error we get an approximate $95$% confidence interval of
+$exp(0.081 ± 2 × 0.026) = (1.03, 1.14)$.
 
 Finally we run the Lasso approach
 
-```{r}
+```{r,echo=FALSE}
 x <- scale(data.matrix(dat[,-1]))
 y <- dat$chd
 fit.lasso <- glmnet(x=x,y=y,family="binomial")
 plot(fit.lasso,xvar = "lambda",label=TRUE)
 ```
-This example was only for illustration. We now turn to a truly high-dimensional example.
+
+The first coefficient which is shrunk to zero is alcohol followed by obesity and sbp. 
+
+We now turn to a truly high-dimensional example.
 
 ### Leukemia Dataset
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
 
-Expression levels recorded for 3,571 genes in 72 patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). Data are represented as a 72 x 3,571 matrix x of gene expression values, and a vector y of 72 binary disease outcomes.
+The data consists of expression levels recorded for $3,571$ genes in $72$ patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix x of gene expression values, and a vector y of 72 binary disease outcomes.
 
-
-```{r}
-set.seed(1)
+```{r, echo=FALSE}
+# set seed
+set.seed(15)
 
 # get leukemia data
 library(varbvs) 
@@ -127,17 +151,27 @@ data(leukemia)
 x <- leukemia$x
 y <- leukemia$y
 
+# test/train 
+ind_train <- sample(1:length(y),size=length(y)/2)
+xtrain <- x[ind_train,]
+ytrain <- y[ind_train]
+xtest <- x[-ind_train,]
+ytest <- y[-ind_train]
+```
+
+We now run the elastic net
+
+```{r}
 # set settings for glmnet 
 nfolds <- 10                  # number of cross-validation folds.
 alpha  <- 0.95                  # elastic net mixing parameter.
-lambda <- 10^(seq(0,-2,-0.05))  # lambda sequence.
 
 # run glmnet
-fit.glmnet <-glmnet(x,y,family = "binomial",lambda=lambda,alpha=alpha)
+fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=alpha)
 
 # run cv.glmnet
-cv.glmnet <- cv.glmnet(x,y,family = "binomial",type.measure = "class",
-                       alpha = alpha,nfolds = nfolds,lambda = lambda)
+cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
+                       alpha = alpha,nfolds = nfolds)
 ```
 
 
@@ -156,15 +190,20 @@ lambda.opt <- cv.glmnet$lambda.1se
 
 The optimal coefficients can be optained as
 
-```{r}
+```{r, echo=FALSE}
 beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.1se)
 barplot(as.numeric(beta.glmnet)[-1],xlab="gene",ylab="beta glment")
 ```
 
-Finally we predict the disease outcome using the fitted model and compare against the observed values.
+Finally we predict the disease outcome using the fitted model and compare against the observed values
 ```{r}
-pred <- c(predict(fit.glmnet,x,s = lambda.opt,type = "class"))
-print(table(true = factor(y),pred = factor(pred)))
+pred <- c(predict(fit.glmnet,xtest,s = lambda.opt,type = "class"))
+print(table(true = factor(ytest),pred = factor(pred)))
+```
+and the missclassification error is
+
+```{r}
+round(mean(pred!=ytest),3)
 ```
 
 
