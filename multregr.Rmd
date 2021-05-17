@@ -356,16 +356,24 @@ smoothing spline using the function smooth.spline. The penalty term is specified
 ```{r, eval=FALSE,include=FALSE}
 #https://www.hse.ru/data/2018/03/15/1164357459/5._Splines.html
 #https://cswr.nrhstat.org/3-5-splines.html
+# https://lbelzile.github.io/lineaRmodels/splines.html
+#https://bobby.gramacy.com/surrogates/splines.html
 my.knots <- sort(unique(x))[-c(1,101)]
 bs_mat <- ns(x,knots=my.knots)
 bmat2 <- splineDesign(knots=my.knots,x=x,outer.ok = TRUE)
-fit.smsp <- smooth.spline(x, y, all.knots = TRUE)
+fit.smsp <- smooth.spline(x, y, all.knots = TRUE,keep.stuff = TRUE)
+fit.smsp$auxM
 
 x <- seq(0, 1, by=0.001)
 spl <- ns(x,df=6)
 plot(spl[,1]~x, ylim=c(min(spl),max(spl)), type='l', lwd=2, col=1, 
      xlab="Cubic B-spline basis", ylab="")
 for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
+```
+
+
+```{r}
+vv <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
 ```
 
 
