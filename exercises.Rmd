@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE,warning=FALSE)
 ```
 
 
-```{r, echo=FALSE}
+```{r, include=FALSE, warning=FALSE}
 library(knitr)
 library(caret)
 library(glmnet)
@@ -19,7 +19,6 @@ library(MASS)
 library(lars)
 library(gridExtra)
 ```
-
 
 
 ## Another Example
@@ -205,4 +204,67 @@ $Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\epsilon_n$ iid $N(0,\sigma^2)
 $n\times p$ design matrix.
 
 ### P-values for High-dimensional Regression
+
+
+### Splines and  SAheart data
+
+```{r}
+library(splines)
+dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+
+# Computes the logistic regression model using natural splines (note famhist is included as a factor): 
+form = "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(obesity,df=4) + ns(alcohol,df=4) + ns(age,df=4)"
+form = formula(form)
+
+m = glm( form, data=dat, family=binomial )
+print( summary(m), digits=3 )
+
+# Duplicates the numbers from Table 5.1:
+# 
+drop1( m, scope=form, test="Chisq" )
+
+```
+
+
+```{r, include=FALSE, eval=FALSE}
+#https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
+#https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
+#https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
+library(splines)
+dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
+dat2 <- dat[dat$g%in%c("aa","ao"),]
+
+dtrain <- dat2[grepl("^train",dat2$speaker),-c(1,259)]
+xtrain <- as.matrix(dtrain[,-257])
+dtest <- dat2[grepl("^test",dat2$speaker),-c(1,259)]
+xtest <- as.matrix(dtest[,-257])
+dtrain$y <- ifelse(dtrain$g=="ao",1,0)
+dtest$y <- ifelse(dtest$g=="ao",1,0)
+dtrain <- dtrain[,-257]
+dtest <- dtest[,-257]
+
+# logistic regression
+fit <- glm(y~.,data=dtrain,family=binomial)
+mean(as.numeric((predict(fit,type="response")>0.5))!=dtrain$y)
+mean(as.numeric((predict(fit,type="response",newdata=dtest)>0.5))!=dtest$y)
+
+coef <-  coefficients(fit)
+plot( coef, ylim=c(-0.4,+0.4), type="l", xlab="Frequency", ylab="Logistic Regression Coefficients" )
+
+# logistic regression based on filtered features
+hmat <- ns(x=1:256,df=12)
+xstar <- xtrain%*%hmat
+fit <- glm(dtrain$y~xstar,family="binomial")
+coef.smooth <- as.numeric(hmat%*%coef(fit)[-1])
+
+plot( coef[-1], 
+      ylim=c(-0.4,+0.4), 
+      type="l", 
+      xlab="Frequency", 
+      ylab="Logistic Regression Coefficients" )
+lines(coef.smooth,col="red")
+abline(h=0)
+
+```
+
 

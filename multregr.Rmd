@@ -375,11 +375,6 @@ for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
 ```
 
 
-```{r, include=FALSE, eval=FALSE}
-vv <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
-```
-
-
 ```{r}
 fit.smsp.df10 <- smooth.spline(x, y, df = 10)
 fit.smsp.df30 <- smooth.spline(x, y, df = 30)
