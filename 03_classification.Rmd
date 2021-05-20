@@ -1,16 +1,6 @@
----
-title: "Classification and Survival Analysis"
-author: "Nicolas Städler"
-date: "3/19/2021"
-output: html_document
----
+# Classification and Survival Analysis
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
-```
-
-
-```{r,include=FALSE}
+```{r include=FALSE}
 library(knitr)
 library(caret)
 library(mlbench)
@@ -447,11 +437,4 @@ plot(fitpec)
 ```
 
 
-## Exercises
 
-1. Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
-ridge regression and lasso regression
-
-2. Calculate the Ridge and the Lasso solution for orthogonal covariates.
-
-3. 

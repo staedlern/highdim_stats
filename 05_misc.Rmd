@@ -1,0 +1,39 @@
+# Miscellaneous
+
+
+## Details on the Prediction Error
+
+\[Y=f(X)+\epsilon\]
+
+where $E[\epsilon]=0$ and $Var(\epsilon)=\sigma_{\epsilon}^2$, then prediction error of a learning method $\hat{f}(X)$ at a new input point $X=x_0$ is given by:
+
+\begin{align*}
+\rm{Err}(x_0)&=E[(Y-\hat{f}(x_0))^2|X=x_0]\\
+&=\sigma^2_{\epsilon}+(E[\hat{f}(x_0)]-f(x_0))^2+ E(\hat{f}(x_0)-E\hat{f}(x_0))^2\\
+&=\rm{Irreducible Error}+\rm{Bias}^2+Variance.
+\end{align*}
+
+## Caret Package
+
+The caret package (short for Classification And REgression Training) is a set of functions that attempt to streamline the process for creating predictive models. The package contains tools for:
+
+- data splitting
+- pre-processing
+- feature selection
+- model tuning using resampling
+- variable importance estimation
+
+as well as other functionality.
+
+There are many different modeling functions in R. Some have different syntax for model training and/or prediction. The package started off as a way to provide a uniform interface the functions themselves, as well as a way to standardize common tasks (such parameter tuning and variable importance).
+
+
+Read https://cran.r-project.org/web/packages/caret/vignettes/caret.html for a short intro and 
+https://topepo.github.io/caret/ for a long introduction.
+
+In this section we explore the caret package to compare performance of the different regression approaches based on a real data example.
+
+
+
+
+

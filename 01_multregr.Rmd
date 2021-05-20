@@ -1,0 +1,156 @@
+# Multivariate Regression and High-dimensionality
+
+```{r include=FALSE}
+library(gridExtra)
+```
+
+
+## Ordinary Least Squares
+
+We will discuss in this course several learning rules. In this section we consider Multivariate Regression. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
+
+\[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
+
+The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X$, include $\hat\beta_0$ in the vector of coefficients $\hat\beta$, then we can write 
+
+\[\hat{Y}=X^T\hat\beta.\]
+
+How do we fit the linear model to a set of training data? In Multivariate Regression we typically use least squares. In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
+
+\begin{align*}
+\rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
+&=(\bf y - \bf X \beta)^T (\bf y - \bf X \beta)\\
+&=\|\bf y - \bf X \beta\|^2.
+\end{align*}
+
+If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by 
+
+\[\hat\beta=(\bf X^T \bf X)^{-1}\bf X^T \bf y.\]
+
+Thus, the learning rule at the new input point $X_{\rm new}$ is
+
+\begin{align*}
+\hat{Y}&=\hat{f}(X_{\rm new})\\
+&=X_{\rm new}^T\hat\beta\\
+&=X_{\rm new}^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
+\end{align*}
+
+## Overfitting and High-dimensionality
+
+Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
+but explain more than the signal alone: it also models the error. Hence, it overfits the data. In high-dimensional
+settings overfitting is a real threat. The number of explanatory variables exceeds the number of observations. It
+is thus possible to form a linear combination of the covariates that perfectly explains the response, including the
+noise.
+Large estimates of regression coefficients are often an indication of overfitting. Overfitting is illustrated in the next example.
+
+We simulate training data with $p=9$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$. The outcome $Y$ depends only on the first covariate according to $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i\sim N(0,0.5)$. The size of the training data is $n=10$.
+
+```{r}
+set.seed(1)
+n <- 10
+p <- 9
+beta <- c(2,rep(0,p-1))
+
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+ytrain <- xtrain%*%beta+rnorm(n,sd=0.5)
+dtrain <- data.frame(xtrain)
+dtrain$y <- ytrain
+
+# lm
+fit <- lm(y~-1+.,data=dtrain)
+```
+The estimated regression coefficients are
+
+```{r}
+coef(fit)
+```
+
+As the true coefficients are $\beta = (1, 0, \ldots, 0),$ many regression coefficient are clearly over-estimated.
+
+In the next plot the fitted values are plotted against the values of the first covariate.
+As a reference the line $x = y$ is added, which represents the ‘true’ model. The fitted model follows
+the ‘true’ relationship. But it also captures the deviations from this line that represent the errors.
+
+```{r, echo=FALSE}
+t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit)) 
+t.d%>%
+  ggplot(.,aes(x=x))+
+  geom_point(aes(y=y),size=2)+
+  geom_line(aes(y=yhat),col="red")+
+  geom_abline(intercept=0,slope=1,col="blue",lty=2)
+```
+
+In this example the model fits the data perfectly. The residual degrees of freedom, $n-p$, to estimate the error is exactly `r n-p`. A rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
+
+## Collinearity and High-dimensionality
+
+Recall that collinearity in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred as super-collinearity.
+
+The following figures show examples of two covariates with no-, high- and super-collinearity.
+
+```{r, include=FALSE}
+set.seed(1)
+n <- 20
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+x3 <- x1+rnorm(n,sd=0.25)
+x4 <- x1
+dat <- data.frame(x1,x2,x3,x4)
+dat$y <- 2*dat$x1+rnorm(n)
+```
+
+```{r, echo=FALSE}
+gp1 <- dat%>%
+  ggplot(.,aes(x=x1,y=x2))+
+  geom_point()+
+  ggtitle("no collinearity")
+
+gp2 <- dat%>%
+  ggplot(.,aes(x=x1,y=x3))+
+  geom_point()+
+  ggtitle("collinearity")
+
+gp3 <- dat%>%
+  ggplot(.,aes(x=x1,y=x4))+
+  geom_point()+
+  ggtitle("super collinearity")
+
+grid.arrange(gp1,gp2,gp3,ncol=3)
+```
+
+In the presence of collinearity, the estimate of one variable's impact on the dependent variable $Y$ while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. Intuitively this can be explained based on the following figure which shows the response Y and two highly correlated covariates x1 and x2: we note that 2-dimensional OLS hyperplain deviates from the true model; further we see that the exact position of OLS hyperplain is very uncertain.
+
+![](collinearity.JPG)
+
+
+We illustrate this by fitting the following the two models 
+
+```{r}
+modela <- lm(y~x1+x2,data=dat)
+modelb <- lm(y~x1+x3,data=dat)
+```
+
+We see that variance of the estimated regression coefficients is larger in model 2 where x1 and x3 exhibit high collinearity.
+
+```{r}
+# variance of model a
+diag(vcov(modela))
+
+#variance of model b
+diag(vcov(modelb))
+```
+
+In the case of super-collinearity the OLS estimate is not defined as the rank of the design matrix is 0 and therefore the matrix $\bf X^T \bf X$ is singular and not invertible. In our example, if we include x4 into the design matrix, the design matrix has not full rank
+
+```{r}
+x <- as.matrix(dat[,-5])
+det(t(x)%*%x)
+```
+
+High-dimensional problems with $p>n$ always suffer from super-collinearity: the rank of the design matrix is maximally equal to $n$ which implies that the columns of $\bf X$ are linearly dependent. The OLS estimator cannot be calculated in this situation.
+
+
+
+

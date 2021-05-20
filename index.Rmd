@@ -1,0 +1,53 @@
+--- 
+title: "High-dimensional statistics"
+author: "Nicolas Städler"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: github.roche.com/staedlen/highdim_stats
+description: "This book is for the CAS Module High-dimensional statistics"
+---
+
+# Prerequisites
+
+```{r include=FALSE}
+# automatically create a bib database for R packages
+knitr::write_bib(c(
+  .packages(), 'bookdown', 'knitr', 'rmarkdown'
+), 'packages.bib')
+```
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
+```
+
+```{r include=FALSE}
+library(knitr)
+library(tidyverse)
+```
+
+## General Notation
+We will typicall denote an input variable by the symbol $X$. If $X$ is a vector, its components can be accessed
+by subscripts $X_j$. Quantative outputs will be denoted by $Y$, and qualitative outputs by $G$ (for group). We use uppercase letters such as $X$, $Y$ or $G$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
+
+For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). $\hat Y$ is the outcome of a learning rule $\hat{f}(X)$.
+
+We need data to construct learning rules. We thus suppose we have available a set of measurments $(x_i,y_i)$, $i=1,\ldots,N$, known as the training data, with which to construct $\hat{f}(X)$. 
+
+## Statistical Learning
+
+A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
+the observed data is extremely important in practice. 
+
+When buliding a good learning rule $\hat{f}(X)$ we need to keep in mind the following 2 fundamental steps:
+
+1. Training step: In this step we explore based on training data a series of learning rules $\hat{f}_k(X)$, $k=1,...,K$. We compare the prediction performance of each rule. We choose the rule with the least prediction error.
+
+2. Testing step: In this step we test the performance of the best learning rule $\hat{f}(X)$ based on independent test data.
+
+To perform the Training step we need to estimate the prediction error for the different learning methods. There are several approaches to do so. Examples include the use of information criteria (AIC, BIC or Mallows' Cp) or the use of re-sampling approaches (cross-validation and the bootstrap).
+
