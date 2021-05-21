@@ -27,7 +27,102 @@ $n\times p$ design matrix.
 ## Prostate Cancer data
 
 Get the prostate cancer dataset from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
-Run OLS, Best Subset selection, Ridge Regression and the Lasso. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. of The Elements of Statistical Learning.
+Run OLS, Best Subset selection (use the leaps package), Ridge Regression and the Lasso. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. of The Elements of Statistical Learning.
+
+```{r}
+dat <- read.csv("data/prostate.csv")
+dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
+dtrain <- dat[dat$train,-10]
+xtrain <- data.matrix(dtrain[,-9])
+ytrain <- dtrain$lpsa
+dtest <- dat[!dat$train,-10]
+xtest <- data.matrix(dtest[,-9])
+ytest <- dtest$lpsa
+
+# linear regression
+fit.lm <- lm(lpsa~.,data=dtrain)
+coef.lm <- coef(fit.lm)
+terr.lm <- mean((predict(fit.lm,newdata = dtest)-dtest$lpsa)^2)
+
+# best subset selection with leaps
+library(leaps)
+subset.leaps<-regsubsets(lpsa~.,data=dtrain,method="forward")
+ss.summary <- summary(subset.leaps)
+coef.ss.bic <- coef(subset.leaps, which.min(ss.summary$bic))
+fit.ss.bic <- lm(lpsa~.,data=dtrain[,c("lpsa",names(coef.ss.bic)[-1])])
+terr.ss.bic <- mean((predict(fit.ss.bic,newdata = dtest)-dtest$lpsa)^2)
+
+# best subset selection with caret package (10-fold cv)
+library(caret)
+set.seed(1) # set seed for reproducibility
+train.control <- trainControl(method = "cv", number = 10)# set up repeated k-fold 
+subset.caret <- train(lpsa ~., data = dtrain,
+                      method = "leapBackward", 
+                      tuneGrid = data.frame(nvmax = 1:8),
+                      trControl = train.control
+)
+#subset.caret$results
+#summary(subset.caret$finalModel)
+coef.ss.cv <- coef(subset.caret$finalModel, subset.caret$bestTune$nvmax)
+fit.ss.cv <- lm(lpsa~.,data=dtrain[,c("lpsa",names(coef.ss.cv)[-1])])
+terr.ss.cv <- mean((predict(fit.ss.cv,newdata = dtest)-dtest$lpsa)^2)
+
+# Ridge
+set.seed(1)
+library(glmnet)
+fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
+fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
+coef.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.min)
+terr.ridge <- mean((as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))-ytest)^2)
+
+# Lasso
+set.seed(1)
+fit.lasso <- glmnet(xtrain,ytrain,alpha=1)
+fit.lasso.cv <- cv.glmnet(xtrain,ytrain,alpha=1)
+coef.lasso <- coef(fit.lasso,s=fit.ridge.cv$lambda.min)
+terr.lasso <- mean((as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))-ytest)^2)
+```
+
+BIC for different subset sizes.
+```{r}
+plot(ss.summary$bic)
+```
+
+CV Error for different subset sizes.
+```{r}
+plot(subset.caret)
+```
+
+CV Error for Ridge regression. 
+```{r}
+plot(fit.ridge.cv)
+```
+CV Error for Lasso regression. 
+```{r}
+plot(fit.lasso.cv)
+```
+
+Table with regression coefficients.
+
+```{r include=FALSE}
+res <- data.frame(OLS=coef.lm,SSBIC=0,SSCV=0,RIDGE=0,LASSO=0)
+res[names(coef.ss.bic),"SSBIC"] <- coef.ss.bic
+res[names(coef.ss.cv),"SSCV"] <- coef.ss.cv
+res[,"RIDGE"] <- as.numeric(coef.ridge)
+res[,"LASSO"] <- as.numeric(coef.lasso)
+kable(res,digits = 3)
+
+```
+
+Table with test errors.
+
+```{r include=FALSE}
+res <- data.frame(OLS=terr.lm,
+                  SSBIC=terr.ss.bic,SSCV=terr.ss.cv,
+                  RIDGE=terr.ridge,LASSO=terr.lasso)
+kable(res,digits = 3)
+
+```
 
 ## Elastic Net and cross-validation
 
@@ -39,21 +134,40 @@ Get the Riboflavin dataset from the hdi R package.
 
 ## Splines and  SAheart data
 
-```{r}
+In the main text we fit linear logistic regression models to the SA heart disease data. Here we explore nonlinearities in the functions using natural splines. Proceed as follows:
+
+1. Fit the model using four natural spline basis for each term in the model. 
+2. Run backward selection on the model
+3. Summarise the final model
+4. Plot the natural spline functions for the different terms
+
+```{r echo=FALSE}
 library(splines)
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 
 # Computes the logistic regression model using natural splines (note famhist is included as a factor): 
-form = "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(obesity,df=4) + ns(alcohol,df=4) + ns(age,df=4)"
-form = formula(form)
+form <-  "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(obesity,df=4) + ns(alcohol,df=4) + ns(age,df=4)"
+form <-  formula(form)
 
-m = glm( form, data=dat, family=binomial )
-print( summary(m), digits=3 )
+fit <-  glm( form, data=dat, family=binomial )
+fit.bw <- stepAIC(fit,direction="backward")
+```
 
-# Duplicates the numbers from Table 5.1:
-# 
-drop1( m, scope=form, test="Chisq" )
+Outcome of backward selection.
+```{r}
+kable(as.data.frame(fit.bw$anova),digits=3)
+```
 
+Summary of final model.
+
+```{r}
+kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2)
+```
+
+Plot of natural spline function for the first term.
+
+```{r}
+termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
 ```
 
 
