@@ -163,16 +163,17 @@ lines(x, fx, lwd = 2)  # f(x)
 legend("topright", legend = "f(x)", lty = 1, lwd = 2, bty = "n")
 ```
 
-One approach to find a non-parametric approximation are so-called smoothing splines. The approach starts by approximating $f(x)$ as natural cubic spline with knots at the unique values of $x_i$, $i=1,\ldots,n$
+One approach to find a non-parametric approximation are so-called splines. We assume the unknown function $f$ is represented by a spline function which can be expressed by a set of basis functions 
 
-\[f(x)\approx\sum_{j=1}^{n}N_j(x)\beta_j,\]
+$$ f(X)=\sum_{m=1}^{p}\beta_m B_m(X).$$
+For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s are a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS.
 
-where $N_j(x)$'s are an n-dimensional set of basis functions for representing this family of natural splines. This is an over-parameterized problem as the number of basis function ("covariates") equals the number of observations. Smoothing splines impose generalized Ridge penalty on the spline coefficients $\beta_j$, i.e.
+An alternative approach are so-called smoothing splines. We have $p=n$ and the $B_m(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_m$ cannot be estimated using OLS as the number $p$ of basis function ("covariates") equals the number of observations $n$. Smoothing splines impose generalized Ridge penalty on the spline coefficients $\beta_j$, i.e.
 
-\[\hat{\beta}_{\lambda}=\rm{argmin}\;\|\bf Y- \bf N \beta\|^2+\lambda \beta^T\Omega\beta,\]
+\[\hat{\beta}_{\lambda}=\rm{argmin}\;\|\bf Y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
 
-with design matrix $\bf N$ has $jth$ column $(N_j(x_1),\ldots,N_j(x_n))^T$. In practice we can fit 
-smoothing spline using the function smooth.spline. The penalty term is specified by setting the degree of freedom or by cross-validation.
+with design matrix $\bf B$ has $jth$ column $(B_j(x_1),\ldots,B_j(x_n))^T$. In practice we can fit 
+smoothing spline using the function smooth.spline. The penalty term is specified by setting the effective degrees of freedom or by cross-validation.
 
 ```{r, eval=FALSE,include=FALSE}
 #https://www.hse.ru/data/2018/03/15/1164357459/5._Splines.html
@@ -196,14 +197,16 @@ for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
 
 
 ```{r}
-fit.smsp.df10 <- smooth.spline(x, y, df = 10)
-fit.smsp.df30 <- smooth.spline(x, y, df = 30)
-fit.smsp.cv <- smooth.spline(x, y)
+fit.csp <- lm(y~bs(x,df=10)) # cubic spline with p=10 degrees of freedom
+fit.smsp.df10 <- smooth.spline(x, y, df = 10) # smoothing spline with 10 effective degrees of freedom
+fit.smsp.df30 <- smooth.spline(x, y, df = 30) # smoothing spline with 30 effective degrees of freedom
+fit.smsp.cv <- smooth.spline(x, y) # smoothing spline with effective degrees of freedom estimated by cv
 plot(x, y)
 lines(x, fx, lwd = 2)
+lines(x, predict(fit.csp), lty = 2, col = "violet",lwd=3)
 lines(x, fit.smsp.df10$y, lty = 2, col = "blue",lwd=3)
 lines(x, fit.smsp.df30$y, lty = 2, col = "green",lwd=3)
-lines(x, fit.smsp.cv$y, lty = 3, col="red",lwd=3)
+lines(x, fit.smsp.cv$y, lty = 2, col="red",lwd=3)
 ```
 A smoothing spline with 30 degrees of freedom (in green) leads to overfitting. The spline with 10 degrees of freedom (in blue) is a good approximation of the truth and is close the spline obtained by cross-validation (in red). The degree of freedom of the cross-validation solution is
 

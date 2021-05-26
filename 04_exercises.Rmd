@@ -21,13 +21,13 @@ Calculate the Ridge and the Lasso solution for an orthonormal design matrix
 3. Assuming a posteriory distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
 
 Note: 
-$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
+$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
 $n\times p$ design matrix.
 
 ## Prostate Cancer data
 
 Get the prostate cancer dataset from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
-Run OLS, Best Subset selection (use the leaps package), Ridge Regression and the Lasso. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. of The Elements of Statistical Learning.
+Run OLS, Best Subset selection (use the leaps package), Ridge Regression and Lasso Regression. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. from the book The Elements of Statistical Learning.
 
 ```{r}
 dat <- read.csv("data/prostate.csv")
@@ -93,18 +93,18 @@ CV Error for different subset sizes.
 plot(subset.caret)
 ```
 
-CV Error for Ridge regression. 
+CV Error for Ridge Regression. 
 ```{r}
 plot(fit.ridge.cv)
 ```
-CV Error for Lasso regression. 
+CV Error for Lasso Regression. 
 ```{r}
 plot(fit.lasso.cv)
 ```
 
 Table with regression coefficients.
 
-```{r include=FALSE}
+```{r}
 res <- data.frame(OLS=coef.lm,SSBIC=0,SSCV=0,RIDGE=0,LASSO=0)
 res[names(coef.ss.bic),"SSBIC"] <- coef.ss.bic
 res[names(coef.ss.cv),"SSCV"] <- coef.ss.cv
@@ -114,9 +114,9 @@ kable(res,digits = 3)
 
 ```
 
-Table with test errors.
+Table with Test errors.
 
-```{r include=FALSE}
+```{r}
 res <- data.frame(OLS=terr.lm,
                   SSBIC=terr.ss.bic,SSCV=terr.ss.cv,
                   RIDGE=terr.ridge,LASSO=terr.lasso)
@@ -126,17 +126,17 @@ kable(res,digits = 3)
 
 ## Elastic Net and cross-validation
 
-Get the Riboflavin dataset from the hdi R package. Run the elastic net with $\alpha=0, 0.25, 0.5, 0.75$ and $1$ and create a trace plot. Run cross-validation and decide which $alpha$ leads to best performance (note: use the foldid argument in glment). Plot the final regression coefficients.
+Get the Riboflavin dataset from the hdi R package. Run the elastic net with $\alpha=0, 0.25, 0.5, 0.75$ and $1$ and create a trace plot. Run cross-validation and decide which $\alpha$ leads to best performance (note: use the foldid argument in glment). Plot the final regression coefficients.
 
 ## P-values for High-dimensional Regression
 
 Get the Riboflavin dataset from the hdi R package.
 
-## Splines and  SAheart data
+## Splines and South African heart disease data
 
-In the main text we fit linear logistic regression models to the SA heart disease data. Here we explore nonlinearities in the functions using natural splines. Proceed as follows:
+In the main text we fit linear logistic regression models to the South African heart disease data. Here we explore nonlinearities in the functions using natural splines. Proceed as follows:
 
-1. Fit the model using four natural spline basis for each term in the model. 
+1. Fit the model using four natural spline bases for each term in the model. 
 2. Run backward selection on the model
 3. Summarise the final model
 4. Plot the natural spline functions for the different terms
@@ -150,7 +150,7 @@ form <-  "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(ob
 form <-  formula(form)
 
 fit <-  glm( form, data=dat, family=binomial )
-fit.bw <- stepAIC(fit,direction="backward")
+fit.bw <- stepAIC(fit,direction="backward",trace = 0)
 ```
 
 Outcome of backward selection.
@@ -171,43 +171,128 @@ termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
 ```
 
 
-```{r, include=FALSE, eval=FALSE}
-#https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
-#https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
-#https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
-library(splines)
+## Phoneme Recognition
+
+In this exercise we investigate prediction of phonemes based on digitized speech data.
+
+1. Read the dataset, subset the phonemes "aa" and "ao" and create training and test data.
+
+```{r eval=FALSE}
 dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
+```
+
+2. Plot log-periodogram as a function of frequency for 5 examples each of the phonemes "aa" and "ao".
+
+3. Run logistic regression and evaluate the training and test misclassification errors.
+
+4. Run lasso regression and evaluate the training and test misclassification errors.
+
+5. In the previous model we assumed that the $\rm logit(x;\beta)=\sum_{j=1}^{256} X_j\beta_j$. We now assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. 
+
+$$\beta(f)=\sum_{m=1}^{\nu} h_m(f)\theta_m$$ 
+where $h_m$'s are B-spline basis functions for a natural cubic spline with $\nu=12$ degrees of freedom (defined on the set of frequencies). Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regression on the $x^*$. Evaluate the training and test misclassification errors.  
+
+6. Plot the coefficients of the different models.
+
+
+Prepare the data set.
+```{r, include=FALSE}
+# https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
+# https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
+# https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
+
+# dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
+# save(dat,file="data/phoneme.rda")
+
+library(splines)
+load(file="data/phoneme.rda")
 dat2 <- dat[dat$g%in%c("aa","ao"),]
 
 dtrain <- dat2[grepl("^train",dat2$speaker),-c(1,259)]
 xtrain <- as.matrix(dtrain[,-257])
+ytrain <- ifelse(dtrain$g=="ao",1,0)
 dtest <- dat2[grepl("^test",dat2$speaker),-c(1,259)]
 xtest <- as.matrix(dtest[,-257])
-dtrain$y <- ifelse(dtrain$g=="ao",1,0)
-dtest$y <- ifelse(dtest$g=="ao",1,0)
+ytest <- ifelse(dtest$g=="ao",1,0)
+
+dtrain$y <- ytrain
+dtest$y <- ytest
 dtrain <- dtrain[,-257]
 dtest <- dtest[,-257]
+```
 
+
+Plot log-periodograms.
+
+```{r}
+id.ao <- sample(which(ytrain==1),5)
+id.aa <- sample(which(ytrain==0),5)
+plot(xtrain[id.ao[1],],type="l",
+     xlab="Frequency",ylab="Log-periodogram")
+for(i in 2:5){
+  lines(xtrain[id.ao[i],])
+}
+for(i in 1:5){
+  lines(xtrain[id.aa[i],],col="red")
+}
+
+```
+
+We start with logistic regression.
+```{r}
 # logistic regression
 fit <- glm(y~.,data=dtrain,family=binomial)
-mean(as.numeric((predict(fit,type="response")>0.5))!=dtrain$y)
-mean(as.numeric((predict(fit,type="response",newdata=dtest)>0.5))!=dtest$y)
+coef.glm <-  coefficients(fit)
+pred_train <- as.numeric((predict(fit,type="response")>0.5))
+pred_test <- as.numeric((predict(fit,type="response",newdata=dtest)>0.5))
+mean(pred_train!=ytrain)
+mean(pred_test!=ytest)
 
-coef <-  coefficients(fit)
-plot( coef, ylim=c(-0.4,+0.4), type="l", xlab="Frequency", ylab="Logistic Regression Coefficients" )
+# plot( coef.glm, ylim=c(-0.4,+0.4), 
+#       type="l", xlab="Frequency",
+#       ylab="Logistic Regression Coefficients" )
+```
 
-# logistic regression based on filtered features
+We run lasso regression.
+```{r}
+# lasso regression
+fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=1)
+cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
+                       alpha = 1,nfolds = 10)
+coef.lasso <- as.numeric(coefficients(fit.glmnet,s = cv.glmnet$lambda.1se))[-1]
+plot(cv.glmnet)
+pred_train <- c(predict(fit.glmnet,xtrain,s = cv.glmnet$lambda.1se,type = "class"))
+pred_test <- c(predict(fit.glmnet,xtest,s = cv.glmnet$lambda.1se,type = "class"))
+mean(pred_train!=ytrain)
+mean(pred_test!=ytest)
+```
+
+
+We now use natural cubic spline basis with $df=12$ to express the coefficients as a smooth function of the frequencies. 
+
+```{r}
+# coefficient smoothing
 hmat <- ns(x=1:256,df=12)
 xstar <- xtrain%*%hmat
-fit <- glm(dtrain$y~xstar,family="binomial")
-coef.smooth <- as.numeric(hmat%*%coef(fit)[-1])
+fit.smooth <- glm(dtrain$y~.,data=data.frame(xstar),family="binomial")
+coef.smooth <- as.numeric(hmat%*%coef(fit.smooth)[-1])
+pred_train <- as.numeric((predict(fit.smooth,type="response")>0.5))
+pred_test <- as.numeric((predict(fit.smooth,type="response",newdata=data.frame(xtest%*%hmat))>0.5))
 
-plot( coef[-1], 
+mean(pred_train!=ytrain)
+mean(pred_test!=ytest)
+```
+
+We finally plot the regression coefficients
+
+```{r}
+plot( coef.glm[-1], 
       ylim=c(-0.4,+0.4), 
       type="l", 
       xlab="Frequency", 
       ylab="Logistic Regression Coefficients" )
-lines(coef.smooth,col="red")
+lines(coef.lasso,col="green",lwd=2)
+lines(coef.smooth,col="red",lwd=2)
 abline(h=0)
 
 ```
