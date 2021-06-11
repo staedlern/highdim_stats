@@ -296,6 +296,134 @@ lines(coef.smooth,col="red",lwd=2)
 abline(h=0)
 
 ```
+## Classification and the Sonar data set
+
+In this exercise we explore the Sonar dataset from the mlbench package.
+
+1. Load the Sonar data set from the mlbench package and read the help page. 
+
+2. Split the data in a train and test set and explore classification using subset selection and elastic net regularization. Build training and testing data
+And Read the dataset, subset the phonemes "aa" and "ao" and create training and test data.
+
+
+We explore the Sonar dataset from the mlbench package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into train and test.
+
+```{r}
+library(mlbench)
+data(Sonar)
+
+set.seed(107)
+inTrain <- createDataPartition(
+  y = Sonar$Class,
+  ## the outcome data are needed
+  p = .5,
+  ## The percentage of data in the
+  ## training set
+  list = FALSE
+)
+dtrain <- Sonar[ inTrain,]
+xtrain <- as.matrix(dtrain[,-61])
+ytrain <- dtrain$Class
+dtest  <- Sonar[-inTrain,]
+xtest <- as.matrix(dtest[,-61])
+ytest <- dtest$Class
+```
+
+In order to compare the performance of the different methods we setup trainControl. We use 10 fold cross-validation
+
+```{r}
+tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accuracy
+```
+
+We first run logistic regression once with only an intercept and once with all the covariates. We
+note that glm reports convergence problems when using all variables. This indicates that the model could be to complex to fit.
+
+```{r, warning=FALSE}
+fit.0 <-  glm(Class~1,family=binomial,data=dtrain)
+fit.full <-  glm(Class~.,family=binomial,data=dtrain)
+fit.full.caret <- train(Class ~., 
+                        data = dtrain, 
+                        method = "glm", 
+                        family = "binomial",
+                        trControl = tc)
+```
+
+Next we use forward selection.
+
+```{r, warning=FALSE}
+upper.model <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
+fit.fw <- stepAIC(fit.0,
+                  scope=upper.model,
+                  direction = "forward", 
+                  steps=10,
+                  trace = FALSE)
+summary(fit.fw)
+broom::tidy(fit.fw)
+```
+
+We do the same but now using the caret package.
+```{r, warning=FALSE}
+fit.fw.caret <- train(x=xtrain,
+                      y=ytrain, 
+                      method = "glmStepAIC", 
+                      family = "binomial",
+                      direction ="forward",
+                      steps=10,
+                      trControl = tc,
+                      trace = FALSE
+)
+# accuracy
+fit.fw.caret$results
+# summary of the model
+summary(fit.fw.caret$finalModel)
+```
+
+Next, we use L1-penalized regression.
+
+```{r}
+fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
+plot(fit.l1,xvar="lambda",label=TRUE)
+cvfit <- cv.glmnet(x=xtrain, y=ytrain, family = "binomial", type.measure = "class",alpha=1)
+cvfit$lambda.min
+plot(cvfit)
+```
+We repeat the analysis using the caret package.
+```{r}
+lambda.grid <- fit.l1$lambda
+fit.l1.caret<-train(x=xtrain,
+                 y=ytrain,
+                 method = "glmnet",
+                 family="binomial",
+                 preProc = c("center","scale"),
+                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+#
+ggplot(fit.l1.caret)
+# Best lambda
+fit.l1.caret$bestTune$lambda
+# Model coefficients
+coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
+```
+
+
+We make predictions and compare the missclassification error on the test data.
+```{r}
+# Make predictions
+confusionMatrix(data =fit.l1.caret %>% predict(xtest), ytest)
+confusionMatrix(data =fit.fw.caret %>% predict(xtest), ytest)
+confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
+```
+
+
+Finally we compare all models
+```{r}
+models <- list(full=fit.full.caret,
+               fw=fit.fw.caret,
+               l1=fit.l1.caret)
+summary(resamples(models),metric = "Accuracy")
+```
 
 ## Another Example
 

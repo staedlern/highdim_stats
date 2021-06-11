@@ -47,7 +47,7 @@ There are different measures to judge the quality of the predictions. We focus o
 ### South African Heart Disease Data
 
 We start with a "low" dimensional example illustrating the logistic regression model and comparing 
-the Lasso with traditional backward selection. The data in Figure 4.12 are a
+the Lasso with traditional backward selection. The data in Figure \@ref(fig:sahd) are a
 subset of the Coronary Risk-Factor Study (CORIS) baseline survey, carried
 out in three rural areas of the Western Cape, South Africa (Rousseauw et al, 1983, South African Medical
 Journal). The aim of the study was to establish the intensity of ischemic
@@ -66,7 +66,7 @@ set, and a sample of 302 controls. This example is taken from the book "Elements
 - age: age at onset
 - chd: response, coronary heart disease.
 
-```{r,echo=FALSE}
+```{r sahd,echo=FALSE, fig.cap="South African Heart Disease Data"}
 # data source: https://web.stanford.edu/~hastie/ElemStatLearn/
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
@@ -76,17 +76,17 @@ pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
 ```
 
 We fit a logitstic-regression model. 
-There are some surprises in this table of coefficients, which must be in-
-terpreted with caution. Systolic blood pressure (sbp) is not significant! Nor
-is obesity, and its sign is negative. This confusion is a result of the corre-
-lation between the set of predictors. On their own, both sbp and obesity
-are significant, and with positive sign. However, in the presence of many other correlated variables, they are no longer needed (and can even get a
-negative sign).
 
 ```{r}
 fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,data=dat,family="binomial")
 kable(broom::tidy(fit.logistic),digits=3)
 ```
+
+
+There are some surprises in this table of coefficients, which must be interpreted with caution. Systolic blood pressure (sbp) is not significant! Nor
+is obesity, and its sign is negative. This confusion is a result of the correlation between the set of predictors. On their own, both sbp and obesity
+are significant, and with positive sign. However, in the presence of many other correlated variables, they are no longer needed (and can even get a
+negative sign).
 
 We proceed with backward selection.
 
@@ -105,16 +105,14 @@ kable(broom::tidy(fit.bw),digits=3)
 ```
 
 How does one interpret a coefficient of $0.081$ (Std. Error = $0.026$) for
-tobacco, for example? Tobacco is measured in total lifetime usage in kilo-
-grams, with a median of $1.0$kg for the controls and $4.1$kg for the cases. Thus
+tobacco, for example? Tobacco is measured in total lifetime usage in kilograms, with a median of $1.0$kg for the controls and $4.1$kg for the cases. Thus
 an increase of 1kg in lifetime tobacco usage accounts for an increase in the
-odds of coronary heart disease of $exp(0.081) = 1.084$ or $8.4$%. Incorporat-
-ing the standard error we get an approximate $95$% confidence interval of
+odds of coronary heart disease of $exp(0.081) = 1.084$ or $8.4$%. Incorporating the standard error we get an approximate $95$% confidence interval of
 $exp(0.081 ± 2 × 0.026) = (1.03, 1.14)$.
 
 Finally we run the Lasso approach
 
-```{r,echo=FALSE}
+```{r}
 x <- scale(data.matrix(dat[,-1]))
 y <- dat$chd
 fit.lasso <- glmnet(x=x,y=y,family="binomial")
@@ -129,7 +127,7 @@ We now turn to a truly high-dimensional example.
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
 
-The data consists of expression levels recorded for $3,571$ genes in $72$ patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix x of gene expression values, and a vector y of 72 binary disease outcomes.
+The data consists of expression levels recorded for $3,571$ genes in $72$ patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $x$ of gene expression values, and a vector $y$ of 72 binary disease outcomes. We first create train and test data.
 
 ```{r, echo=FALSE}
 # set seed
@@ -154,7 +152,7 @@ We now run the elastic net
 ```{r}
 # set settings for glmnet 
 nfolds <- 10                  # number of cross-validation folds.
-alpha  <- 0.95                  # elastic net mixing parameter.
+alpha  <- 0.95                # elastic net mixing parameter.
 
 # run glmnet
 fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=alpha)
@@ -164,195 +162,70 @@ cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
                        alpha = alpha,nfolds = nfolds)
 ```
 
-
 The following Figure shows the Elastic net solution for the grid of lambda values.
 
-```{r}
+```{r, include=FALSE}
 plot(fit.glmnet,xvar="lambda",label=TRUE)
 ```
 
-We run 10-fold cross-validation and take $\lambda_{\rm opt}$ as the largets $\lambda$ within 1 standard error of the minimum classification error.
+We run 10-fold cross-validation and take $\lambda_{\rm opt}$ as the largest $\lambda$ within 1 standard error of the minimum classification error.
 
 ```{r}
 plot(cv.glmnet)
-lambda.opt <- cv.glmnet$lambda.1se
 ```
 
-The optimal coefficients can be optained as
+```{r}
+(lambda.opt <- cv.glmnet$lambda.1se)
+```
 
-```{r, echo=FALSE}
+We extract the optimal coefficients and plot them as a barplot.
+
+```{r}
 beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.1se)
 barplot(as.numeric(beta.glmnet)[-1],xlab="gene",ylab="beta glment")
 ```
 
-Finally we predict the disease outcome using the fitted model and compare against the observed values
+Finally we predict the disease outcome of the test samples using the fitted model and compare against the observed outcomes of the test samples.
 ```{r}
 pred <- c(predict(fit.glmnet,xtest,s = lambda.opt,type = "class"))
 print(table(true = factor(ytest),pred = factor(pred)))
 ```
-and the missclassification error is
+The missclassification error on the test data is
 
 ```{r}
 round(mean(pred!=ytest),3)
 ```
 
-
-### Sonar Dataset
-
-To illustrate the approaches we use the Sonar dataset from the mlbench package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands.
-
-```{r}
-data(Sonar)
-
-set.seed(107)
-inTrain <- createDataPartition(
-  y = Sonar$Class,
-  ## the outcome data are needed
-  p = .5,
-  ## The percentage of data in the
-  ## training set
-  list = FALSE
-)
-dtrain <- Sonar[ inTrain,]
-xtrain <- as.matrix(dtrain[,-61])
-ytrain <- dtrain$Class
-dtest  <- Sonar[-inTrain,]
-xtest <- as.matrix(dtest[,-61])
-ytest <- dtest$Class
-```
-
-
-We first run logistic regression once with only an intercept and once with all the covariates. We
-note that glm reports convergence problems when using all variables. This indicates that the model could be to complex to fit.
-
-In order to compare the performance of the different methods we setup trainControl. We use 10 fold cross-validation
-
-```{r}
-tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accuracy
-
-# tc <- trainControl(method = "cv", number = 10, # 10-fold CV, performance=ROC
-#                    summaryFunction = twoClassSummary,
-#                    classProbs = TRUE)
-```
-
-
-```{r}
-fit.0 <-  glm(Class~1,family=binomial,data=dtrain)
-fit.full <-  glm(Class~.,family=binomial,data=dtrain)
-fit.full.caret <- train(Class ~., 
-                        data = dtrain, 
-                        method = "glm", 
-                        family = "binomial",
-                        trControl = tc)
-```
-
-Next we use forward selection.
-
-```{r}
-upper.model <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
-fit.fw <- stepAIC(fit.0,
-                  scope=upper.model,
-                  direction = "forward", 
-                  steps=10,
-                  trace = FALSE)
-summary(fit.fw)
-broom::tidy(fit.fw)
-```
-
-
-```{r}
-fit.fw.caret <- train(x=xtrain,
-                      y=ytrain, 
-                      method = "glmStepAIC", 
-                      family = "binomial",
-                      direction ="forward",
-                      steps=10,
-                      trControl = tc,
-                      trace = FALSE
-)
-# accuracy
-fit.fw.caret$results
-# summary of the model
-summary(fit.fw.caret$finalModel)
-```
-
-Next, we use L1-penalized regression.
-
-
-```{r}
-fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
-plot(fit.l1,xvar="lambda",label=TRUE)
-cvfit <- cv.glmnet(x=xtrain, y=ytrain, family = "binomial", type.measure = "class",alpha=1)
-cvfit$lambda.min
-plot(cvfit)
-```
-
-```{r}
-lambda.grid <- fit.l1$lambda
-fit.l1.caret<-train(x=xtrain,
-                 y=ytrain,
-                 method = "glmnet",
-                 family="binomial",
-                 preProc = c("center","scale"),
-                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
-                 trControl = tc
-) 
-
-#
-ggplot(fit.l1.caret)
-# Best lambda
-fit.l1.caret$bestTune$lambda
-# Model coefficients
-coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
-# Make predictions
-confusionMatrix(data =fit.l1.caret %>% predict(xtest), ytest)
-confusionMatrix(data =fit.fw.caret %>% predict(xtest), ytest)
-confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
-```
-
-Finally we compare all models
-```{r}
-models <- list(full=fit.full.caret,
-               fw=fit.fw.caret,
-               l1=fit.l1.caret)
-summary(resamples(models),metric = "Accuracy")
-```
-
-```{r}
-coef(fit.l1,s=cvfit$lambda.min)
-coef(fit.fw)
-```
-
-
 ## Survival analysis
 
-Another important endpoint in many areas is time-to-event. We will give a very brief introduction into survival analysis and show the cox proportional hazards model can be used to address high-dimensional problems. For subject $i$ we denote the event time with $T_i$. Unfortunately, typically we do for each subject observe the event time as a subject may be censored due to:
+Another important application is survival analysis which deals with so-called time-to-event endpoints. We will give a very brief introduction into survival analysis and show how the cox proportional hazards model can be used to address high-dimensional problems. 
+
+For subject $i$ we denote the event time with $T_i$. Unfortunately, typically we do not for each subject observe the event time as a subject may be censored due to:
 
 * Loss to follow-up
 * Withdrawal from study
 * No event by end of fixed study period.
 
-Therefore in practise we observe the survival time $Y_i$ (which e) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event $=0$ in case of censoring).
+Therefore in practise we observe the survival time $Y_i$ (which equals the event time or the censoring time whichever occurs earlier) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event $=0$ in case of censoring).
 
 A fundamental quantity in survival analysis is the survival probability
 
 \[S(t)=P(T>t)=1-F(t).\]
 
 The Kaplan-Meier method is the most common way to estimate survival times and probabilities.
-The survival probability can be estimated using the Kaplan-Meier method.
 
-
-The Cox proportional hazards model is commonly used for the study of the relationship beteween predictor variables and survival time. The Cox model assumes a semi-parametric form for the hazard, or the instantaneous rate at which events occur
+The Cox proportional hazards model is commonly used for the study of the relationship between predictor variables and survival time. The Cox model assumes a semi-parametric form for the hazard, or the instantaneous rate at which events occur
 
 \[h(t|X)=h_0(t)exp(X^T\beta).\]
 
-$\lambda_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. In the classic setting $n>p$, inference is made via the partial likelihood. In the high-dimensional context we can penalize the negative log of the partial likelihood.
+$h_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. In the classic setting $n>p$, inference is made via the partial likelihood. Similar as before we can use subset selection or we can use glmnet which penalizes the negative log of the partial likelihood.
 
 If you are interested to learn more about survival analysis I recommend you to have a look at this tutorial https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html.
 
 
-### Example Dataset
-Gene expression data for 7399 genes measured on 240 patients, as well as censored survival times, for these patients. We start by reading the data and plotting the estimated surival curve.
+### Lymphoma Dataset
+
+The data consists of gene expression data for $p=7399$ genes measured on $n=240$ patients, as well as censored survival times, for these patients. We start by reading the data and plotting the estimated surival curve.
 
 ```{r}
 # data source: http://web.stanford.edu/~hastie/StatLearnSparsity/data.html
@@ -365,69 +238,87 @@ x <- read.table("data/lymphx.txt")%>%# gene expression (covariates)
   as.matrix
 y <- read.table("data/lymphtime.txt",header = TRUE)%>%# survival time and event variable
   as.matrix
-dat <- data.frame(cbind(y,x))
 
 # kaplan meier estimate
-fit.surv <- survfit(Surv(time, status) ~ 1, data = dat)
+fit.surv <- survfit(Surv(time, status) ~ 1, data = data.frame(y))
 ggsurvplot(fit.surv)
 ```
 
-For example the estimated probability of surviving beyond 10 years is obtained as
+For example we can estimate the probability of surviving beyond 10 years.
 
 ```{r}
 summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
 ```
 
-We now perform L1-penalized cox regression using glmnet.
+We are interested to find the genes most predictive for surival. We start by filtering 
+for the $p=500$ genes with highest variance.
+
+```{r}
+top.genes <- order(apply(x,2,var),decreasing=TRUE)[1:500]
+x <- x[,top.genes]
+dat <- data.frame(cbind(y,x))
+```
+
+We now use glmnet to perform L1-penalized cox regression.
 
 ```{r}
 set.seed(1)
-fit.coxnet <- glmnet(x, y, family = "cox",alpha=1)
+fit.coxnet <- glmnet(x, y, family = "cox")
 plot(fit.coxnet,xvar="lambda")
-
-cv.coxnet <- cv.glmnet(x,y,family="cox")
-plot(cv.coxnet)
-#plot(cv.coxnet, xlim = c(log(0.05), log(0.5)), ylim = c(11.3,12.4))
-
-cv.coxnet$lambda.min
-
-betahat <- coef(fit.coxnet,s=cv.coxnet$lambda.min)
-Shat <- rownames(betahat)[which(betahat != 0)]
-
-fm <- as.formula(paste0("Surv(time, status) ~ 0+",paste(Shat,collapse = "+")))
-fit.shat <- coxph(fm,data=dat,x=TRUE,y=TRUE)
 ```
 
 
+To identify the optimal lambda we use cross-validation and choose Harrel's concordance measure as loss function.
 
-```{r, eval=FALSE}
+```{r}
+cv.coxnet <- cv.glmnet(x,y,family="cox",type.measure="C")
+plot(cv.coxnet)
+```
+The optimal lambda is
+
+```{r}
+cv.coxnet$lambda.1se
+
+betahat <- coef(fit.coxnet,s=cv.coxnet$lambda.1se)
+Shat <- rownames(betahat)[which(betahat != 0)]
+```
+
+We run classical cox model
+```{r}
+fm <- as.formula(paste0("Surv(time, status) ~ ",paste(Shat,collapse = "+")))
+fitshat <- coxph(fm,data=dat,x=TRUE,y=TRUE)
+```
+
+```{r}
 library(party)
-library(randomForestSRC)
+library(pec)
 # Condicional Inferences Trees
 fm <- Surv(time, status) ~ .
-fitcforest <- pec::pecCforest(fm, data =dat[,1:20], 
+fitcforest <- pec::pecCforest(fm, data =dat, 
                               control = party::cforest_classical(ntree = 1000))
 
-# Survival Random Forests
-fitrsf <- randomForestSRC::rfsrc(fm, data = dat[,1:20], forest = TRUE, 
-                                 ntree = 1000, splitrule = "logrank", 
-                                 na.action = "na.impute")
 
-# Variable Importance
-varimp <- randomForestSRC::vimp(fitrsf, importance = "permute")$importance
-data.frame(varimp)%>%
-  tibble::rownames_to_column("NAME")%>%
-  ggplot()+
-  geom_point(aes(x = reorder(NAME, varimp), y = varimp), size = 3, shape = 18)+
-  labs(title = "Variable Importance Random Survival Forest")+
-  xlab("Variable")+
-  ylab("Variable importance")+
-  coord_flip()
+
+# # Survival Random Forests
+# fitrsf <- randomForestSRC::rfsrc(fm, data = dat[,1:20], forest = TRUE, 
+#                                  ntree = 1000, splitrule = "logrank", 
+#                                  na.action = "na.impute")
+# 
+# # Variable Importance
+# varimp <- randomForestSRC::vimp(fitrsf, importance = "permute")$importance
+# data.frame(varimp)%>%
+#   tibble::rownames_to_column("NAME")%>%
+#   ggplot()+
+#   geom_point(aes(x = reorder(NAME, varimp), y = varimp), size = 3, shape = 18)+
+#   labs(title = "Variable Importance Random Survival Forest")+
+#   xlab("Variable")+
+#   ylab("Variable importance")+
+#   coord_flip()
 ```
 
-```{r, eval=FALSE}
+```{r}
 library(pec)
-models <- list("cox.shat"=fit.shat)
+models <- list("cox.shat"=fitshat,"cforest"=fitcforest)
 fitpec <- pec::pec(
   object=models, 
   data = dat, 
