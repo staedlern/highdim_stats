@@ -11,9 +11,10 @@ library(MASS)
 library(party)
 library(pec)
 library(tidyverse)
+library(glmnet)
 ```
 
-We so far focused on the linear regression model. We will now extend to the setting where the response is binary or time-to-event. The former is also referred to as classification.
+We so far focused on the linear regression model. We will now extend to the setting where the response is binary or time-to-event. The former is also referred to as classification and the latter as survival analysis.
 
 ## Classification
 
@@ -201,7 +202,9 @@ round(mean(pred!=ytest),3)
 
 ## Survival analysis
 
-Another important application is survival analysis which deals with so-called time-to-event endpoints. We will give a very brief introduction into survival analysis and show how the cox proportional hazards model can be used to address high-dimensional problems. 
+We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We start with a very brief introduction to survival analysis and the cox proportional hazards model. Then we turn to the high-dimensional setting and discuss elastic net regularization for the cox regression. Finally, we introduce the time-dependent Brier score to compare prediction performance in the survival setting. 
+
+### Survival analysis and proportional hazard model
 
 For subject $i$ we denote the event time with $T_i$. Unfortunately, typically we do not for each subject observe the event time as a subject may be censored due to:
 
@@ -209,21 +212,23 @@ For subject $i$ we denote the event time with $T_i$. Unfortunately, typically we
 * Withdrawal from study
 * No event by end of fixed study period.
 
-Therefore in practise we observe the survival time $\tilde{T}_i$ (which equals the event time or the censoring time whichever occurs earlier) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event $=0$ in case of censoring).
+Therefore in practise we observe the survival time $\widetilde{T}_i$ (which equals the event time or the censoring time whichever occurs earlier) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event $=0$ in case of censoring).
 
 A fundamental quantity in survival analysis is the survival probability
 
 \[S(t)=P(T>t)=1-F(t).\]
 
-The Kaplan-Meier method is the most common way to estimate survival times and probabilities.
+The hazard function $h(t)$, or the instantaneous rate at which events occur, is defined as
 
-The Cox proportional hazards model is commonly used for the study of the relationship between predictor variables and survival time. The Cox model assumes a semi-parametric form for the hazard, or the instantaneous rate at which events occur
+\[h(t)=\lim_{dt\rightarrow 0}\frac{P(t\leq T < t+dt|T\geq t)}{dt}=-S'(t)/S(t).\]
+
+The Kaplan-Meier method is the most common way to estimate survival times and probabilities. The Cox proportional hazards model is commonly used for the study of the relationship between predictor variables and survival time. The Cox model assumes a semi-parametric form for the hazard
 
 \[h(t|X)=h_0(t)exp(X^T\beta).\]
 
 $h_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. In the classic setting $n>p$, inference is made via the partial likelihood.
 
-If you are interested to learn more about survival analysis I recommend you to have a look at this tutorial https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html.
+To learn more about survival analysis I recommend to have a look at this short tutorial https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html.
 
 
 ### Regularized Cox Regression
@@ -231,7 +236,7 @@ If you are interested to learn more about survival analysis I recommend you to h
 In a high-dimension setting classical cox-regression falls short. Similar as in the previous sections we can use subset selection or use regularization. The latter is implemented in the function glmnet which penalizes the negative log of the partial likelihood with an elastic net penalty.
 
 
-For illustration we consider the Lymphoma dataset which consists of gene expression data for $p=7399$ genes measured on $n=240$ patients, as well as censored survival times, for these patients. We start by reading the data and plotting the estimated survival curve.
+For illustration we consider the Lymphoma dataset which consists of gene expression data for $p=7399$ genes measured on $n=240$ patients, as well as censored survival times, for these patients. We start by reading the data.
 
 ```{r, include=FALSE}
 # data source: http://web.stanford.edu/~hastie/StatLearnSparsity/data.html
@@ -252,22 +257,21 @@ y <- read.table("data/lymphtime.txt",header = TRUE)%>%# survival time and event 
 dat <- data.frame(cbind(y,x))
 ```
 
+
+Next we plot the estimated survival curve.
 ```{r}
 # kaplan meier estimate
 fit.surv <- survfit(Surv(time, status) ~ 1, data = dat)
 ggsurvplot(fit.surv)
 ```
 
-For example we can estimate the probability of surviving beyond 10 years.
+We can use the `summary` function to obtain more specific information of the estimated survival quantities, e.g. the probability of surviving beyond 10 years is obtain as
 
-```{r}
+```{r, eval=FALSE}
 summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
 ```
 
-In this example we are interested to find the genes which are most predictive for survival. In this example we only consider the top $p=500$ genes with highest variance. 
-
-
-We use glmnet to perform L1-penalized cox regression.
+We are interested to find the genes which are most predictive for survival. (Note that we only consider $p=500$ genes with largest variance.) We use glmnet to perform L1-penalized cox regression.
 
 ```{r}
 set.seed(1)
@@ -275,7 +279,7 @@ fit.coxnet <- glmnet(x, y, family = "cox",alpha=0.95)
 plot(fit.coxnet,xvar="lambda")
 ```
 
-To identify the optimal lambda we use cross-validation and choose Harrel's concordance measure as the loss function.
+To identify the optimal lambda we use cross-validation and take Harrel's concordance measure as the loss function.
 
 ```{r}
 cv.coxnet <- cv.glmnet(x,y,
@@ -284,12 +288,8 @@ cv.coxnet <- cv.glmnet(x,y,
                        alpha=0.95)
 plot(cv.coxnet)
 ```
-We obtain the optimal lambda which maximizes the C-index
 
-```{r}
-cv.coxnet$lambda.min
-```
-and show the magnitute of the non-zero coefficients which can be viewed as a measure of variable importance (note that we standardized the input covariates).
+The tuning parameter $\lambda_{\rm{opt}}$ which maximizes the C-index is `r round(cv.coxnet$lambda.min,2)`. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).
 
 ```{r, echo=FALSE}
 dbeta <- data.frame(NULL)
@@ -300,19 +300,20 @@ dbeta%>%
   ggplot(.,aes(x=reorder(betaname,abs(betahat)),y=abs(betahat)))+
   geom_bar(stat="identity",width=0.25)+
   xlab("gene")+ylab("abs(betahat)")+
-  theme(axis.text.x = element_text(angle = 45, hjust =1,size=5))
+  theme(axis.text.x = element_text(angle = 45, hjust =1,size=7),
+        text = element_text(size = 15))
 ```
 
 ### Brier score and predictions in survival analysis
 
-Evaluating the predictive performance of surivial models is an important topic. We consider here the prediction error defined as the time-dependent Brier score:
+Evaluating the predictive performance of survival models is an important topic. A popular score to measure the prediction accuracy is the time-dependent Brier score
 
-\[\rm{BS}(t,\hat{S})={\bf E}(Y_{\rm{new}}(t)-\hat{S}(t|X_{\rm new})), \]
+\[{\rm BS}(t,\hat{S})={\bf E}(Y_{\rm{new}}(t)-\hat{S}(t|X_{\rm new})) \]
 
 where $Y_{\rm{new}}(t)={\bf 1}(T_{\rm new}\geq t)$ is the true status of a new test subject and
-$\hat{S}(t|X_{\rm new})$ is the predicted survival probability. Calculation of the Brier score is not trivial as the we typically do not observe the event time $T$ for each subject (censoring). The R package pec estimates the Brier score using a technique called Inverse Probability of Censoring Weighting (IPCW). 
+$\hat{S}(t|X_{\rm new})$ is the predicted survival probability. Calculation of the Brier score is not trivial as we typically do not always observe the event time $T$ due to censoring. The R package `pec` estimates the Brier score using a technique called Inverse Probability of Censoring Weighting (IPCW). 
 
-Let's illustrate the approach. We split the data set into train and test data.
+We split the data set into train and test data.
 
 ```{r}
 train_ind <- sample(1:nrow(x),size=nrow(x)/2)
@@ -328,7 +329,7 @@ For illustration we use forward selection on the training data to obtain a predi
 
 ```{r}
 fit.lo <- coxph(Surv(time,status)~1,data=dtrain,
-                x=TRUE,y=TRUE)
+              x=TRUE,y=TRUE)
 up <- as.formula(paste("~", 
                        paste(colnames(xtrain), 
                              collapse="+")))
@@ -341,18 +342,20 @@ fit.fw <- stepAIC(fit.lo,
 
 ```
 
-The following table summarizes the variables added in each step.forward selection approach.
+The following table summarizes the variables added in each step of the forward selection approach.
 ```{r}
 kable(as.data.frame(fit.fw$anova),digits=3)
 ```
 
-The forest plot illustrates the estimated hazard ratios and confidence intervals.
-```{r}
+The next figure shows a forest plot with estimated hazard ratios and confidence intervals. 
+
+```{r, warning=FALSE}
 survminer::ggforest(fit.fw)
 ```
 
-Finally we use the pec package to calculate the Brier score on the training and test data.
-```{r, include=FALSE}
+Finally we use the `pec` package to calculate the Brier score on the train and test data.
+
+```{r}
 library(pec)
 fit.pec.train <- pec::pec(
   object=list("cox.fw"=fit.fw), 
@@ -368,21 +371,18 @@ fit.pec.test <- pec::pec(
   splitMethod = "none")
 
 ```
-
-Brier scores evaluted on training data.
+The following figure shows the Brier scores evaluated on train and test data.
 ```{r}
-plot(fit.pec.train)
-```
-Brier score evaluated on test data
-```{r}
-plot(fit.pec.test)
+par(mfrow=c(1,2))
+plot(fit.pec.train,main="train")
+plot(fit.pec.test,main="test")
 ```
 
-We note that the selected model performs not better than the reference model (no covariates).
+The plot on the right indicates that the selected model performs no better than the reference model (no covariates).
 
-The pec package can also be used to benchmark different prediction models. We illustrate this based on random survival forest and backward selection. In this example we will not split the data into train and test. Instead we use cross-validation to compare the two prediction approaches.
+The `pec` package can also be used to benchmark different prediction models. We illustrate this based on random survival forest and backward selection. In this example we will not split the data into train and test. Instead we use cross-validation to compare the two prediction approaches.
 
-We focus on only the variables with non zero coefficients in the glmnet fit.
+We focus on only the covariates which have non-zero coefficient in the previous glmnet fit.
 
 ```{r}
 shat <- dbeta%>%
@@ -392,16 +392,16 @@ fm <- as.formula(paste0("Surv(time, status) ~ ",paste(shat,collapse = "+")))
 ```
 
 
-We run the random survival forest.
+We start by fitting random forest using the `party` package.
+
 ```{r}
 fit.cforest <- pec::pecCforest(fm, data =dat, 
-                              control = party::cforest_classical(ntree = 1000))
-
+                              control = party::cforest_classical(ntree = 100))
 ```
 
 Similar as for classical random forest we can obtain the variable importance.
 
-```{r, eval=FALSE}
+```{r echo=FALSE, fig.height=8}
 vp <- party::varimp(fit.cforest$forest)
 dvp <- data.frame(VARNAME=names(vp),VARIMP=vp)
 vplot <- dvp%>%
@@ -415,13 +415,13 @@ vplot <- dvp%>%
 print(vplot)
 ```
 
-Next we run backward selection.
+Next we run the backward selection approach.
 
 ```{r}
 fit.coxbw <- pec::selectCox(fm, data = dat, rule = "aic")
 ```
 
-And we compare the prediction performance of the two approaches using the cross-validated Brier score. 
+Finally we compare the prediction performance of the two approaches using the cross-validated Brier score. 
 
 ```{r message=FALSE}
 pec.cv <- pec::pec(
@@ -432,4 +432,4 @@ pec.cv <- pec::pec(
 plot(pec.cv)
 ```
 
-
+Random forest exhibits a lower cross-validated Brier score.
