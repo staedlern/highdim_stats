@@ -355,7 +355,7 @@ survminer::ggforest(fit.fw)
 
 Finally we use the `pec` package to calculate the Brier score on the train and test data.
 
-```{r}
+```{r message=FALSE}
 library(pec)
 fit.pec.train <- pec::pec(
   object=list("cox.fw"=fit.fw), 
@@ -401,7 +401,7 @@ fit.cforest <- pec::pecCforest(fm, data =dat,
 
 Similar as for classical random forest we can obtain the variable importance.
 
-```{r echo=FALSE, fig.height=8}
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=8}
 vp <- party::varimp(fit.cforest$forest)
 dvp <- data.frame(VARNAME=names(vp),VARIMP=vp)
 vplot <- dvp%>%

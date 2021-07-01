@@ -16,19 +16,19 @@ Calculate the Ridge and the Lasso solution for an orthonormal design matrix
 
 ## Bayesian interpretation of Ridge Regression
 
-1. Write down the log-likelihood of the linear regression model. 
+1. Write down the log-likelihood of the linear regression model. Note: 
+$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
+$n\times p$ design matrix.
 2. Find the expression for the maximum likelihood estimator.
 3. Assuming a posteriory distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
 
-Note: 
-$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
-$n\times p$ design matrix.
-
 ## Prostate Cancer data
 
-Get the prostate cancer dataset from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
-Run OLS, Best Subset selection (use the leaps package), Ridge Regression and Lasso Regression. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. from the book The Elements of Statistical Learning.
+Download the prostate cancer data set from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
+Run OLS, Best Subset selection (use the `leaps` package), Ridge Regression and Lasso Regression. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. from the book The Elements of Statistical Learning.
 
+
+The solution to this exercise. Read the data set and creat train and test data.
 ```{r}
 dat <- read.csv("data/prostate.csv")
 dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
@@ -38,7 +38,11 @@ ytrain <- dtrain$lpsa
 dtest <- dat[!dat$train,-10]
 xtest <- data.matrix(dtest[,-9])
 ytest <- dtest$lpsa
+```
 
+Perform OLS regression, Best Subset selection, Ridge Regression and Lasso Regression.
+
+```{r}
 # linear regression
 fit.lm <- lm(lpsa~.,data=dtrain)
 coef.lm <- coef(fit.lm)
@@ -83,26 +87,24 @@ coef.lasso <- coef(fit.lasso,s=fit.ridge.cv$lambda.min)
 terr.lasso <- mean((as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))-ytest)^2)
 ```
 
+The next two figures show BIC and CV Error for the Best Subset selection approach
 BIC for different subset sizes.
+
 ```{r}
 plot(ss.summary$bic)
-```
-
-CV Error for different subset sizes.
-```{r}
 plot(subset.caret)
 ```
 
+The next two figures show the CV Error for Ridge and Lasso Regression.
 CV Error for Ridge Regression. 
+
 ```{r}
+par(mfrow=c(1,2))
 plot(fit.ridge.cv)
-```
-CV Error for Lasso Regression. 
-```{r}
 plot(fit.lasso.cv)
 ```
 
-Table with regression coefficients.
+The next table shows the regression coefficients.
 
 ```{r}
 res <- data.frame(OLS=coef.lm,SSBIC=0,SSCV=0,RIDGE=0,LASSO=0)
@@ -114,7 +116,7 @@ kable(res,digits = 3)
 
 ```
 
-Table with Test errors.
+Finally we show the test errors of the different methods.
 
 ```{r}
 res <- data.frame(OLS=terr.lm,
@@ -126,22 +128,29 @@ kable(res,digits = 3)
 
 ## Elastic Net and cross-validation
 
-Get the Riboflavin dataset from the hdi R package. Run the elastic net with $\alpha=0, 0.25, 0.5, 0.75$ and $1$ and create a trace plot. Run cross-validation and decide which $\alpha$ leads to best performance (note: use the foldid argument in glment). Plot the final regression coefficients.
+1. Obtain the Riboflavin data set from the `hdi`package.
+2. Run the Elastic Net with $\alpha=0, 0.25, 0.5, 0.75$ and $1$ and create a trace plots.
+3. Perform cross-validation and decide which $\alpha$ leads to best performance (note: use the foldid argument in glmnet). 
+4. Plot the final regression coefficients.
 
 ## P-values for High-dimensional Regression
 
-Get the Riboflavin dataset from the hdi R package.
+1. Split the Riboflavin data set into two halves ("Data splitting"). 
+2. On the first half: run glmnet and select the top genes ("Screening").
+3. On the second half: take the top genes as covariates,run ordinary least squares and report the for each coefficient the p-value ("P-value calculation").
+4. Write a program which runs steps 1-3 many times and calculate for each coefficient the median p-value over all runs ("P-value aggregation").
 
 ## Splines and South African heart disease data
 
-In the main text we fit linear logistic regression models to the South African heart disease data. Here we explore nonlinearities in the functions using natural splines. Proceed as follows:
+In the main text we fitted a linear logistic regression models to the South African heart disease data. Here we explore nonlinearities in the predictors using natural cubic splines. Proceed as follows:
 
-1. Fit the model using four natural spline bases for each term in the model. 
+1. Fit the model using four natural cubic spline bases for each term in the model. 
 2. Run backward selection on the model
 3. Summarise the final model
-4. Plot the natural spline functions for the different terms
+4. Plot the natural cubic spline functions for the different terms
 
-```{r echo=FALSE}
+The solution to this exercise. First we read the data and fit the model.
+```{r}
 library(splines)
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 
@@ -150,16 +159,20 @@ form <-  "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(ob
 form <-  formula(form)
 
 fit <-  glm( form, data=dat, family=binomial )
+```
+
+Next we run backward selection. 
+```{r}
 fit.bw <- stepAIC(fit,direction="backward",trace = 0)
 ```
 
-Outcome of backward selection.
+
+The outcome of backward selection.
 ```{r}
 kable(as.data.frame(fit.bw$anova),digits=3)
 ```
 
-Summary of final model.
-
+Summary of the final model.
 ```{r}
 kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2)
 ```
@@ -175,35 +188,36 @@ termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
 
 In this exercise we investigate prediction of phonemes based on digitized speech data.
 
-1. Read the dataset, subset the phonemes "aa" and "ao" and create training and test data.
+1. Read the data set, subset the phonemes "aa" and "ao" and create train and test data.
 
 ```{r eval=FALSE}
 dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
 ```
 
-2. Plot log-periodogram as a function of frequency for 5 examples each of the phonemes "aa" and "ao".
+2. Plot the log-periodogram as a function of frequency for 5 examples each of the phonemes "aa" and "ao".
 
-3. Run logistic regression and evaluate the training and test misclassification errors.
+3. Fit a logistic regression model and evaluate the training and test misclassification errors.
 
-4. Run lasso regression and evaluate the training and test misclassification errors.
+4. Run Lasso regression and evaluate the training and test misclassification errors.
 
-5. In the previous model we assumed that the $\rm logit(x;\beta)=\sum_{j=1}^{256} X_j\beta_j$. We now assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. 
-
-$$\beta(f)=\sum_{m=1}^{\nu} h_m(f)\theta_m$$ 
-where $h_m$'s are B-spline basis functions for a natural cubic spline with $\nu=12$ degrees of freedom (defined on the set of frequencies). Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regression on the $x^*$. Evaluate the training and test misclassification errors.  
+5. In the previous approaches we assumed that the ${\rm logit}(x;\beta)=\sum_{j=1}^{256} X_j\beta_j$. Now we assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. $\beta(f)=\sum_{m=1}^{\nu} h_m(f)\theta_m$, 
+where $h_m$ are B-spline basis functions for a natural cubic spline with $\nu=12$ degrees of freedom (defined on the set of frequencies). 
+Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regression on the $x^*$. Evaluate the training and test misclassification errors.  
 
 6. Plot the coefficients of the different models.
 
+The solution to this exercise. We prepare the data set.
 
-Prepare the data set.
-```{r, include=FALSE}
+```{r include=FALSE}
 # https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
 # https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
 # https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
 
 # dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
 # save(dat,file="data/phoneme.rda")
+```
 
+```{r}
 library(splines)
 load(file="data/phoneme.rda")
 dat2 <- dat[dat$g%in%c("aa","ao"),]
@@ -222,7 +236,7 @@ dtest <- dtest[,-257]
 ```
 
 
-Plot log-periodograms.
+Plots of the log-periodograms.
 
 ```{r}
 id.ao <- sample(which(ytrain==1),5)
@@ -238,7 +252,8 @@ for(i in 1:5){
 
 ```
 
-We start with logistic regression.
+We run logistic regression and calculate train and test errors.
+
 ```{r}
 # logistic regression
 fit <- glm(y~.,data=dtrain,family=binomial)
@@ -247,13 +262,16 @@ pred_train <- as.numeric((predict(fit,type="response")>0.5))
 pred_test <- as.numeric((predict(fit,type="response",newdata=dtest)>0.5))
 mean(pred_train!=ytrain)
 mean(pred_test!=ytest)
-
-# plot( coef.glm, ylim=c(-0.4,+0.4), 
-#       type="l", xlab="Frequency",
-#       ylab="Logistic Regression Coefficients" )
 ```
 
-We run lasso regression.
+```{r eval=FALSE, include=FALSE}
+plot( coef.glm, ylim=c(-0.4,+0.4),
+      type="l", xlab="Frequency",
+      ylab="Logistic Regression Coefficients" )
+```
+
+
+We run Lasso regression and calculate train and test errors.
 ```{r}
 # lasso regression
 fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=1)
@@ -268,7 +286,7 @@ mean(pred_test!=ytest)
 ```
 
 
-We now use natural cubic spline basis with $df=12$ to express the coefficients as a smooth function of the frequencies. 
+We use the natural cubic spline basis with $\nu=12$ to express the coefficients as a smooth function of the frequencies. We calculate train and test errors.
 
 ```{r}
 # coefficient smoothing
@@ -283,7 +301,7 @@ mean(pred_train!=ytrain)
 mean(pred_test!=ytest)
 ```
 
-We finally plot the regression coefficients
+We plot the regression coefficients
 
 ```{r}
 plot( coef.glm[-1], 
@@ -296,17 +314,16 @@ lines(coef.smooth,col="red",lwd=2)
 abline(h=0)
 
 ```
+
 ## Classification and the Sonar data set
 
-In this exercise we explore the Sonar dataset from the mlbench package.
+In this exercise we explore the Sonar data set from the `mlbench` package.
 
 1. Load the Sonar data set from the mlbench package and read the help page. 
 
-2. Split the data in a train and test set and explore classification using subset selection and elastic net regularization. Build training and testing data
-And Read the dataset, subset the phonemes "aa" and "ao" and create training and test data.
+2. Split the data into a train and test set and explore classification using subset selection and elastic net regularization. 
 
-
-We explore the Sonar dataset from the mlbench package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into train and test.
+The solution to this exercise. We explore the Sonar data set from the `mlbench` package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into train and test data.
 
 ```{r}
 library(mlbench)
@@ -329,17 +346,17 @@ xtest <- as.matrix(dtest[,-61])
 ytest <- dtest$Class
 ```
 
-In order to compare the performance of the different methods we setup trainControl. We use 10 fold cross-validation
+In order to compare the performance of the different methods we setup `trainControl`. We use 10-fold cross-validation
 
 ```{r}
 tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accuracy
 ```
 
 We first run logistic regression once with only an intercept and once with all the covariates. We
-note that glm reports convergence problems when using all variables. This indicates that the model could be to complex to fit.
+note that glm reports convergence problems when using all variables. This indicates that the model is too complex to fit.
 
 ```{r, warning=FALSE}
-fit.0 <-  glm(Class~1,family=binomial,data=dtrain)
+fit.lo <-  glm(Class~1,family=binomial,data=dtrain)
 fit.full <-  glm(Class~.,family=binomial,data=dtrain)
 fit.full.caret <- train(Class ~., 
                         data = dtrain, 
@@ -351,14 +368,14 @@ fit.full.caret <- train(Class ~.,
 Next we use forward selection.
 
 ```{r, warning=FALSE}
-upper.model <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
-fit.fw <- stepAIC(fit.0,
-                  scope=upper.model,
+up <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
+fit.fw <- stepAIC(fit.lo,
+                  scope=up,
                   direction = "forward", 
                   steps=10,
                   trace = FALSE)
-summary(fit.fw)
-broom::tidy(fit.fw)
+#summary(fit.fw)
+kable(broom::tidy(fit.fw),digits=2)
 ```
 
 We do the same but now using the caret package.
@@ -373,20 +390,22 @@ fit.fw.caret <- train(x=xtrain,
                       trace = FALSE
 )
 # accuracy
-fit.fw.caret$results
+kable(fit.fw.caret$results,digits=2)
+
 # summary of the model
-summary(fit.fw.caret$finalModel)
+kable(broom::tidy(fit.fw.caret$finalModel),digits=2)
 ```
 
-Next, we use L1-penalized regression.
+We use L1-penalized regression.
 
 ```{r}
 fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
 plot(fit.l1,xvar="lambda",label=TRUE)
 cvfit <- cv.glmnet(x=xtrain, y=ytrain, family = "binomial", type.measure = "class",alpha=1)
-cvfit$lambda.min
+#cvfit$lambda.min
 plot(cvfit)
 ```
+
 We repeat the analysis using the caret package.
 ```{r}
 lambda.grid <- fit.l1$lambda
@@ -399,8 +418,10 @@ fit.l1.caret<-train(x=xtrain,
                  trControl = tc
 ) 
 
-#
 ggplot(fit.l1.caret)
+```
+
+```{r eval=FALSE, include=FALSE}
 # Best lambda
 fit.l1.caret$bestTune$lambda
 # Model coefficients
@@ -409,7 +430,8 @@ coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
 
 
 We make predictions and compare the missclassification error on the test data.
-```{r}
+
+```{r results="hide"}
 # Make predictions
 confusionMatrix(data =fit.l1.caret %>% predict(xtest), ytest)
 confusionMatrix(data =fit.fw.caret %>% predict(xtest), ytest)
@@ -417,19 +439,148 @@ confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
 ```
 
 
-Finally we compare all models
-```{r}
+We can compare the 3 models.
+
+```{r results="hide"}
 models <- list(full=fit.full.caret,
                fw=fit.fw.caret,
                l1=fit.l1.caret)
 summary(resamples(models),metric = "Accuracy")
 ```
 
-## Another Example
+## Survival analysis based on simulated data
 
-We simulate data for training and testing.
+1. Simulate your own high-dimensional survival data with $n=50$. Assume proportional hazard with $p=100$ covariates. Assume that only 2 covariates are active, i.e. have non-zero contributition. 
+
+2. Fit on the training data a cox regression model including the first 20 covariates and create of forest plot.
+
+3. Use `glmnet` to perform l1-penalized cox regression. Show the trace plot and the cross-validated C-index.
+
+4. Fit on the trainig data a cox regression model including only the active covariates from 
+the previous glmnet fit.
+
+5. Use the `pec` package to obtain the Brier score on training and test data for the two cox regression models.
+
+Solution to the exercise. We start with simulating training and test data.
+
+```{r message=FALSE}
+## load packages
+library(survival)
+library(survminer)
+
+## dimensions
+p <- 100
+n <- 50
+
+## training data
+
+# design matrix
+t.dat <- data.frame(matrix(rnorm(n * p), nrow = n))
+fm <- as.formula(paste0("~0+",paste(paste0("X",1:p),collapse="+")))
+x_design <- model.matrix(fm,data=t.dat)
+beta <- c(2,0,0,0,2,rep(0,p-5))
+lh <- x_design%*%beta
+
+# survival and censoring time
+rate_base <- 1/5 # baseline hazard
+rate_cens <- 1/6 # censoring hazard
+hazard <- rate_base*exp(lh)
+survtime <- rexp(n,rate=hazard)
+censtime <- rexp(n,rate=rate_cens)
+status <- as.numeric(survtime<=censtime)
+time <- survtime*status+censtime*(1-status)
+dtrain <- cbind(
+  data.frame(survtime,time,status)%>%
+    dplyr::mutate(status.cens=1-status),
+  t.dat)
+
+## test data
+
+# design matrix
+t.dat <- data.frame(matrix(rnorm(n * p), nrow = n))
+fm <- as.formula(paste0("~0+",paste(paste0("X",1:p),collapse="+")))
+x_design <- model.matrix(fm,data=t.dat)
+beta <- c(2,0,0,0,2,rep(0,p-5))
+lh <- x_design%*%beta
+
+# survival and censoring time
+rate_base <- 1/5 # baseline hazard
+rate_cens <- 1/6 # censoring hazard
+hazard <- rate_base*exp(lh)
+survtime <- rexp(n,rate=hazard)
+censtime <- rexp(n,rate=rate_cens)
+status <- as.numeric(survtime<=censtime)
+time <- survtime*status+censtime*(1-status)
+dtest <- cbind(
+  data.frame(survtime,time,status)%>%
+    dplyr::mutate(status.cens=1-status),
+  t.dat)
+```
+
+We perform cox-regression and create a forest plot.
+
+```{r message=FALSE, warning=FALSE}
+fm1 <- as.formula(paste("Surv(time,status)~",paste(paste0("X",1:20),collapse="+")))
+fit1 <- coxph(fm1,data=dtrain,x=TRUE)
+survminer::ggforest(fit1)
+```
+
+
+We perform l1-regularized cox-regression and plot the coefficients for different lambda values.
 
 ```{r}
+xtrain <- as.matrix(dtrain[,-c(1:4)])
+ytrain <- with(dtrain,Surv(time,status))
+fit.coxnet <- glmnet(xtrain, ytrain, family = "cox",alpha=0.95)
+plot(fit.coxnet,xvar="lambda",label=TRUE)
+```
+
+We perform cross-validation and plot the C-index.
+
+```{r}
+cv.coxnet <- cv.glmnet(xtrain, ytrain,
+                       family="cox",
+                       type.measure="C",
+                       alpha=0.95)
+plot(cv.coxnet)
+```
+
+We perform cox-regression based on only the active covariates.
+
+```{r}
+act <- which(as.numeric(coef(fit.coxnet,s=cv.coxnet$lambda.min))!=0)
+fm2 <- as.formula(paste("Surv(time,status)~",paste(paste0("X",act),collapse="+")))
+fit2 <- coxph(fm2,data=dtrain,x=TRUE)
+```
+
+Finally, we calculate the Brier-scores on training and test data.
+
+```{r message=FALSE}
+library(pec)
+fit.pec.train <- pec::pec(
+  object=list("mod1"=fit1,"mod2"=fit2), 
+  data = dtrain, 
+  formula = Surv(time, status) ~ 1, 
+  splitMethod = "none")
+
+
+fit.pec.test <- pec::pec(
+  object=list("mod1"=fit1,"mod2"=fit2), 
+  data = dtest, 
+  formula = Surv(time, status) ~ 1, 
+  splitMethod = "none")
+
+par(mfrow=c(1,2))
+plot(fit.pec.train,main="train")
+plot(fit.pec.test,main="test")
+
+```
+
+## Overfitting example
+
+We illustrate overfitting based on simulated training and test data.
+
+```{r message=FALSE}
 set.seed(1)
 n <- 20
 p <- 50
@@ -463,7 +614,6 @@ t.gp2 <- dtest%>%
 grid.arrange(t.gp1,t.gp2,ncol=2)
 ```
 
-
 Linear regression with 10 covariates.
 ```{r}
 fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
@@ -494,10 +644,10 @@ t.gp2 <- dtest%>%
 grid.arrange(t.gp1,t.gp2,ncol=2)
 ```
 
-Leap Forward Regression.
+We perform Leap Forward Regression.
 
 
-```{r, echo=FALSE}
+```{r warning=FALSE}
 tc <- trainControl(method = "cv", number = 10)
 fit.forward <- train(y ~., data = dtrain,
                      method = "leapForward", 
@@ -507,16 +657,19 @@ fit.forward <- train(y ~., data = dtrain,
                     )
 # nvmax
 fit.forward$bestTune
+
 # accuracy
 fit.forward$results
+
 # summary of the model
 summary(fit.forward$finalModel)
+
 # final model coefficients
-coef(fit.forward$finalModel,2)
+coef(fit.forward$finalModel,2)%>%head
 ```
 
 
-Now we perform Ridge regession
+We perform Ridge regession
 
 ```{r}
 lambda.max <- 10
@@ -529,7 +682,7 @@ fit.ridge<-train(y ~.,
                  trControl = tc
 ) 
 
-# Cv plot
+# CV plot
 plot(fit.ridge)
 # Best lambda
 fit.ridge$bestTune$lambda
@@ -539,7 +692,7 @@ coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)%>%head
 fit.ridge %>% predict(dtest)%>%head
 ```
 
-
+We perform Lasso regression.
 ```{r}
 lambda.max <- max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
 lambda.min <- 10^{-6}*lambda.max
@@ -551,7 +704,7 @@ fit.lasso<-train(y ~.,
                  trControl = tc
 ) 
 
-# Cv plot
+# CV plot
 plot(fit.lasso)
 # Best lambda
 fit.lasso$bestTune$lambda
@@ -561,13 +714,14 @@ coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)%>%head
 fit.lasso %>% predict(dtest)%>%head
 ```
 
-
+Comparison between the 3 approaches
 ```{r}
 models <- list(forward= fit.forward,ridge = fit.ridge,lasso=fit.lasso)
-resamples(models) %>% summary( metric = "RMSE")
+resamples(models) %>% 
+  summary( metric = "RMSE")
 ```
 
-That is how to calculate lambda_max
+That is how lambda_max is calculated.
 ```{r}
 # with scaling
 mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
@@ -587,8 +741,3 @@ max(fit.lasso$lambda)
 max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
 ```
 
-
-## Example based on simulated data
-
-Take covariates from dataset XYZ and simulate data with 5 active covariates. Run forward regression, 
-ridge regression and lasso regression
