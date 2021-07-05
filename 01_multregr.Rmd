@@ -2,12 +2,15 @@
 
 ```{r include=FALSE}
 library(gridExtra)
+library(knitr)
+library(tidyverse)
 ```
 
+In this chapter we will review multivariate regression and in particular the *Ordinary Least Squares* (OLS) estimator. We will further introduce the topic of *overfitting* and *high-dimensionality*.
 
 ## Ordinary Least Squares
 
-We will discuss in this course several learning rules. In this section we consider Multivariate Regression. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
+In this section we briefly review the OLS estimator. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
 
 \[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
 
@@ -15,7 +18,7 @@ The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X
 
 \[\hat{Y}=X^T\hat\beta.\]
 
-How do we fit the linear model to a set of training data? In Multivariate Regression we typically use least squares. In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
+How do we fit the linear model to a set of training data? In multivariate regression we typically use *ordinary least squares* (OLS). In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
 
 \begin{align*}
 \rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
@@ -34,6 +37,20 @@ Thus, the learning rule at the new input point $X_{\rm new}$ is
 &=X_{\rm new}^T\hat\beta\\
 &=X_{\rm new}^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
 \end{align*}
+
+There are two important geometric interpretations of the OLS estimator. Figure \@ref(fig:olsgeom2) shows a "row representation". Here, the $n$ data points $(y_i,x_{i2},\ldots,x_{ip})$ randomly spread around a $(p-1)-$dimensional hyperplane in a $p-$dimensional space. The random spread only occurs parallel to the y-axis. 
+
+```{r olsgeom2,echo=FALSE, fig.cap="Respresentation of the $n$ data points randomly spreading around a 2-dimensional hyperplane."}
+knitr::include_graphics("ols_geom2.JPG")
+```
+
+Figure \@ref(fig:olsgeom1) shows a "column representation". Here, the vector $\bf y$ of observation is a single point in the $n-$dimensional space ${\bf R}^n$. The fitted values $\hat \bf y$ are the orthogonal projection onto the $p-$dimensional subspace of ${\bf R}^n$ spanned by the vectors ${\bf x_1},\ldots,{\bf x_p}$.
+
+```{r olsgeom1,echo=FALSE, fig.cap="Representation of the fitted values as an orthogonal projection onto the 2-dimensional subspace spanned by the covariates."}
+knitr::include_graphics("ols_geom1.JPG")
+```
+
+
 
 ## Overfitting and High-dimensionality
 
