@@ -6,11 +6,11 @@ library(knitr)
 library(tidyverse)
 ```
 
-In this chapter we will review multivariate regression and in particular the *Ordinary Least Squares* (OLS) estimator. We will further introduce the topic of *overfitting* and *high-dimensionality*.
+In this chapter we will review multivariate regression and in particular the *Ordinary Least Squares* (OLS) estimator. We will further introduce the topics *overfitting* and *high-dimensionality*.
 
 ## Ordinary Least Squares
 
-In this section we briefly review the OLS estimator. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the model:
+In this section we briefly review the OLS estimator. Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, we predict the output $Y$ via the linear model:
 
 \[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
 
@@ -18,7 +18,7 @@ The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X
 
 \[\hat{Y}=X^T\hat\beta.\]
 
-How do we fit the linear model to a set of training data? In multivariate regression we typically use *ordinary least squares* (OLS). In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
+How do we fit the linear model to a set of training data (i.e. how do we obtain the estimator $\hat \beta$)? In multivariate regression we typically use *ordinary least squares* (OLS). In this approach, we pick the coefficient $\beta$ to minimize the residual sum of squares
 
 \begin{align*}
 \rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
@@ -38,15 +38,15 @@ Thus, the learning rule at the new input point $X_{\rm new}$ is
 &=X_{\rm new}^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
 \end{align*}
 
-There are two important geometric interpretations of the OLS estimator. Figure \@ref(fig:olsgeom2) shows a "row representation". Here, the $n$ data points $(y_i,x_{i2},\ldots,x_{ip})$ randomly spread around a $(p-1)-$dimensional hyperplane in a $p-$dimensional space. The random spread only occurs parallel to the y-axis. 
+Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $n$ data points $(y_i,x_{i2},\ldots,x_{ip})$ randomly spread around a $(p-1)$-dimensional hyperplane in a $p$-dimensional space; the random spread only occurs parallel to the y-axis. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ of observation is a single point in the $n$-dimensional space ${\bf R}^n$; the fitted values $\hat {\bf y}$ are the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^n$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
 
-```{r olsgeom2,echo=FALSE, fig.cap="Respresentation of the $n$ data points randomly spreading around a 2-dimensional hyperplane."}
+
+```{r olsgeom2,echo=FALSE,out.width="60%",fig.cap="The n data points randomly spreading around a (p-1)-dimensional hyperplane."}
 knitr::include_graphics("ols_geom2.JPG")
 ```
 
-Figure \@ref(fig:olsgeom1) shows a "column representation". Here, the vector $\bf y$ of observation is a single point in the $n-$dimensional space ${\bf R}^n$. The fitted values $\hat \bf y$ are the orthogonal projection onto the $p-$dimensional subspace of ${\bf R}^n$ spanned by the vectors ${\bf x_1},\ldots,{\bf x_p}$.
 
-```{r olsgeom1,echo=FALSE, fig.cap="Representation of the fitted values as an orthogonal projection onto the 2-dimensional subspace spanned by the covariates."}
+```{r olsgeom1,echo=FALSE,fig.cap="The vector of fitted values as an orthogonal projection onto the subspace spanned by the covariate vectors."}
 knitr::include_graphics("ols_geom1.JPG")
 ```
 
@@ -54,14 +54,14 @@ knitr::include_graphics("ols_geom1.JPG")
 
 ## Overfitting and High-dimensionality
 
-Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
-but explain more than the signal alone: it also models the error. Hence, it overfits the data. In high-dimensional
-settings overfitting is a real threat. The number of explanatory variables exceeds the number of observations. It
-is thus possible to form a linear combination of the covariates that perfectly explains the response, including the
-noise.
-Large estimates of regression coefficients are often an indication of overfitting. Overfitting is illustrated in the next example.
+Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response $Y$) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
+but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
 
-We simulate training data with $p=9$ covariates $X_{i1},\ldots,X_{ip}$ as i.i.d $N(0,1)$. The outcome $Y$ depends only on the first covariate according to $Y_i\sim \beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i\sim N(0,0.5)$. The size of the training data is $n=10$.
+In high-dimensional settings where the number of covariates $p$ is larger compared to the number of observations $n$ overfitting is a real threat! If $\bf p>n$ it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise.
+
+In general, large estimates of regression coefficients are often an indication of overfitting. We illustrate overfitting in the next example.
+
+We simulate $n=10$ training data points; the $p=9$ covariates $X_{i1},\ldots,X_{ip}$ are assumed as i.i.d $N(0,1)$; the response depends only on the first covariate and is generated as $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i\sim N(0,0.5)$. 
 
 ```{r}
 set.seed(1)
@@ -75,7 +75,7 @@ ytrain <- xtrain%*%beta+rnorm(n,sd=0.5)
 dtrain <- data.frame(xtrain)
 dtrain$y <- ytrain
 
-# lm
+# fit linear regression (all covariates except intercept)
 fit <- lm(y~-1+.,data=dtrain)
 ```
 The estimated regression coefficients are
@@ -96,10 +96,11 @@ t.d%>%
   ggplot(.,aes(x=x))+
   geom_point(aes(y=y),size=2)+
   geom_line(aes(y=yhat),col="red")+
-  geom_abline(intercept=0,slope=1,col="blue",lty=2)
+  geom_abline(intercept=0,slope=1,col="blue",lty=2)+
+  xlab("X1")+ylab("Y")
 ```
 
-In this example the model fits the data perfectly. The residual degrees of freedom, $n-p$, to estimate the error is exactly `r n-p`. A rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
+In this example the model overfits the data. In other words, the *residual degrees of freedom* remaining to estimate the error are exactly `r n-p`. A common rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
 
 ## Collinearity and High-dimensionality
 
