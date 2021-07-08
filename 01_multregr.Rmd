@@ -41,27 +41,31 @@ Thus, the learning rule at the new input point $X_{\rm new}$ is
 Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $n$ data points $(y_i,x_{i2},\ldots,x_{ip})$ randomly spread around a $(p-1)$-dimensional hyperplane in a $p$-dimensional space; the random spread only occurs parallel to the y-axis. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ of observation is a single point in the $n$-dimensional space ${\bf R}^n$; the fitted values $\hat {\bf y}$ are the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^n$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
 
 
-```{r olsgeom2,echo=FALSE,out.width="60%",fig.cap="The n data points randomly spreading around a (p-1)-dimensional hyperplane."}
+```{r olsgeom2,echo=FALSE,out.width="60%",fig.cap="This Figure shows the n data points randomly spreading around a (p-1)-dimensional hyperplane."}
 knitr::include_graphics("ols_geom2.JPG")
 ```
 
 
-```{r olsgeom1,echo=FALSE,fig.cap="The vector of fitted values as an orthogonal projection onto the subspace spanned by the covariate vectors."}
+```{r olsgeom1,echo=FALSE,fig.cap="This Figure shows the vector of fitted values as an orthogonal projection onto the subspace spanned by the covariate vectors."}
 knitr::include_graphics("ols_geom1.JPG")
 ```
 
 
 
-## Overfitting and High-dimensionality
+## High-dimensionality
+
+The field of high-dimensional statistics deals with inference in situations where the model complexity is large compared to the number of independent observations. In the classical regression model this is often paraphrased as ${\bf p>>n}$, referring to the situation where we have more covariates than observations. 
+
+High-dimensionality is related to the concept of *overfitting* and *collinearity*. 
+
+### Overfitting 
 
 Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response $Y$) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
 but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
 
-In high-dimensional settings where the number of covariates $p$ is larger compared to the number of observations $n$ overfitting is a real threat! If $\bf p>n$ it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise.
+In high-dimensional settings overfitting is a real threat! In the situation where $p>n$ it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. In general, large estimates of regression coefficients are often an indication of overfitting. We illustrate overfitting in the next example.
 
-In general, large estimates of regression coefficients are often an indication of overfitting. We illustrate overfitting in the next example.
-
-We simulate $n=10$ training data points; the $p=9$ covariates $X_{i1},\ldots,X_{ip}$ are assumed as i.i.d $N(0,1)$; the response depends only on the first covariate and is generated as $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i\sim N(0,0.5)$. 
+We simulate $n=10$ training data points; $p=9$ and $X_{i1},\ldots,X_{ip}$ are i.i.d $N(0,1)$; the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i\sim N(0,0.5)$. 
 
 ```{r}
 set.seed(1)
@@ -75,7 +79,7 @@ ytrain <- xtrain%*%beta+rnorm(n,sd=0.5)
 dtrain <- data.frame(xtrain)
 dtrain$y <- ytrain
 
-# fit linear regression (all covariates except intercept)
+# fit linear regression (all 9 covariates, intercept excluded for this illustration)
 fit <- lm(y~-1+.,data=dtrain)
 ```
 The estimated regression coefficients are
@@ -84,7 +88,7 @@ The estimated regression coefficients are
 coef(fit)
 ```
 
-As the true coefficients are $\beta = (1, 0, \ldots, 0),$ many regression coefficient are clearly over-estimated.
+The true coefficients are $\beta = (1, 0, \ldots, 0)$  and we note that many regression coefficient are clearly over-estimated.
 
 In the next plot the fitted values are plotted against the values of the first covariate.
 As a reference the line $x = y$ is added, which represents the ‘true’ model. The fitted model follows
@@ -100,16 +104,15 @@ t.d%>%
   xlab("X1")+ylab("Y")
 ```
 
-In this example the model overfits the data. In other words, the *residual degrees of freedom* remaining to estimate the error are exactly `r n-p`. A common rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $10$.
+In this example the model overfits the data. In other words, the *residual degrees of freedom* which remains to estimate the error is exactly `r n-p`. A common rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $5$ (be aware that this is not a general applicable rule!).
 
-## Collinearity and High-dimensionality
+### Collinearity
 
-Recall that collinearity in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred as super-collinearity.
+Recall that *collinearity* in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred to as *super-collinearity*.
 
-The following figures show examples of two covariates with no-, high- and super-collinearity.
-
-```{r, include=FALSE}
-set.seed(1)
+For illustration we generate some data.
+```{r }
+set.seed(1315)
 n <- 20
 x1 <- rnorm(n)
 x2 <- rnorm(n)
@@ -119,7 +122,9 @@ dat <- data.frame(x1,x2,x3,x4)
 dat$y <- 2*dat$x1+rnorm(n)
 ```
 
-```{r, echo=FALSE}
+The figures show pairs of covariates with no-, high- and super-collinearity.
+
+```{r echo=FALSE, fig.height=4, fig.width=12}
 gp1 <- dat%>%
   ggplot(.,aes(x=x1,y=x2))+
   geom_point()+
@@ -138,19 +143,20 @@ gp3 <- dat%>%
 grid.arrange(gp1,gp2,gp3,ncol=3)
 ```
 
-In the presence of collinearity, the estimate of one variable's impact on the dependent variable $Y$ while controlling for the others tends to be less precise than if predictors were uncorrelated with one another. Intuitively this can be explained based on the following figure which shows the response Y and two highly correlated covariates x1 and x2: we note that 2-dimensional OLS hyperplain deviates from the true model; further we see that the exact position of OLS hyperplain is very uncertain.
+In the presence of collinearity, the estimate of one variable's impact on the dependent variable $Y$ while controlling for the others tends to be less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplains for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplain is stable alongside (but unstable in the orthogonal direction) of the "hedge" of data points.
 
-![](collinearity.JPG)
+```{r collinearity,echo=FALSE,out.width="70%",fig.cap="This Figure illustrates OLS regression in the context of covariates with high collinearity."}
+knitr::include_graphics("collinearity.JPG")
+```
 
-
-We illustrate this by fitting the following the two models 
+We will now illustrate this numerically by fitting the following two models.
 
 ```{r}
 modela <- lm(y~x1+x2,data=dat)
 modelb <- lm(y~x1+x3,data=dat)
 ```
 
-We see that variance of the estimated regression coefficients is larger in model 2 where x1 and x3 exhibit high collinearity.
+We obtain the variances of the estimated regression coefficients.
 
 ```{r}
 # variance of model a
@@ -160,14 +166,16 @@ diag(vcov(modela))
 diag(vcov(modelb))
 ```
 
-In the case of super-collinearity the OLS estimate is not defined as the rank of the design matrix is 0 and therefore the matrix $\bf X^T \bf X$ is singular and not invertible. In our example, if we include x4 into the design matrix, the design matrix has not full rank
+The variances are larger in model b where x1 and x3 are correlated.
+
+If we include x4 as a covariate we have super-collinearity. This implies that the OLS estimate is not defined (rank of the design matrix is 0 and therefore the matrix ${\bf X}^T {\bf X}$ is singular). 
 
 ```{r}
 x <- as.matrix(dat[,-5])
 det(t(x)%*%x)
 ```
 
-High-dimensional problems with $p>n$ always suffer from super-collinearity: the rank of the design matrix is maximally equal to $n$ which implies that the columns of $\bf X$ are linearly dependent. The OLS estimator cannot be calculated in this situation.
+High-dimensional problems with $p>n$ always suffer from super-collinearity: the rank of the design matrix cannot exceed $n$ which implies that the columns of $\bf X$ are linearly dependent (i.e. super-collinear). The OLS estimator cannot be calculated in this situation.
 
 
 

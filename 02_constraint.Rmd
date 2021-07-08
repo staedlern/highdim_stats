@@ -12,8 +12,8 @@ library(stats)
 library(splines)
 ```
 
-We have seen that OLS falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the estimation
-procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize $\rm{RSS}(\beta)$ under some contstraints on the parameter $\beta$.
+We have seen that OLS regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the estimation
+procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some contstraints on the parameter $\beta$.
 
 
 ## Subset selection
@@ -22,31 +22,53 @@ The most traditional approach to impose constraints is subset selection. In this
 
 
 \begin{align*}
-\hat{\beta}_{S}&=\rm{argmin}_{\beta_j=0\;\rm{for\; all}\;j\notin S}\rm{RSS}(\beta)\\
-&=(\bf{X}_S^T \bf{X}_S)^{-1}\bf{X}_S^T \bf{y}.
+\hat{\beta}_{S}&={\rm argmin}_{\beta_j=0\;\rm{for\; all}\;j\notin S}\rm{RSS}(\beta).
 \end{align*}
 
-In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose the optimal subset by either a re-sampling approach or by using an information criteria. There are a number of different strategies for choosing the sequence of subsets. Best subsets regression consists of looking at possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are backward stepwise selection which starts with the full model and sequentially deletes covariates, whereas forward stepwise selection starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
+It is easy to show that this is equivent to OLS regression based covariates in the subset $S$, i.e.
 
-In R we can use stepAIC for subset selection. It uses AIC to select the optimal subset. For example to perform forward stepwise selection we proceed
+\[
+\hat{\beta}_{S}=({\bf X}_S^T {\bf X}_S)^{-1}{\bf X}_S^T {\bf y}.
+\]
+
+In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose an optimal subset by either a re-sampling approach or by using an information criteria (see Section \@ref(statistical-learning)). There are a number of different strategies available. Best subsets regression consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are backward stepwise selection which starts with the full model and sequentially deletes covariates, whereas forward stepwise selection starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
+
+In `R` we can use `regsubsets` from the `leaps` package or `stepAIC` from the `MASS` package to perform subset selection. For example to perform forward stepwise selection based on AIC
+
+```{r include=FALSE}
+set.seed(1)
+n <- 10
+p <- 9
+beta <- c(2,rep(0,p-1))
+
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+ytrain <- xtrain%*%beta+rnorm(n,sd=0.5)
+dtrain <- data.frame(xtrain)
+dtrain$y <- ytrain
+```
 
 ```{r}
 # Forward regression
 fit0 <- lm(y~1,data=dtrain)
-fit.fw <- stepAIC(fit0,direction="forward",
-                  scope=list(lower=fit0,upper=paste("~", paste(colnames(dtrain[,-10]), collapse=" + "))
-                             ),
+fit.fw <- stepAIC(fit0,
+                  direction="forward",
+                  scope=
+                    list(lower=fit0,
+                         upper=paste("~", paste(colnames(dtrain[,-10]), 
+                                                collapse=" + "))
+                    ),
                   trace = FALSE
-                  )
+)
 ```
 
-The selection process can be summarized
+The selection process can be summarized by 
 
 ```{r}
 kable(as.data.frame(fit.fw$anova),digits=3)
 ```
 
-The regression coefficients of the optimal model are
+And the regression coefficients of the optimal model are given by
 
 ```{r}
 kable(broom::tidy(fit.fw),digits=3)
@@ -54,32 +76,32 @@ kable(broom::tidy(fit.fw),digits=3)
 
 ## Ridge Regression
 
-Subset selection and forward regression outlined above all work by either including or
+Subset selection as outlined above works by either including or
 excluding covariates, i.e. contrain specific regression coefficients to be zero.
-An alternative is Ridge Regression, which regularises the problem by shrinking
-regression coefficients towards zero. This discourages complex models because
-models that overfit tend to have larger coefficients. We can formulate Ridge Regression as the constrained optimization problem
+
+An alternative is *Ridge regression*, which constrains/regularizes the optimization problem by shrinking regression coefficients towards zero. This discourages complex models because
+models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem
 
 \begin{align*}
 \hat{\beta}^{\rm Ridge}_{c}&=\rm{argmin}_{\|\beta\|^2\leq c}\rm{RSS}(\beta).
 \end{align*}
 
-The constrained estimation interpretation of the ridge regression estimator is illustrated in the figure. It shows the levels sets of the $\rm{RSS}(\beta)$ which are ellipsoids and centered around zero the circular ridge
-parameter constraint parametrized by some $c > 0$. The ridge regression estimator
+The geometry of the optimization problem is illustrated in Figure @\ref{fig:ridgegeom}. It shows the levels sets of the ${\rm RSS}(\beta)$ which are ellipsoids and centered around zero the circular ridge
+parameter constraint parametrized by some $c > 0$. The Ridge estimator
 is then the point where the smallest level set hits the constraint. Exactly at that point the $\rm{RSS}(\beta)$ is
-minimized over those $\beta$’s that live inside the constraint.
+minimized over those $\beta$’s that "live" inside the constraint.
 
-![](ridge_geometry.JPG)
+```{r ridgegeom,echo=FALSE,out.width="70%",fig.cap="Figure is displaying the Ridge geometry."}
+knitr::include_graphics("ridge_geometry.JPG")
+```
 
-Alternatively Ridge Regression can be cast as 
-minimisation of the penalised residual sum of squares, with
-a penalty on the magnitude of the coefficients
+Alternatively Ridge regression can be cast as the optimization of the penalised residual sum of squares with a *penalty* on the magnitude of the coefficients, i.e. 
 
 \begin{align*}
 \hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}\; \rm{RSS}(\beta)+\lambda\|\beta\|^2.
 \end{align*}
 
-Both formulation are equivalent (one-to-one relationship between $c$ and $\lambda$). We will use more often the second "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that for "no penalization", $\lambda=0$, the Ridge Regression coincides with OLS. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero. 
+Both formulations are equivalent; there is a one-to-one relationship between $c$ and $\lambda$. More often we will make use of the latter "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that for "no penalization", $\lambda=0$, the Ridge regression coincides with OLS. Increasing $\lambda$ has the effect of shinking the regression coefficients to zero. Ridge regression is implemented in the package `glmnet`. 
 
 ```{r}
 fit.ridge.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=0) 
@@ -89,29 +111,28 @@ plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
 The Ridge optimization problem has the closed form solution
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y,
+\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
 \end{align*}
 
-which can be easily verified by taking the derivative of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and equating it to zero. Note that for $\lambda>0$ the matrix $\bf X^T \bf X+\lambda \bf I$ has always full rank and therefore the Ridge Regression is well defined in the high-dimensional context (in contrast to OLS).
+This can be verified by taking the derivative of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and set equal to zero. Note that for $\lambda>0$ the matrix ${\bf X}^T {\bf X}+\lambda \bf I$ has always full rank and therefore Ridge regression is well defined in the high-dimensional context (in contrast to OLS).
 
 
 ### Choice of penalty parameter
 
-We proceed as explained in the section on statistical learning. We define a grid 
-of penalty parameters $0<\lambda_1<\lambda_2<\ldots<\lambda_K<\infty$ and choose the optimal $\lambda_{\rm opt}$ by either a re-sampling approach or by using an information criteria. In glmnet we can use cross-validation
+We proceed as explained in Section \@ref(statistical-learning). The tuning parameters is $\lambda$ and we select a grid $0<\lambda_1<\lambda_2<\ldots<\lambda_K<\infty$ and choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation
 
-```{r}
+```{r warning=FALSE}
 cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0) 
 plot(cv.ridge.glmnet)
 cv.ridge.glmnet$lambda.min
 ```
 
-Although Ridge Regression involves all $p$ covariate the degrees of freedom $\rm{DF}$ is smaller then $p$ as we imposed constraints. One can show that the degrees of freedom for Ridge Regression equals 
+Although Ridge regression involves all $p$ covariate the *effective degrees of freedom* is smaller than $p$ as we have imposed constraints through the penalty. In the book @elements it is shown that the effective degrees of freedom for Ridge regression, $\nu^{\rm ridge}_{\lambda}$, is given by
 
-\[\rm DF^{\rm Ridge}(\lambda)=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
-where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
+\[\nu^{\rm ridge}_{\lambda}=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
+where $d_1,\ldots,d_p$ are the singular values of $\bf X$. In our example we have
 
-```{r, echo=FALSE}
+```{r}
 # get singular values
 fit.svd <- svd(xtrain) #fit.svd$d
 
@@ -119,7 +140,7 @@ fit.svd <- svd(xtrain) #fit.svd$d
 df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
 ```
 
-In our example the residual degrees of freedom is $n-\rm{DF}^{\rm Ridge}(\lambda_{\rm opt})$=`r round(nrow(xtrain)-df_lambdaopt,2)` which lies within the "rule of thumb" of minimum of $5-10$ residual degrees of freedom to avoid overfitting.
+The residual degrees of freedom is $n-\nu^{\rm ridge}_{\lambda}$=`r round(nrow(xtrain)-df_lambdaopt,2)`. Note that this inline with the "rule of thumb" we mentioned in Section \@ref(overfitting).
 
 ### Shrinkage property
 
