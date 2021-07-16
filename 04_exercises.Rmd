@@ -10,9 +10,18 @@ library(lars)
 library(gridExtra)
 ```
 
+## Closed form solution of Ridge regression
+Show that the Ridge optimization problem has the closed form solution 
+
+\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
+\end{align*}
+
+Hint: take the derivative of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and set equal to zero. 
+
 ## Ridge and Lasso for the orthonormal design
 
-Calculate the Ridge and the Lasso solution for an orthonormal design matrix
+Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
 
 ## Bayesian interpretation of Ridge Regression
 
@@ -20,15 +29,19 @@ Calculate the Ridge and the Lasso solution for an orthonormal design matrix
 $Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
 $n\times p$ design matrix.
 2. Find the expression for the maximum likelihood estimator.
-3. Assuming a posteriory distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
+3. Assuming a prior distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
 
 ## Prostate Cancer data
 
-Download the prostate cancer data set from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
-Run OLS, Best Subset selection (use the `leaps` package), Ridge Regression and Lasso Regression. Print the coefficients as a table and calculate for each method the Test error. Compare the results with Table 3.3. from the book The Elements of Statistical Learning.
+Explore the prostate cancer data set described in the book @elements.
 
+1. Download the prostate cancer data set from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
+2. Run OLS, Best Subset selection (use the `leaps` package), Ridge Regression and Lasso Regression. 
+3. Print the coefficients as a table.
+4. Calculate for each method the Test error and compare the results with Table 3.3. in @elements. 
 
-The solution to this exercise. Read the data set and creat train and test data.
+The solution to this exercise. Read the data set and create training and test data.
+
 ```{r}
 dat <- read.csv("data/prostate.csv")
 dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
@@ -40,10 +53,10 @@ xtest <- data.matrix(dtest[,-9])
 ytest <- dtest$lpsa
 ```
 
-Perform OLS regression, Best Subset selection, Ridge Regression and Lasso Regression.
+Perform OLS regression, Best Subset selection, Ridge regression and Lasso regression.
 
 ```{r}
-# linear regression
+# OLS regression
 fit.lm <- lm(lpsa~.,data=dtrain)
 coef.lm <- coef(fit.lm)
 terr.lm <- mean((predict(fit.lm,newdata = dtest)-dtest$lpsa)^2)
@@ -71,7 +84,7 @@ coef.ss.cv <- coef(subset.caret$finalModel, subset.caret$bestTune$nvmax)
 fit.ss.cv <- lm(lpsa~.,data=dtrain[,c("lpsa",names(coef.ss.cv)[-1])])
 terr.ss.cv <- mean((predict(fit.ss.cv,newdata = dtest)-dtest$lpsa)^2)
 
-# Ridge
+# Ridge regression
 set.seed(1)
 library(glmnet)
 fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
@@ -79,7 +92,7 @@ fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
 coef.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.min)
 terr.ridge <- mean((as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))-ytest)^2)
 
-# Lasso
+# Lasso regression
 set.seed(1)
 fit.lasso <- glmnet(xtrain,ytrain,alpha=1)
 fit.lasso.cv <- cv.glmnet(xtrain,ytrain,alpha=1)
@@ -88,15 +101,14 @@ terr.lasso <- mean((as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda
 ```
 
 The next two figures show BIC and CV Error for the Best Subset selection approach
-BIC for different subset sizes.
+(tuning parameter are the different subset sizes).
 
 ```{r}
 plot(ss.summary$bic)
 plot(subset.caret)
 ```
 
-The next two figures show the CV Error for Ridge and Lasso Regression.
-CV Error for Ridge Regression. 
+The next two figures show the CV Error for Ridge and Lasso regression.
 
 ```{r}
 par(mfrow=c(1,2))
@@ -104,7 +116,7 @@ plot(fit.ridge.cv)
 plot(fit.lasso.cv)
 ```
 
-The next table shows the regression coefficients.
+Next we show the table of regression coefficients obtained using the different methods.
 
 ```{r}
 res <- data.frame(OLS=coef.lm,SSBIC=0,SSCV=0,RIDGE=0,LASSO=0)
@@ -161,23 +173,23 @@ form <-  formula(form)
 fit <-  glm( form, data=dat, family=binomial )
 ```
 
-Next we run backward selection. 
+Next we run Backward selection. 
 ```{r}
 fit.bw <- stepAIC(fit,direction="backward",trace = 0)
 ```
 
 
-The outcome of backward selection.
+The outcome of Backward selection is shown next.
 ```{r}
 kable(as.data.frame(fit.bw$anova),digits=3)
 ```
 
-Summary of the final model.
+The summary of the final model is provided next.
 ```{r}
 kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2)
 ```
 
-Plot of natural spline function for the first term.
+We can plot the natural spline function for the first term as follows.
 
 ```{r}
 termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
@@ -188,7 +200,7 @@ termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
 
 In this exercise we investigate prediction of phonemes based on digitized speech data.
 
-1. Read the data set, subset the phonemes "aa" and "ao" and create train and test data.
+1. Read the data set, subset the phonemes "aa" and "ao" and create training and test data.
 
 ```{r eval=FALSE}
 dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
@@ -200,7 +212,7 @@ dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme
 
 4. Run Lasso regression and evaluate the training and test misclassification errors.
 
-5. In the previous approaches we assumed that the ${\rm logit}(x;\beta)=\sum_{j=1}^{256} X_j\beta_j$. Now we assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. $\beta(f)=\sum_{m=1}^{\nu} h_m(f)\theta_m$, 
+5. In the previous approaches we assumed logit-link $${\rm logit}(x;\beta)=\sum_{j=1}^{256} X_j\beta_j.$$ Next we assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. $$\beta(f)=\sum_{m=1}^{\nu} h_m(f)\theta_m,$$ 
 where $h_m$ are B-spline basis functions for a natural cubic spline with $\nu=12$ degrees of freedom (defined on the set of frequencies). 
 Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regression on the $x^*$. Evaluate the training and test misclassification errors.  
 
@@ -236,7 +248,7 @@ dtest <- dtest[,-257]
 ```
 
 
-Plots of the log-periodograms.
+We plot the log-periodograms.
 
 ```{r}
 id.ao <- sample(which(ytrain==1),5)
@@ -252,7 +264,7 @@ for(i in 1:5){
 
 ```
 
-We run logistic regression and calculate train and test errors.
+We run logistic regression and calculate the train and test errors.
 
 ```{r}
 # logistic regression
@@ -270,8 +282,7 @@ plot( coef.glm, ylim=c(-0.4,+0.4),
       ylab="Logistic Regression Coefficients" )
 ```
 
-
-We run Lasso regression and calculate train and test errors.
+We run Lasso regression and calculate the train and test errors.
 ```{r}
 # lasso regression
 fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=1)
@@ -285,8 +296,7 @@ mean(pred_train!=ytrain)
 mean(pred_test!=ytest)
 ```
 
-
-We use the natural cubic spline basis with $\nu=12$ to express the coefficients as a smooth function of the frequencies. We calculate train and test errors.
+We use the natural cubic spline basis with $\nu=12$ to express the coefficients as a smooth function of the frequencies. We calculate the train and test errors.
 
 ```{r}
 # coefficient smoothing
@@ -301,7 +311,7 @@ mean(pred_train!=ytrain)
 mean(pred_test!=ytest)
 ```
 
-We plot the regression coefficients
+We plot the regression coefficients.
 
 ```{r}
 plot( coef.glm[-1], 
@@ -321,9 +331,9 @@ In this exercise we explore the Sonar data set from the `mlbench` package.
 
 1. Load the Sonar data set from the mlbench package and read the help page. 
 
-2. Split the data into a train and test set and explore classification using subset selection and elastic net regularization. 
+2. Split the data into a training and test set and explore classification using Subset selection and Elastic net regularization. 
 
-The solution to this exercise. We explore the Sonar data set from the `mlbench` package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into train and test data.
+The solution to this exercise. We explore the Sonar data set from the `mlbench` package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into training and test data.
 
 ```{r}
 library(mlbench)
@@ -346,14 +356,14 @@ xtest <- as.matrix(dtest[,-61])
 ytest <- dtest$Class
 ```
 
-In order to compare the performance of the different methods we setup `trainControl`. We use 10-fold cross-validation
+In order to compare the performance of the different methods we setup `trainControl`. We use 10-fold cross-validation.
 
 ```{r}
 tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accuracy
 ```
 
-We first run logistic regression once with only an intercept and once with all the covariates. We
-note that glm reports convergence problems when using all variables. This indicates that the model is too complex to fit.
+We first run logistic regression, once with only an intercept and once including all covariates. We
+note that `glm`  reports convergence problems when using all covariates. This indicates that the model is too complex to fit.
 
 ```{r, warning=FALSE}
 fit.lo <-  glm(Class~1,family=binomial,data=dtrain)
@@ -365,7 +375,7 @@ fit.full.caret <- train(Class ~.,
                         trControl = tc)
 ```
 
-Next we use forward selection.
+Next we use Forward selection using `stepAIC` from the MASS package.
 
 ```{r, warning=FALSE}
 up <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
@@ -378,7 +388,8 @@ fit.fw <- stepAIC(fit.lo,
 kable(broom::tidy(fit.fw),digits=2)
 ```
 
-We do the same but now using the caret package.
+We can repeat the same analysis using the `train` function from the caret package.
+
 ```{r, warning=FALSE}
 fit.fw.caret <- train(x=xtrain,
                       y=ytrain, 
@@ -396,7 +407,7 @@ kable(fit.fw.caret$results,digits=2)
 kable(broom::tidy(fit.fw.caret$finalModel),digits=2)
 ```
 
-We use L1-penalized regression.
+Next we employ L1-penalized logistic regression.
 
 ```{r}
 fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
@@ -406,16 +417,17 @@ cvfit <- cv.glmnet(x=xtrain, y=ytrain, family = "binomial", type.measure = "clas
 plot(cvfit)
 ```
 
-We repeat the analysis using the caret package.
+We repeat the same analysis using the caret package.
+
 ```{r}
 lambda.grid <- fit.l1$lambda
 fit.l1.caret<-train(x=xtrain,
-                 y=ytrain,
-                 method = "glmnet",
-                 family="binomial",
-                 preProc = c("center","scale"),
-                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
-                 trControl = tc
+                    y=ytrain,
+                    method = "glmnet",
+                    family="binomial",
+                    preProc = c("center","scale"),
+                    tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                    trControl = tc
 ) 
 
 ggplot(fit.l1.caret)
@@ -428,8 +440,7 @@ fit.l1.caret$bestTune$lambda
 coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
 ```
 
-
-We make predictions and compare the missclassification error on the test data.
+Next we make predictions and compare the misclassification errors on the test data.
 
 ```{r results="hide"}
 # Make predictions
@@ -439,7 +450,7 @@ confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
 ```
 
 
-We can compare the 3 models.
+With the caret package we can also compare the 3 models using the following commands.
 
 ```{r results="hide"}
 models <- list(full=fit.full.caret,
@@ -450,18 +461,19 @@ summary(resamples(models),metric = "Accuracy")
 
 ## Survival analysis based on simulated data
 
-1. Simulate your own high-dimensional survival data with $n=50$. Assume proportional hazard with $p=100$ covariates. Assume that only 2 covariates are active, i.e. have non-zero contributition. 
+In this exercise we simulated high-dimensional survival data and explore regularized cox regression.
 
-2. Fit on the training data a cox regression model including the first 20 covariates and create of forest plot.
+1. Simulate high-dimensional survival data from the cox proportional hazards model with $n=50$ and $p=100$ covariates. Assume that only the first two covariates are active, i.e. have non-zero regression coefficient. Create training and test data.
 
-3. Use `glmnet` to perform l1-penalized cox regression. Show the trace plot and the cross-validated C-index.
+2. Based on training data fit a cox regression model including the first 20 covariates. Visualize the hazard-ratios using a forest plot.
 
-4. Fit on the trainig data a cox regression model including only the active covariates from 
-the previous glmnet fit.
+3. Based on training data run l1-penalized cox regression using `glmnet`. Show the trace plot and the cross-validated C-index.
+
+4. Based on training data fit a cox regression model including only the active covariates obtained from  the previous glmnet fit.
 
 5. Use the `pec` package to obtain the Brier score on training and test data for the two cox regression models.
 
-Solution to the exercise. We start with simulating training and test data.
+Solution to the exercise. We start by simulating training and test data.
 
 ```{r message=FALSE}
 ## load packages
@@ -517,7 +529,7 @@ dtest <- cbind(
   t.dat)
 ```
 
-We perform cox-regression and create a forest plot.
+We perform cox regression and create a forest plot.
 
 ```{r message=FALSE, warning=FALSE}
 fm1 <- as.formula(paste("Surv(time,status)~",paste(paste0("X",1:20),collapse="+")))
@@ -525,8 +537,7 @@ fit1 <- coxph(fm1,data=dtrain,x=TRUE)
 survminer::ggforest(fit1)
 ```
 
-
-We perform l1-regularized cox-regression and plot the coefficients for different lambda values.
+We perform l1-regularized cox regression and generate the trace plot.
 
 ```{r}
 xtrain <- as.matrix(dtrain[,-c(1:4)])
@@ -545,7 +556,7 @@ cv.coxnet <- cv.glmnet(xtrain, ytrain,
 plot(cv.coxnet)
 ```
 
-We perform cox-regression based on only the active covariates.
+We perform cox regression based on only the active covariates.
 
 ```{r}
 act <- which(as.numeric(coef(fit.coxnet,s=cv.coxnet$lambda.min))!=0)
@@ -553,7 +564,7 @@ fm2 <- as.formula(paste("Surv(time,status)~",paste(paste0("X",act),collapse="+")
 fit2 <- coxph(fm2,data=dtrain,x=TRUE)
 ```
 
-Finally, we calculate the Brier-scores on training and test data.
+Finally, we calculate the Brier score on training and test data.
 
 ```{r message=FALSE}
 library(pec)
