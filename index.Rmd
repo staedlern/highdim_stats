@@ -8,7 +8,7 @@ documentclass: book
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
-github-repo: github.roche.com/staedlen/highdim_stats
+github-repo: https://github.com/staedlern/highdim_stats
 description: "This book is for the CAS Module High-dimensional statistics"
 ---
 
