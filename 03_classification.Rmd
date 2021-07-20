@@ -9,11 +9,11 @@ library(MASS)
 library(glmnet)
 ```
 
-We so far focused the high-dimensional considerations to the linear regression model. We now extend to the setting of classification.
+Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
 
 ## Classification and Logistic Regression
 
-We consider the binary situation where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $$p(x;\beta)=P(G=1|X=x;\beta)$$ using the logistic regression approach with logit link function
+We start with standard logistic regression where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $$p(x;\beta)=P(G=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
 
 \[\rm{logit}(x;\beta)=log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
@@ -39,8 +39,7 @@ There are different measures to judge the quality of the predictions. We focus o
 
 We illustrate logistic regression using an example taken from the book @elements. The data shown in Figure \@ref(fig:sahd) are a
 subset of the Coronary Risk-Factor Study (CORIS) baseline survey, carried
-out in three rural areas of the Western Cape, South Africa (Rousseauw et al, 1983, South African Medical
-Journal). The aim of the study was to establish the intensity of ischemic
+out in three rural areas of the Western Cape, South Africa. The aim of the study was to establish the intensity of ischemic
 heart disease risk factors in that high-incidence region. The data represent
 white males between 15 and 64, and the response variable is the presence or
 absence of myocardial infarction (MI) at the time of the survey (the overall
@@ -56,7 +55,7 @@ set, and a sample of 302 controls. The variables are:
 - age: age at onset
 - chd: response, coronary heart disease.
 
-```{r sahd,echo=FALSE, fig.cap="South African Heart Disease Data",fig.height=10,fig.width=10}
+```{r sahd,echo=FALSE, fig.cap="Pair splot of variables for the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
 # data source: https://web.stanford.edu/~hastie/ElemStatLearn/
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
@@ -81,17 +80,17 @@ How does one interpret a coefficient of $0.080$ (Std. Error = $0.026$) for
 tobacco, for example? Tobacco is measured in total lifetime usage in kilograms, with a median of $1.0$kg for the controls and $4.1$kg for the cases. Thus
 an increase of 1kg in lifetime tobacco usage accounts for an increase in the
 odds of coronary heart disease of $\exp(0.080)$=`r round(exp(0.080),3)` or $8.3$%. Incorporating the standard error we get an approximate $95$% confidence interval of
-$\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",round(exp(c(0.080 -2*0.0226,0.080+2*0.0226)),3)),")")`.
+$\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0226,0.080+2*0.0226)),3),collapse = ",")),")")`.
 
-## Constrained Logistic regression
+## Subset selection and Elastic net for Logistic Regression
 
-Similar as in linear regression, in the high-dimensional context where $n$ is small compared to $p$, the maximum likelihood estimator does often lead to overfitting and a poor generalisation error. In the context of linear regression we put forward constrained least squares, in particular subset selection and L1-/L2 penalized regression. It is easy to extend these approaches to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood with an elastic net penalty 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize these to ideas to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}_{\alpha,\lambda}&=\rm{argmin}-\frac{1}{n}\ell(\beta|{\bf G},{\bf X})+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
 \end{align*}
 
-With $\alpha=1$ we obtain the Lasso penalty and with $\alpha=0$ the Ridge penalty.
+With $\alpha=0$ and $\alpha=1$ we obtain the Ridge and the Lasso solution, respectively. 
 
 We turn back to the heart disease example and perform backward selection.
 
@@ -111,7 +110,7 @@ The regression coefficients of the final model are shown below.
 kable(broom::tidy(fit.bw),digits=3)
 ```
 
-We continue with the Lasso approach and show the trace plots.
+We continue with the Lasso approach and show the trace plot.
 
 ```{r}
 x <- scale(data.matrix(dat[,-1]))
@@ -126,7 +125,7 @@ The first coefficient which is shrunk to zero is alcohol followed by obesity and
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
 
-We now turn to a truly high-dimensional example. The data consists of expression levels recorded for $3'571$ genes in $72$ patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $\bf X$ of gene expression values, and a vector $\bf y$ of 72 binary disease outcomes. We first create train and test data.
+We now turn to a truly high-dimensional example. The data consists of expression levels recorded for $3'571$ genes in $72$ patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $\bf X$ of gene expression values, and a vector $\bf y$ of 72 binary disease outcomes. We first create training and test data.
 
 ```{r}
 # set seed
@@ -146,28 +145,26 @@ xtest <- x[-ind_train,]
 ytest <- y[-ind_train]
 ```
 
-We now run the elastic net
+We now run the elastic net logistic regression approach.
 
 ```{r}
-# set settings for glmnet 
-nfolds <- 10                  # number of cross-validation folds.
-alpha  <- 0.95                # elastic net mixing parameter.
-
 # run glmnet
+alpha  <- 0.95                # elastic net mixing parameter.
 fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=alpha)
 
 ```
 
-The following Figure shows the trace plot of Elastic net.
+The following Figure shows the trace plot.
 
 ```{r}
 plot(fit.glmnet,xvar="lambda",label=TRUE)
 ```
 
-We run 10-fold cross-validation and show the missclassification error. 
+We run 10-fold cross-validation and show the misclassification error. 
 
 ```{r}
 # run cv.glmnet
+nfolds <- 10 # number of cross-validation folds.
 cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
                        alpha = alpha,nfolds = nfolds)
 plot(cv.glmnet)
@@ -175,7 +172,7 @@ plot(cv.glmnet)
 
 We take $\lambda_{\rm opt}$ as the largest $\lambda$ within 1 standard error of the minimum classification error
 
-```{r}
+```{r echo=FALSE}
 (lambda.opt <- cv.glmnet$lambda.1se)
 ```
 
@@ -191,10 +188,27 @@ Finally we predict the disease outcome of the test samples using the fitted mode
 pred <- c(predict(fit.glmnet,xtest,s = lambda.opt,type = "class"))
 print(table(true = factor(ytest),pred = factor(pred)))
 ```
-The missclassification error on the test data is
+The misclassification error on the test data can be calculated as follows.
 
 ```{r}
 round(mean(pred!=ytest),3)
 ```
 
-## Boosting
+## Boosting and Predictive learning
+
+Classification is an important aspect of data mining. There is a variety of methods developed for predictive learning. Popular examples are Support Vector Machines, Random forest, Neural networks and Boosting. We now briefly describe the AdaBoost method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and compare it to the elastic net. 
+The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $G_m, m=1,\ldots,M$ is produced and finally a powerful new classifier is obtained by combining through a majority vote. More specifically AdaBoost proceeds as follows:
+
+1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$
+2. For $m=1$ to $M$:
+   a) Fit a weak classifier $G_m$ to the training data using weights $w_i$.
+   b) Compute the weighted error rate
+  $${\rm err}_m=\frac{\sum_{i=1}^n w_i I(y_i\neq G_m(x_i))}{\sum_{i=1}^n w_i}.$$
+   c) Compute $\alpha_m=\log((1-{\rm err}_m)/{\rm err}_m)$
+   d) Update $w_i\leftarrow w_i \exp(\alpha_m I(y_i\neq G_m(x_i)))$, $i=1,2,...,n.$
+   
+3. Output combined predictor $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
+  
+In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence.
+
+AdaBoost with classification trees as the "base learner" is one of the best "off-the-shelf" classifier in data mining. Data mining problems also deal with a large number of variables, however, typically not only $p$ is large but also the sample size $n$. In the classical high-dimensional setting with $p>>n$ the elastic net is an extremely powerful method. 
