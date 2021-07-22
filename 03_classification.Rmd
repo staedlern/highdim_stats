@@ -55,7 +55,7 @@ set, and a sample of 302 controls. The variables are:
 - age: age at onset
 - chd: response, coronary heart disease.
 
-```{r sahd,echo=FALSE, fig.cap="Pair splot of variables for the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
+```{r sahd,echo=FALSE, fig.cap="Pairs plot of variables for the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
 # data source: https://web.stanford.edu/~hastie/ElemStatLearn/
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
@@ -67,7 +67,9 @@ pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
 We first fit a logistic regression model using the function `glm`.
 
 ```{r}
-fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,data=dat,family="binomial")
+fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,
+                    data=dat,
+                    family="binomial")
 kable(broom::tidy(fit.logistic),digits=3)
 ```
 
@@ -82,9 +84,9 @@ an increase of 1kg in lifetime tobacco usage accounts for an increase in the
 odds of coronary heart disease of $\exp(0.080)$=`r round(exp(0.080),3)` or $8.3$%. Incorporating the standard error we get an approximate $95$% confidence interval of
 $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0226,0.080+2*0.0226)),3),collapse = ",")),")")`.
 
-## Subset selection and Elastic net for Logistic Regression
+## Subset selection and Elastic net
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize these to ideas to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}_{\alpha,\lambda}&=\rm{argmin}-\frac{1}{n}\ell(\beta|{\bf G},{\bf X})+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
@@ -98,7 +100,7 @@ We turn back to the heart disease example and perform backward selection.
 fit.bw <- stepAIC(fit.logistic,direction = "backward",trace=FALSE)
 ```
 
-The terms deleted are provided in the next table.
+The terms deleted in each step are provided in the next table.
 
 ```{r}
 kable(as.data.frame(fit.bw$anova),digits=3)
@@ -125,7 +127,7 @@ The first coefficient which is shrunk to zero is alcohol followed by obesity and
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
 
-We now turn to a truly high-dimensional example. The data consists of expression levels recorded for $3'571$ genes in $72$ patients with leukemia (Golub et al, 1999). The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $\bf X$ of gene expression values, and a vector $\bf y$ of 72 binary disease outcomes. We first create training and test data.
+We now turn to a truly high-dimensional example. The data consists of expression levels recorded for $3'571$ genes in $72$ patients with leukemia. The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $\bf X$ of gene expression values, and a vector $\bf y$ of 72 binary disease outcomes. We first create training and test data.
 
 ```{r}
 # set seed
@@ -194,10 +196,11 @@ The misclassification error on the test data can be calculated as follows.
 round(mean(pred!=ytest),3)
 ```
 
-## Boosting and Predictive learning
+## Boosting and Data Mining
 
-Classification is an important aspect of data mining. There is a variety of methods developed for predictive learning. Popular examples are Support Vector Machines, Random forest, Neural networks and Boosting. We now briefly describe the AdaBoost method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and compare it to the elastic net. 
-The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $G_m, m=1,\ldots,M$ is produced and finally a powerful new classifier is obtained by combining through a majority vote. More specifically AdaBoost proceeds as follows:
+Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular examples are Support Vector Machines, Random forest, Neural networks and Boosting. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to the elastic net. 
+
+The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
 
 1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$
 2. For $m=1$ to $M$:
@@ -207,8 +210,8 @@ The key idea behind AdaBoost is to sequentially apply a weak classification algo
    c) Compute $\alpha_m=\log((1-{\rm err}_m)/{\rm err}_m)$
    d) Update $w_i\leftarrow w_i \exp(\alpha_m I(y_i\neq G_m(x_i)))$, $i=1,2,...,n.$
    
-3. Output combined predictor $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
+3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
   
-In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence.
+In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book @elements.
 
-AdaBoost with classification trees as the "base learner" is one of the best "off-the-shelf" classifier in data mining. Data mining problems also deal with a large number of variables, however, typically not only $p$ is large but also the sample size $n$. In the classical high-dimensional setting with $p>>n$ the elastic net is an extremely powerful method. 
+AdaBoost with classification trees as the "base learner" is one of the best "off-the-shelf" classifier in data mining. Data mining also deals with large data sets, however, typically not only the number of variables $p$ is large but also the sample size $n$. In the classical high-dimensional setting with $p>>n$ the elastic net is a very powerful method. 
