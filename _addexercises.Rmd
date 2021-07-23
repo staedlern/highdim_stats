@@ -1,0 +1,186 @@
+## P-values for High-dimensional Regression
+
+1. Split the Riboflavin data set into two halves ("Data splitting"). 
+2. On the first half: run glmnet and select the top genes ("Screening").
+3. On the second half: take the top genes as covariates,run ordinary least squares and report the for each coefficient the p-value ("P-value calculation").
+4. Write a program which runs steps 1-3 many times and calculate for each coefficient the median p-value over all runs ("P-value aggregation").
+
+
+```{r eval=FALSE, include=FALSE}
+library(hdi)
+x < - riboflavin[,-1]
+y < - riboflavin[,1]
+## Multi-split p-values
+set.seed(12)
+fit.multi < - hdi(x, y, method = ‘‘multi-split’’, B = 100)
+fit.multi
+## Ridge p-values
+fit.ridge < - hdi(x, y, method = ‘‘pval-ridge’’)
+fit.ridge
+```
+
+## Overfitting example
+
+We illustrate overfitting based on simulated training and test data.
+
+```{r message=FALSE}
+set.seed(1)
+n <- 20
+p <- 50
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+xtest <- matrix(rnorm(n*p),n,p)
+# simulate outcome
+beta0 <- 0
+beta <- c(2,0,0,0,2,rep(0,p-5))
+ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=0.5)
+ytest <- beta0+xtest%*%beta+rnorm(n,sd=0.5)
+# train and test data as data.frames
+dtrain <- data.frame(cbind(ytrain,xtrain))
+colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
+dtest <- data.frame(cbind(ytest,xtest))
+colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
+```
+
+Linear regression with only x1.
+
+```{r}
+fit <- lm(y~x1,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+Linear regression with 10 covariates.
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
+fit <- lm(fm,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+Linear regression with 19 covariates
+```{r}
+fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
+fit <- lm(fm,data=dtrain)
+t.gp1 <- dtrain%>%
+  ggplot(.,aes(x=x1))+
+  geom_point(aes(y=y))+
+  geom_line(aes(y=predict(fit)))
+t.gp2 <- dtest%>%
+  ggplot(aes(x=x1,y=y))+
+  geom_point()+
+  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
+grid.arrange(t.gp1,t.gp2,ncol=2)
+```
+
+We perform Leap Forward Regression.
+
+
+```{r warning=FALSE}
+tc <- trainControl(method = "cv", number = 10)
+fit.forward <- train(y ~., data = dtrain,
+                     method = "leapForward", 
+                     tuneGrid=data.frame(nvmax=1:15),
+                     trControl = tc,
+                     trace = FALSE
+)
+# nvmax
+fit.forward$bestTune
+
+# accuracy
+fit.forward$results
+
+# summary of the model
+summary(fit.forward$finalModel)
+
+# final model coefficients
+coef(fit.forward$finalModel,2)%>%head
+```
+
+
+We perform Ridge regession
+
+```{r}
+lambda.max <- 10
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.ridge<-train(y ~., 
+                 data = dtrain,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+# CV plot
+plot(fit.ridge)
+# Best lambda
+fit.ridge$bestTune$lambda
+# Model coefficients
+coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)%>%head
+# Make predictions
+fit.ridge %>% predict(dtest)%>%head
+```
+
+We perform Lasso regression.
+```{r}
+lambda.max <- max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
+lambda.min <- 10^{-6}*lambda.max
+lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
+fit.lasso<-train(y ~., 
+                 data = dtrain,
+                 method = "glmnet",
+                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                 trControl = tc
+) 
+
+# CV plot
+plot(fit.lasso)
+# Best lambda
+fit.lasso$bestTune$lambda
+# Model coefficients
+coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso %>% predict(dtest)%>%head
+```
+
+Comparison between the 3 approaches
+```{r}
+models <- list(forward= fit.forward,ridge = fit.ridge,lasso=fit.lasso)
+resamples(models) %>% 
+  summary( metric = "RMSE")
+```
+
+That is how lambda_max is calculated.
+```{r}
+# with scaling
+mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
+sx <- scale(xtrain,scale=apply(xtrain, 2, mysd))
+sx <- as.matrix(sx, ncol=20, nrow=100)
+sy <- as.vector(scale(ytrain, scale=mysd(ytrain)))
+max(abs(colSums(sx*sy)))/nrow(xtrain)
+fitglmnet <- glmnet(sx,sy)
+max(fitglmnet$lambda)
+
+# no scaling
+fit.lasso <-glmnet(x=xtrain,y=ytrain,
+                   alpha=1,
+                   standardize=FALSE,
+                   intercept=FALSE) 
+max(fit.lasso$lambda)
+max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
+```
+

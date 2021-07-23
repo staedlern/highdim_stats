@@ -11,20 +11,20 @@ library(gridExtra)
 library(gbm)
 ```
 
-## Closed form solution of Ridge regression
+## Closed form solution for Ridge regression
 Show that the Ridge optimization problem has the closed form solution 
 
 \begin{align*}
 \hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
 \end{align*}
 
-Hint: take the derivative of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$ and set equal to zero. 
+Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$, set equal to zero and solve for $\beta$. 
 
 ## Ridge and Lasso for the orthonormal design
 
 Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
 
-## Bayesian interpretation of Ridge Regression
+## Bayesian interpretation of Ridge regression
 
 1. Write down the log-likelihood of the linear regression model. Note: 
 $Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
@@ -139,19 +139,67 @@ kable(res,digits = 3)
 
 ```
 
-## Elastic Net and cross-validation
+## Elastic net mixing parameter and cross-validation
 
-1. Obtain the Riboflavin data set from the `hdi`package.
-2. Run the Elastic Net with $\alpha=0, 0.25, 0.5, 0.75$ and $1$ and create a trace plots.
-3. Perform cross-validation and decide which $\alpha$ leads to best performance (note: use the foldid argument in glmnet). 
-4. Plot the final regression coefficients.
+1. Obtain the Riboflavin data set from the `hdi`package, read the help documentation and check data structure.
+2. Run the Lasso and generate the trace plot.
+3. Run the Elastic net with mixing parameters $\alpha=0.25, 0.5, 0.75$ and $1$ and compare the cross-validation curves. Hint: use the `foldid` argument in `glmnet`. 
+4. Show the selected genes for the best performing model.
 
-## P-values for High-dimensional Regression
 
-1. Split the Riboflavin data set into two halves ("Data splitting"). 
-2. On the first half: run glmnet and select the top genes ("Screening").
-3. On the second half: take the top genes as covariates,run ordinary least squares and report the for each coefficient the p-value ("P-value calculation").
-4. Write a program which runs steps 1-3 many times and calculate for each coefficient the median p-value over all runs ("P-value aggregation").
+The Solution to this exercise. We first load the data and check the data structure.
+
+```{r}
+library(hdi)
+library(glmnet)
+data(riboflavin)
+str(riboflavin)
+```
+Next we setup the design matrix and the response variable and we run the Lasso.
+
+```{r}
+x <- riboflavin[,-1]
+y <- riboflavin[,1]
+fit <- glmnet(x = x, y = y)
+plot(fit)
+```
+
+We run 10-fold cross-validation for the different mixing parameters and plot the error curves.
+```{r}
+set.seed(1)
+n.fold <- 10
+foldid <- sample(1:n.fold, size = length(y), replace = TRUE)
+cv1 <- cv.glmnet(x, y, foldid = foldid, alpha = 1) 
+cv2  <- cv.glmnet(x, y, foldid = foldid, alpha = 0.75)
+cv3  <- cv.glmnet(x, y, foldid = foldid, alpha = 0.5)
+cv4  <- cv.glmnet(x, y, foldid = foldid, alpha = 0.25)
+
+t.lambdarange <- range(log(c(cv1$lambda,
+                             cv2$lambda,
+                             cv3$lambda,
+                             cv4$lambda)))
+t.crange <- range(c(cv1$cvm,cv2$cvm,cv3$cvm,cv4$cvm))
+plot(log(cv1$lambda), cv1$cvm , 
+     pch = 19, col = "red",
+     xlab = "log(Lambda)",
+     ylab=cv1$name,
+     type="l",
+     xlim=t.lambdarange,
+     ylim=t.crange)
+lines(log(cv2$lambda), cv2$cvm, pch = 19, col = "grey")
+lines(log(cv3$lambda) , cv3$cvm , pch = 19, col = "blue")
+lines(log(cv4$lambda) , cv4$cvm , pch = 19, col = "green")
+```
+
+Finally, we print the gene names of the non-zero coefficients.
+
+```{r}
+## Get selected genes
+b <- as.matrix(coef(cv1))
+rownames(b)[b!=0]
+## By default, the selected variables are based on the largest value of
+## lambda such that the cv-error is within 1 standard error of the minimum
+```
 
 ## Splines and South African heart disease data
 
@@ -179,7 +227,6 @@ Next we run Backward selection.
 fit.bw <- stepAIC(fit,direction="backward",trace = 0)
 ```
 
-
 The outcome of Backward selection is shown next.
 ```{r}
 kable(as.data.frame(fit.bw$anova),digits=3)
@@ -195,7 +242,6 @@ We can plot the natural spline function for the first term as follows.
 ```{r}
 termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
 ```
-
 
 ## Phoneme Recognition
 
@@ -247,7 +293,6 @@ dtest$y <- ytest
 dtrain <- dtrain[,-257]
 dtest <- dtest[,-257]
 ```
-
 
 We plot the log-periodograms.
 
@@ -328,13 +373,17 @@ abline(h=0)
 
 ## Classification and the Sonar data set
 
-In this exercise we explore the Sonar data set from the mlbench package. We use the caret package for classification. 
+In this exercise we explore the Sonar data set from the *mlbench* package. We use the *caret* package for classification. 
 
-1. Load the Sonar data set from the mlbench package and read the help page. 
+1. Load the Sonar data set and read the help page. 
 
 2. Split the data into a training and test set.
 
-3. Use Subset selection, Elastic net regularization and AdaBoost for classification. (Hint: use the function `gbm` with argument `distribution` set to "adaboost").
+3. Use logistic regression and apply forward selection. Show the estimated coefficients of the final model and calculate the prediction error.
+
+4. Apply elastic-net regularized logistic regression. Show the trace plot and the cross-validation curve. Calculate the prediction error.
+
+5. Run the AdaBoost method. Obtain the variable importance scores and calculate the prediction error. (Hint: use the function `gbm` with argument `distribution` set to "adaboost").
 
 
 The solution to this exercise. We explore the Sonar data set from the `mlbench` package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into training and test data.
@@ -369,7 +418,7 @@ tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accurac
 We first run logistic regression, once with only an intercept and once including all covariates. We
 note that `glm`  reports convergence problems when using all covariates. This indicates that the model is too complex to fit.
 
-```{r, warning=FALSE}
+```{r warning=FALSE}
 fit.lo <-  glm(Class~1,family=binomial,data=dtrain)
 fit.full <-  glm(Class~.,family=binomial,data=dtrain)
 fit.full.caret <- train(Class ~., 
@@ -392,7 +441,7 @@ fit.fw <- stepAIC(fit.lo,
 kable(broom::tidy(fit.fw),digits=2)
 ```
 
-We can repeat the same analysis using the `train` function from the caret package.
+We can repeat the same analysis using the `train` function from the *caret* package. (Note that there is no tuning parameter involved for `glmStepAIC`.)
 
 ```{r, warning=FALSE}
 fit.fw.caret <- train(x=xtrain,
@@ -416,7 +465,9 @@ Next we employ L1-penalized logistic regression.
 ```{r}
 fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
 plot(fit.l1,xvar="lambda",label=TRUE)
-cvfit <- cv.glmnet(x=xtrain, y=ytrain, family = "binomial", type.measure = "class",alpha=1)
+cvfit <- cv.glmnet(x=xtrain, y=ytrain, 
+                   family = "binomial", 
+                   type.measure = "class",alpha=1)
 #cvfit$lambda.min
 plot(cvfit)
 ```
@@ -437,15 +488,16 @@ fit.l1.caret<-train(x=xtrain,
 ggplot(fit.l1.caret)
 ```
 
-```{r eval=FALSE, include=FALSE}
-# Best lambda
+```{r eval=FALSE}
+fit.l1.caret
+# best lambda
 fit.l1.caret$bestTune$lambda
-# Model coefficients
+# model coefficients
 coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
 ```
 
 
-Next we investigate boosting. We can use the `gbm` function
+Next we investigate AdaBoost. We can use the `gbm` function
 
 ```{r eval=FALSE}
 dtrain$Class <-  factor(ifelse(dtrain$Class=="M",0,1))
@@ -497,7 +549,7 @@ confusionMatrix(data =fit.fw.caret %>% predict(xtest), ytest)
 confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
 ```
 
-With the caret package we can also compare the 3 models using the following commands.
+With the *caret* package we can also compare the 3 models using the following commands.
 
 ```{r results="hide"}
 models <- list(full=fit.full.caret,
@@ -633,170 +685,5 @@ par(mfrow=c(1,2))
 plot(fit.pec.train,main="train")
 plot(fit.pec.test,main="test")
 
-```
-
-## Overfitting example
-
-We illustrate overfitting based on simulated training and test data.
-
-```{r message=FALSE}
-set.seed(1)
-n <- 20
-p <- 50
-# simulate covariates
-xtrain <- matrix(rnorm(n*p),n,p)
-xtest <- matrix(rnorm(n*p),n,p)
-# simulate outcome
-beta0 <- 0
-beta <- c(2,0,0,0,2,rep(0,p-5))
-ytrain <- beta0+xtrain%*%beta+rnorm(n,sd=0.5)
-ytest <- beta0+xtest%*%beta+rnorm(n,sd=0.5)
-# train and test data as data.frames
-dtrain <- data.frame(cbind(ytrain,xtrain))
-colnames(dtrain) <- c("y",paste0("x",1:ncol(xtrain)))
-dtest <- data.frame(cbind(ytest,xtest))
-colnames(dtest) <- c("y",paste0("x",1:ncol(xtrain)))
-```
-
-Linear regression with only x1.
-
-```{r}
-fit <- lm(y~x1,data=dtrain)
-t.gp1 <- dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-t.gp2 <- dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-grid.arrange(t.gp1,t.gp2,ncol=2)
-```
-
-Linear regression with 10 covariates.
-```{r}
-fm <- as.formula(paste0("y~",paste0("x",1:10,collapse="+")))
-fit <- lm(fm,data=dtrain)
-t.gp1 <- dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-t.gp2 <- dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-grid.arrange(t.gp1,t.gp2,ncol=2)
-```
-
-Linear regression with 19 covariates
-```{r}
-fm <- as.formula(paste0("y~",paste0("x",1:19,collapse="+")))
-fit <- lm(fm,data=dtrain)
-t.gp1 <- dtrain%>%
-  ggplot(.,aes(x=x1))+
-  geom_point(aes(y=y))+
-  geom_line(aes(y=predict(fit)))
-t.gp2 <- dtest%>%
-  ggplot(aes(x=x1,y=y))+
-  geom_point()+
-  geom_line(aes(x=x1,y=predict(fit,newdata = dtest)),col="red")
-grid.arrange(t.gp1,t.gp2,ncol=2)
-```
-
-We perform Leap Forward Regression.
-
-
-```{r warning=FALSE}
-tc <- trainControl(method = "cv", number = 10)
-fit.forward <- train(y ~., data = dtrain,
-                     method = "leapForward", 
-                     tuneGrid=data.frame(nvmax=1:15),
-                     trControl = tc,
-                     trace = FALSE
-                    )
-# nvmax
-fit.forward$bestTune
-
-# accuracy
-fit.forward$results
-
-# summary of the model
-summary(fit.forward$finalModel)
-
-# final model coefficients
-coef(fit.forward$finalModel,2)%>%head
-```
-
-
-We perform Ridge regession
-
-```{r}
-lambda.max <- 10
-lambda.min <- 10^{-6}*lambda.max
-lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
-fit.ridge<-train(y ~., 
-                 data = dtrain,
-                 method = "glmnet",
-                 tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
-                 trControl = tc
-) 
-
-# CV plot
-plot(fit.ridge)
-# Best lambda
-fit.ridge$bestTune$lambda
-# Model coefficients
-coef(fit.ridge$finalModel,fit.ridge$bestTune$lambda)%>%head
-# Make predictions
-fit.ridge %>% predict(dtest)%>%head
-```
-
-We perform Lasso regression.
-```{r}
-lambda.max <- max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
-lambda.min <- 10^{-6}*lambda.max
-lambda.grid <- 10^seq(log10(lambda.min),log10(lambda.max),length=100)
-fit.lasso<-train(y ~., 
-                 data = dtrain,
-                 method = "glmnet",
-                 tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
-                 trControl = tc
-) 
-
-# CV plot
-plot(fit.lasso)
-# Best lambda
-fit.lasso$bestTune$lambda
-# Model coefficients
-coef(fit.lasso$finalModel,fit.lasso$bestTune$lambda)%>%head
-# Make predictions
-fit.lasso %>% predict(dtest)%>%head
-```
-
-Comparison between the 3 approaches
-```{r}
-models <- list(forward= fit.forward,ridge = fit.ridge,lasso=fit.lasso)
-resamples(models) %>% 
-  summary( metric = "RMSE")
-```
-
-That is how lambda_max is calculated.
-```{r}
-# with scaling
-mysd <- function(y) sqrt(sum((y-mean(y))^2)/length(y))
-sx <- scale(xtrain,scale=apply(xtrain, 2, mysd))
-sx <- as.matrix(sx, ncol=20, nrow=100)
-sy <- as.vector(scale(ytrain, scale=mysd(ytrain)))
-max(abs(colSums(sx*sy)))/nrow(xtrain)
-fitglmnet <- glmnet(sx,sy)
-max(fitglmnet$lambda)
-
-# no scaling
-fit.lasso <-glmnet(x=xtrain,y=ytrain,
-                   alpha=1,
-                   standardize=FALSE,
-                   intercept=FALSE) 
-max(fit.lasso$lambda)
-max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
 ```
 

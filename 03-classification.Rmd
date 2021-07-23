@@ -200,7 +200,7 @@ round(mean(pred!=ytest),3)
 
 Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular examples are Support Vector Machines, Random forest, Neural networks and Boosting. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to the elastic net. 
 
-The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
+The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
 
 1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$
 2. For $m=1$ to $M$:
