@@ -1,4 +1,4 @@
-# Extension to Survival Analysis
+# Extension to survival analysis
 
 ```{r include=FALSE}
 library(knitr)
@@ -10,9 +10,9 @@ library(pec)
 library(tidyverse)
 ```
 
-We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We start with a very brief introduction to survival analysis and introduce the cox proportional hazards model. Then we turn to the high-dimensional setting and discuss elastic net regularization for cox regression. Finally, we introduce the time-dependent Brier score, a popular prediction performance measure in the survival setting. 
+We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We start with a very brief introduction to survival analysis and introduce the cox proportional hazards model. Then we turn to the high-dimensional setting and discuss elastic net regularization for cox regression. Finally, we introduce the time-dependent Brier score, a popular prediction performance measure in the survival setting, and we benchmark backward selection and survival random forest on a gene expression example. 
 
-## Survival Analysis and Cox Regression
+## Survival analysis and Cox regression
 
 For subject $i$ we denote the event time with $T_i$. Typically we do not for each subject observe the event time as a subject may be censored due to:
 
@@ -26,25 +26,22 @@ A fundamental quantity in survival analysis is the survival probability
 
 \[S(t)=P(T>t)=1-F(t).\]
 
-The Kaplan-Meier method is the most common way to estimate survival times and probabilities in the context of censoring. 
-
-
 Another important quantitiy is the hazard function $h(t)$, or the instantaneous rate at which events occur, which is defined as
 
 \[h(t)=\lim_{dt\rightarrow 0}\frac{P(t\leq T < t+dt|T\geq t)}{dt}=-S'(t)/S(t).\]
 
-The Cox proportional hazards model is commonly used for the study of the relationship between predictor variables and survival time. The Cox model assumes a semi-parametric form for the hazard
+How do we estimate these quantities where the event time is only partially known? In the context of censoring the Kaplan-Meier method is the most popular way to estimate survival probabilities whereas the Cox proportional hazards model is commonly used to study the relationship between covariates and survival time. The latter Cox regression model assumes a semi-parametric form for the hazard
 
 \[h(t|X)=h_0(t)\exp(X^T\beta).\]
 
-$h_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. In the classic cox regression estimation is done by optimizing the log partial likelihood $\ell(\beta|{\bf \widetilde{T} ,\Delta,X})$.
+$h_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. The regression coefficients are estimated by maximizing the log partial likelihood $\ell(\beta|{\bf y,X})$. Note that $\bf y$ represents the observed response, i.e. the tuples $(\widetilde{T}_i,\delta_i)$, $i=1,\ldots,n$.
 
 To learn more about survival analysis I recommend to have a look at this short tutorial https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html.
 
 
-## Regularized Cox Regression
+## Regularized Cox regression
 
-In a high-dimension setting classical cox regression falls short. Similar as in the previous sections we can use subset selection or regularization. The R package `glmnet` implements elastic-net penalized cox regression.
+In a high-dimension setting classical Cox regression falls short. Similar as in the previous sections we can use subset selection or regularization. The R package `glmnet` implements elastic net penalized cox regression.
 
 For illustration we use the Lymphoma data set which consists of gene expression data for $p=7399$ genes measured on $n=240$ patients, as well as censored survival times, for these patients. We start by reading the data.
 
@@ -196,20 +193,57 @@ plot(fit.pec.test,main="test data")
 
 The plot on the right shows the Brier score on the test data and indicates that the selected model performs no better than the reference model (no covariates).
 
-The `pec` package can also be used to benchmark different prediction models. We illustrate this based on random forest and backward selection. In this illustration we do not split the data into training and test. Instead we use cross-validation to compare the two prediction approaches. We focus on only the covariates which have non-zero coefficient in the previous glmnet fit.
+The `pec` package can also be used to benchmark different prediction models. We illustrate this based on random forest and forward selection. In this illustration we do not split the data into training and test. Instead we use cross-validation to compare the two prediction approaches. 
+
+We start by writing a small wrapper function to use forward selection in `pec`.
 
 ```{r}
-shat <- dbeta%>%
-  dplyr::filter(betahat!=0)%>%
-  pull(betaname)
-fm <- as.formula(paste0("Surv(time, status) ~ ",paste(shat,collapse = "+")))
+selectCoxfw <- function(formula,data,steps=5,direction="both")
+{
+  require(prodlim)
+  fmlo <- reformulate("1",formula[[2]])
+  fitlo <- coxph(fmlo,data=data,x=TRUE,y=TRUE)
+  fwfit <- stepAIC(fitlo,
+                   scope=list(lower=fitlo,
+                              upper=formula),
+                   direction=direction,
+                   steps=steps,
+                   trace=FALSE)
+  if (fwfit$formula[[3]]==1){
+    newform <- reformulate("1",formula[[2]])
+    newfit <- prodlim(newform,
+                      data=data)
+  }else{
+    newform <-fwfit$formula
+    newfit <- coxph(newform,data=data,x=TRUE,y=TRUE)
+  }
+  out <- list(fit=newfit,In=attr(terms(newfit$formula), which = "term.labels"))
+  out$call <-match.call()
+  class(out) <- "selectCoxfw"
+
+  out
+}
+
+predictSurvProb.selectCoxfw <- function(object,newdata,times,...){
+  predictSurvProb(object[[1]],newdata=newdata,times=times,...)
+}
 ```
 
-We start by fitting random forest using `cforest` from the `party` package.
+We run forward selection with maximum 10 steps.
 
 ```{r}
-fit.cforest <- pec::pecCforest(fm, data =dat, 
-                              control = party::cforest_classical(ntree = 100))
+dat.top50 <- dat[,1:52]
+fm <- as.formula(paste("Surv(time, status) ~ ", 
+                       paste(colnames(dat.top50[,-(1:2)]), 
+                             collapse="+")))
+fit.coxfw <- selectCoxfw(fm,data=dat.top50,direction="forward",steps=10)
+```
+
+We fit random forest using `cforest` from the `party` package.
+
+```{r}
+fit.cforest <- pec::pecCforest(fm, data =dat.top50, 
+                               control = party::cforest_classical(ntree = 100))
 ```
 
 We can obtain a measure of variable importance using the function `varimp`.
@@ -228,21 +262,16 @@ vplot <- dvp%>%
 print(vplot)
 ```
 
-Next we run Backward selection.
-
-```{r}
-fit.coxbw <- pec::selectCox(fm, data = dat, rule = "aic")
-```
 
 Finally we compare the two approaches using the cross-validated Brier score. 
 
 ```{r message=FALSE, warning=FALSE}
 pec.cv <- pec::pec(
-  object=list("cox.bw"=fit.coxbw,"cforest"=fit.cforest), 
-  data = dat, 
+  object=list("cox.fw"=fit.coxfw,"cforest"=fit.cforest), 
+  data = dat.top50, 
   formula = Surv(time, status) ~ 1, 
   splitMethod = "cv10")
 plot(pec.cv)
 ```
 
-We conclude that random forest exhibits a slightly better prediction performance.
+We conclude that forward selection and random forest perform similar as the reference model (no covariate included).

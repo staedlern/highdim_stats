@@ -18,7 +18,7 @@ Show that the Ridge optimization problem has the closed form solution
 \hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
 \end{align*}
 
-Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf Y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$, set equal to zero and solve for $\beta$. 
+Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$, set equal to zero and solve for $\beta$. 
 
 ## Ridge and Lasso for the orthonormal design
 

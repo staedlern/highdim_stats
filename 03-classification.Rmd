@@ -1,4 +1,4 @@
-# Extension to Classification
+# Extension to classification
 
 ```{r include=FALSE}
 library(knitr)
@@ -11,17 +11,17 @@ library(glmnet)
 
 Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
 
-## Classification and Logistic Regression
+## Classification and logistic regression
 
 We start with standard logistic regression where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $$p(x;\beta)=P(G=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
 
-\[\rm{logit}(x;\beta)=log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
+\[{\rm logit}(x;\beta)=\log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
 In logistic regression we estimate the regression parameter $\beta$ by maximizing the log-likelihood
 
 \begin{align*}
-\ell(\beta|\bf G,\bf X)&=\sum_{i=1}^{n}(1-g_i)\log(1-p(x_i;\beta))+g_i\log p(x_i;\beta)\\
-&=\sum_{i=1}^{n}g_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
+\ell(\beta|{\bf y,X})&=\sum_{i=1}^{n}(1-y_i)\log(1-p(x_i;\beta))+y_i\log p(x_i;\beta)\\
+&=\sum_{i=1}^{n}y_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
 \end{align*}
 
 Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ can be obtained via the predicted probability of success $p(X_{\rm new};\hat \beta)$, e.g. the class labels corresponding to the maximum probability
@@ -37,7 +37,7 @@ Given an estimate $\hat \beta$ (from training data), prediction based on new inp
 
 There are different measures to judge the quality of the predictions. We focus on the misclassification error which is simply the fraction of misclassified test samples. Another important measure used in the context of classification is the receiver operating characteristic (ROC).
 
-We illustrate logistic regression using an example taken from the book @elements. The data shown in Figure \@ref(fig:sahd) are a
+We illustrate logistic regression using an example taken from the book by @elements. The data shown in Figure \@ref(fig:sahd) are a
 subset of the Coronary Risk-Factor Study (CORIS) baseline survey, carried
 out in three rural areas of the Western Cape, South Africa. The aim of the study was to establish the intensity of ischemic
 heart disease risk factors in that high-incidence region. The data represent
@@ -84,12 +84,12 @@ an increase of 1kg in lifetime tobacco usage accounts for an increase in the
 odds of coronary heart disease of $\exp(0.080)$=`r round(exp(0.080),3)` or $8.3$%. Incorporating the standard error we get an approximate $95$% confidence interval of
 $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0226,0.080+2*0.0226)),3),collapse = ",")),")")`.
 
-## Subset selection and Elastic net
+## Subset selection and elastic net
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize this to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
-\hat{\beta}_{\alpha,\lambda}&=\rm{argmin}-\frac{1}{n}\ell(\beta|{\bf G},{\bf X})+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
+\hat{\beta}_{\alpha,\lambda}&=\rm{argmin}-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
 \end{align*}
 
 With $\alpha=0$ and $\alpha=1$ we obtain the Ridge and the Lasso solution, respectively. 
@@ -172,20 +172,20 @@ cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
 plot(cv.glmnet)
 ```
 
-We take $\lambda_{\rm opt}$ as the largest $\lambda$ within 1 standard error of the minimum classification error
+We take `lambda.1se` as the optimal tuning parameter.
 
 ```{r echo=FALSE}
 (lambda.opt <- cv.glmnet$lambda.1se)
 ```
 
-and extract the optimal coefficients and plot them as a barplot.
+We extract the coefficients and plot them as a barplot.
 
 ```{r}
 beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.1se)
 barplot(as.numeric(beta.glmnet)[-1],xlab="gene",ylab="beta glment")
 ```
 
-Finally we predict the disease outcome of the test samples using the fitted model and compare against the observed outcomes of the test samples.
+Finally, we predict the disease outcome of the test samples using the fitted model and compare against the observed outcomes of the test samples.
 ```{r}
 pred <- c(predict(fit.glmnet,xtest,s = lambda.opt,type = "class"))
 print(table(true = factor(ytest),pred = factor(pred)))
@@ -196,9 +196,9 @@ The misclassification error on the test data can be calculated as follows.
 round(mean(pred!=ytest),3)
 ```
 
-## Boosting and Data Mining
+## Boosting and data mining
 
-Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular examples are Support Vector Machines, Random forest, Neural networks and Boosting. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to the elastic net. 
+Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular approaches are *Support Vector Machines*, *Random Forest*, *Neural Networks* and *Boosting*. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to elastic net regression. 
 
 The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
 
@@ -212,6 +212,6 @@ The key idea behind AdaBoost is to sequentially apply a weak classification algo
    
 3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
   
-In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book @elements.
+In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book by @elements.
 
 AdaBoost with classification trees as the "base learner" is one of the best "off-the-shelf" classifier in data mining. Data mining also deals with large data sets, however, typically not only the number of variables $p$ is large but also the sample size $n$. In the classical high-dimensional setting with $p>>n$ the elastic net is a very powerful method. 
