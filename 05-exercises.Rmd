@@ -18,11 +18,19 @@ Show that the Ridge optimization problem has the closed form solution
 \hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
 \end{align*}
 
-Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|^2$, set equal to zero and solve for $\beta$. 
+Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|_2^2$, set equal to zero and solve for $\beta$. 
+
+```{r ridgeclosedform,echo=FALSE,out.width="100%"}
+knitr::include_graphics("ridge_closedform.JPG")
+```
 
 ## Ridge and Lasso for the orthonormal design
 
 Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
+
+```{r lassoorthonormal,echo=FALSE,out.width="100%"}
+knitr::include_graphics("lasso_orthonormal.JPG")
+```
 
 ## Bayesian interpretation of Ridge regression
 
@@ -31,6 +39,10 @@ $Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\s
 $n\times p$ design matrix.
 2. Find the expression for the maximum likelihood estimator.
 3. Assuming a prior distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
+
+```{r ridgemap,echo=FALSE,out.width="100%"}
+knitr::include_graphics("ridge_map.JPG")
+```
 
 ## Prostate Cancer data
 

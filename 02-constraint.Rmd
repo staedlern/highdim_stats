@@ -83,7 +83,7 @@ An alternative is *Ridge Regression*, which constrains (or regularizes) the opti
 models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{c}&=\rm{argmin}_{\|\beta\|^2\leq c}\rm{RSS}(\beta).
+\hat{\beta}^{\rm Ridge}_{c}&=\rm{argmin}_{\|\beta\|_2^2\leq c}\rm{RSS}(\beta).
 \end{align*}
 
 The geometry of the optimization problem is illustrated in Figure \@ref(fig:ridgegeom). It shows the levels sets of ${\rm RSS}(\beta)$, ellipsoids centered around the OLS estimate, and the circular ridge
@@ -340,12 +340,12 @@ In the case of orthonormal design matrix $\bf X$, ie. $\bf X^T\bf X=\bf I$, we h
 
 \begin{align*}
 \rm{RSS}(\beta)&=({\bf y}-{\bf X}\beta)^T({\bf y}-{\bf X}\beta)\\
-&=\sum_{j=1}^p(\beta_j-\hat\beta_j^{\rm OLS})^2
+&={\bf y}{\bf y}-2\beta^T\hat\beta^{\rm OLS}+beta^T\hat\beta
 \end{align*}
 
 and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems
 
-\[\rm{minimize}\; \left(\hat\beta_j^{\rm OLS}-\beta_j\right)^2+\lambda |\beta_j|.\]
+\[\rm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+\beta_j^2+\lambda |\beta_j|.\]
 
 In the exercises we will show that the solution is
 

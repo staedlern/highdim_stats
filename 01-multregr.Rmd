@@ -23,7 +23,7 @@ How do we fit the linear model to a set of training data (i.e. how do we obtain 
 \begin{align*}
 \rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
 &=(\bf y - \bf X \beta)^T (\bf y - \bf X \beta)\\
-&=\|\bf y - \bf X \beta\|^2.
+&=\|\bf y - \bf X \beta\|^2_2.
 \end{align*}
 
 If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by 
