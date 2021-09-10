@@ -76,32 +76,84 @@ dtrain <- data.frame(xtrain)
 dtrain$y <- ytrain
 ```
 
-We fit a linear regression model.
-```{r}
-# fit linear regression (all 9 covariates, intercept excluded for this illustration)
-fit <- lm(y~-1+.,data=dtrain)
-```
 
-We obtain the estimated regression coefficients.
+We start by fitting a linear regression model with only the first covariate.
 
 ```{r}
-coef(fit)
+fit1 <- lm(y~0+X1,data=dtrain)
 ```
 
-We note that many regression coefficient are clearly *over-estimated* (the true coefficients are $\beta = (1, 0, \ldots, 0)$). Next, we plot the fitted values against the values of the first covariate and we add the reference line $x = y$ representing the "true" relationship. The fitted values (red triangles) perfectly match the data (black dots). This means the fitted model also captures the deviations from the truth (blue line).
+Next, we plot the fitted values against the values of the first covariate and we add the reference line representing the “true” relationship. The fitted values (red triangles) perfectly match the data (black dots). 
 
 ```{r, echo=FALSE}
-t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit)) 
+t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit1)) 
 t.d%>%
   ggplot(.,aes(x=x))+
   geom_point(aes(y=y),size=2)+
-  geom_line(aes(y=yhat),col="red")+
-  geom_point(aes(y=yhat),col="red",pch=2,size=3)+
-  geom_abline(intercept=0,slope=1,col="blue",lty=2)+
+  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
+  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
+  xlab("X1")+ylab("Y")
+```
+Next, we add two "noise" covariates to the model.
+
+```{r}
+fit3 <- lm(y~X1+X2+X3,data=dtrain)
+```
+
+The fitted values start to deviate from the truth. 
+```{r, echo=FALSE}
+t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit3)) 
+t.d%>%
+  ggplot(.,aes(x=x))+
+  geom_point(aes(y=y),size=2)+
+  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
+  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
+  xlab("X1")+ylab("Y")
+```
+With a total of 5 covariates the fitted values get closer to the data points. This means the fitted model also captures the deviations from the truth (blue line).
+
+```{r}
+fit5 <- lm(y~0+X1+X2+X3+X4+X5,data=dtrain)
+```
+
+```{r, echo=FALSE}
+t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit5)) 
+t.d%>%
+  ggplot(.,aes(x=x))+
+  geom_point(aes(y=y),size=2)+
+  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
+  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
   xlab("X1")+ylab("Y")
 ```
 
-In this example the model clearly overfits the data. In other words, the *residual degrees of freedom* which remains to estimate the error is $n-p$ =`r n-p`. A common rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $5$ (be aware that this is not a general applicable rule!).
+
+Finally we fit the model with all 9 covariates.
+
+```{r}
+# fit linear regression (all 9 covariates, intercept excluded for this illustration)
+fit9 <- lm(y~-1+.,data=dtrain)
+```
+
+The fitted values perfectly match the data.
+
+```{r, echo=FALSE}
+t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit9)) 
+t.d%>%
+  ggplot(.,aes(x=x))+
+  geom_point(aes(y=y),size=2)+
+  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
+  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
+  xlab("X1")+ylab("Y")
+```
+
+
+We investigated estimated regression coefficients.
+
+```{r}
+coef(fit9)
+```
+
+We note that many regression coefficient are clearly *over-estimated* (the true coefficients are $\beta = (2, 0, \ldots, 0)$). The model overfits the data. In other words, the *residual degrees of freedom* which remains to estimate the error is $n-p$ =`r n-p`. A common rule of thumb to avoid overfitting is that the residual degrees of freedom should be at least $5$ (be aware that this is not a general applicable rule!).
 
 ### Collinearity
 
