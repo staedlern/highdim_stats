@@ -423,10 +423,15 @@ We perform subset selection using forward regression.
 # Forward regression
 fit0 <- lm(y~1,data=data_train)
 fit.fw <- stepAIC(fit0,direction="forward",
-                  scope=list(lower=fit0,upper=paste("~", paste(colnames(data_train[,-1]), collapse=" + "))
-                             ),
+                  scope=list(lower=fit0,
+                             upper=paste("~", 
+                                         paste(
+                                           colnames(data_train[,-1]), 
+                                           collapse=" + ")
+                             )
+                  ),
                   trace = FALSE
-                  )
+)
 #summary(fit.fw)
 ```
 
@@ -464,16 +469,19 @@ plot(fit.lasso,xvar="lambda")
 plot(fit.lasso.cv)#fit.lasso.cv$lambda.1se
 ```
 
-To compare the 3 approaches we calculate the root-mean-square errors (RMSE) on the test data.
+We calculate the root-mean-square errors (RMSE) on the test data and compare the generalization error with the full model.
 
 ```{r}
+# Full model
+fit.full <- lm(y~.,data=data_train)
 # RMSE
+pred.full <- predict(fit.full,newdata=data_test)
 pred.fw <- predict(fit.fw,newdata=data_test)
 pred.ridge <- as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))
 pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
 res.rmse <- data.frame(
-  method=c("forward","ridge","lasso"),
-  rmse=c(RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
+  method=c("full","forward","ridge","lasso"),
+  rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
 kable(res.rmse,digits = 2)
 ```
 

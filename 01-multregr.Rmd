@@ -83,7 +83,7 @@ We start by fitting a linear regression model with only the first covariate.
 fit1 <- lm(y~0+X1,data=dtrain)
 ```
 
-Next, we plot the fitted values against the values of the first covariate and we add the reference line representing the “true” relationship. The fitted values (red triangles) perfectly match the data (black dots). 
+Next, we plot the fitted values against the values of the first covariate and we add the reference line representing the “true” relationship. 
 
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit1)) 
@@ -94,13 +94,15 @@ t.d%>%
   geom_abline(intercept=0,slope=2,col="blue",lty=2)+
   xlab("X1")+ylab("Y")
 ```
-Next, we add two "noise" covariates to the model.
+
+We add two "noise" covariates to the model.
 
 ```{r}
 fit3 <- lm(y~X1+X2+X3,data=dtrain)
 ```
 
-The fitted values start to deviate from the truth. 
+The fitted values (red triangles) start to deviate from the truth (blue line).
+
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit3)) 
 t.d%>%
@@ -110,7 +112,7 @@ t.d%>%
   geom_abline(intercept=0,slope=2,col="blue",lty=2)+
   xlab("X1")+ylab("Y")
 ```
-With a total of 5 covariates the fitted values get closer to the data points. This means the fitted model also captures the deviations from the truth (blue line).
+With a total of 5 covariates the fitted values get closer to the data points (black dots). This means the fitted model also captures the deviations from the truth (blue line).
 
 ```{r}
 fit5 <- lm(y~0+X1+X2+X3+X4+X5,data=dtrain)
