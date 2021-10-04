@@ -1,0 +1,313 @@
+# High-dimensional feature assessment
+
+```{r include=FALSE}
+library(Biobase)
+library(tidyverse)
+```
+
+A frequent task is to find genes which differ between two groups. We illustrate this we an example. We have gene expression data with $p=15923$ genes from 12 randomly selected mice from two strains.
+A commonly used format to represent gene expression data is as the class `ExpressionSet`. The actual expressions are retrieved using the function `exprs`. Information on the phenotypes is obtained using `pData` and with `fData` we get more information on the genes ("features").
+
+```{r, eval=FALSE, echo=FALSE}
+# create subset of maPooling with only biological replicates
+library(Biobase)
+library(maPooling)
+data(maPooling) ##this loads the three tables
+pd <- pData(maPooling)
+individuals <- which(rowSums(pd)==1)
+individuals <- individuals[-grep("tr",names(individuals))] #rm technical replicates
+g <- factor(as.numeric(grepl("b",names(individuals))))
+levels(g) <- c("strain a","strain b")
+maPooling_sub <- maPooling[,individuals]
+maPooling_sub$strain <- g
+save(maPooling_sub,file="data/maPooling_sub.rda")
+```
+
+We load our example data.
+```{r}
+load("data/maPooling_sub.rda")
+class(maPooling_sub)
+```
+
+We look at the dimension of the gene expression matrix
+```{r echo=FALSE}
+dim(exprs(maPooling_sub))
+```
+An overview on the phenotype and feature data can be obtained using the following commands.
+```{r}
+head(pData(maPooling_sub))
+head(fData(maPooling_sub))
+```
+
+We are interested in comparing the expression of the genes between the 
+two mice strains a and b.
+
+```{r}
+x <- maPooling_sub$strain # strain information
+y <- t(exprs(maPooling_sub)) # gene expressions matrix (columns refer to genes)
+```
+
+```{r include=FALSE}
+n <- nrow(y)
+p <- ncol(y)
+```
+
+
+We start by visualizing the expression of gene $j=11425$ for the two strains.
+
+```{r}
+boxplot(y[,11425]~x)
+```
+
+The gene seems to be higher expressed in strain a. We can do a more formal hypothesis test. We build the z-statistic
+
+\begin{align*}
+Z_{j}&=\frac{\bar{Y}_{j}^b-\bar{Y}_{j}^a}{{\rm S_{j}}}.
+\end{align*}
+
+Approximately,  $Z_j\sim N(0,1)$ and we can calculate the p-value
+
+\begin{align*}
+P_j&=2(1-\Phi(Z_j)).
+\end{align*}
+
+
+In R we can use the `t.test` function to perform a two-sample comparison. 
+
+```{r}
+ttest <- t.test(y[,11425]~x,var.equal=TRUE)
+ttest$statistic #zscore
+ttest$p.value
+```
+
+The p-value is `r round(ttest$p.value,3)` and we would not reject the null-hypothesis that gene 11425 is differentially expressed between the two strains (at $\alpha=5%$ level). 
+
+We now repeat this analysis for all $p=$ `r ncol(y)` genes and save the results in a data frame.
+
+```{r}
+pvals <- apply(y,2,FUN=
+                 function(y){
+                   t.test(y~x,var.equal=TRUE)$p.value
+                 })
+zscore <- apply(y,2,FUN=
+                  function(y){
+                    t.test(y~x,var.equal=TRUE)$statistic
+                  })
+res.de <- data.frame(p.value=pvals,z.score=zscore,geneid=names(zscore))
+```
+
+Next we count the number of significant genes
+
+```{r, eval=FALSE}
+sum(res.de$p.value<0.05)
+```
+
+According to this analysis `r sum(res.de$p.value<0.05)` genes are differentially expressed. This is `r round(100*sum(res.de$p.value<0.05)/p,1)`% of all genes. In the next section we will explain that this analysis misses an important point, namely the issue of multiple testing.
+
+
+## Multiple testing
+
+In this section we introduce the multiple testing problem.
+We create an artificial gene expression data set where we knowthat none of the genes is differentially expressed.  
+
+```{r}
+set.seed(1)
+p <- ncol(y)
+n <- nrow(y)
+ysim <- matrix(rnorm(n*p),n,p)
+```
+
+We repeat the analysis from above and calculate p-values for each gene.
+```{r}
+pvals.sim <- apply(ysim,2,FUN=
+                 function(y){
+                   t.test(y~x,var.equal=TRUE)$p.value
+                 })
+zscore.sim <- apply(ysim,2,FUN=
+                  function(y){
+                    t.test(y~x,var.equal=TRUE)$statistic
+                  })
+res.de.sim <- data.frame(p.value=pvals.sim,z.score=zscore.sim)
+```
+
+Finally we count the number of significant genes.
+
+```{r}
+sum(res.de.sim$p.value<0.05)
+```
+According to this analysis `r sum(res.de.sim$p.value<0.05)` genes are differentially expressed. We know that this is not true. What did we miss in our analysis? 
+
+The reason for the large number of falsely declared significant genes is that we performed multiple significance tests simultaneously. Each test is associated with an error which accumulate over the various test. In particular, we re-call that he probability of falsely rejecting the null-hypothesis (=Type-I error) is
+\[
+P(P_j<\alpha)\leq \alpha. 
+\]
+
+We performed a significant test for each gene which makes the expected number of falsely rejected null-hypotheses $p\times\alpha=$`r p*0.05`.
+
+In the next section we will discuss method for *p-value adjustment* which aims to counteract the multiple testing problem.
+
+## P-value adjustment
+
+Our previous consideration suggest that we could adjust the p-values by scaling with the number $p$ of performed tests, i.e.
+
+\[P_{j}^{\rm adjust}=P_j/p.\]
+
+This adjustment method is known as the Bonferroni correction. The method has the property that it controls the so-called family-wide-error rate (FWER).
+
+\begin{align*}
+{\rm FWER}&=P({\rm at\;least\;one\;rejection})\\
+&=P({\rm min}\; P^{\rm adjust}_j\leq \alpha)\\
+&=P({\rm min}\; P_j\leq p\times \alpha)\\
+&\leq \sum_{j=1}^p P(P_j\leq p \times \alpha)\\
+&=p\frac{\alpha}{p}=\alpha.
+\end{align*}
+
+In our example we calculate the Bonferroni adjusted p-values.
+
+```{r}
+res.de$p.value.bf <- p*res.de$p.value
+res.de.sim$p.value.bf <- p*res.de.sim$p.value
+```
+
+The number of significant genes in the real and simulated data sets are provided next. In particular none of the genes is significant in the simulated data sets which is in line with our expectations.
+
+```{r}
+sum(res.de$p.value.bf<0.05)
+sum(res.de.sim$p.value.bf<0.05)
+```
+
+
+The R function `p.adjust` offers various adjustment procedures. The different methods are based on different assumption and/or control a different error measure. The Bonferroni correction is the most conservative approach and often leads to too few significant result (loss of statistical power). In genomic applications the so-called FDR approach is very popular. It controls the False Discovery Rate (FDR) (instead of FWER) and with that is a less conservative approach. 
+
+We calculated FDR adjusted p-values and retrieve the number of significant genes.
+
+```{r}
+res.de$p.value.fdr <- p.adjust(res.de$p.value,method="fdr")
+res.de.sim$p.value.fdr <- p.adjust(res.de.sim$p.value,method="fdr")
+sum(res.de$p.value.fdr<0.05)
+sum(res.de.sim$p.value.fdr<0.05)
+```
+
+
+## The Volcano plot
+
+It is important to display statistical results obtained from high-dimensional data in an effective manner. We have discussed how to calculate p-values and how to adjust for multiplicity. The p-value is not the only quantity of interest. Often we are also interested to understand the effect size, e.g. the magnitude of the difference in expression. The following code calculates the effect sizes in our example data sets.
+
+```{r}
+ef<- apply(y,2,FUN=
+             function(y){
+               mba <- tapply(y,x,mean)
+               return(mba[2]-mba[1])
+             })
+ef.sim <- apply(ysim,2,FUN=
+                  function(y){
+                    mba <- tapply(y,x,mean)
+                    return(mba[2]-mba[1])
+                  })
+res.de$effectsize <- ef
+res.de.sim$effectsize <- ef.sim
+```
+
+A frequently used display is the volcano plot which shows on the y-axis the $-\log_{10}$ p-values and on the x-axis the effect size. By using $-\log_{10}$, the “highly significant” features appear at the top of the plot. Using log also permits us to better distinguish between small and very small p-values. We can further highlight "top genes" as genes with significant adjusted p-value and absolute effect size $>1$.
+
+```{r}
+res.de%>%
+  dplyr::mutate(topgene=ifelse(p.value.fdr<0.05&abs(effectsize)>1,"top","other"))%>%
+  ggplot(.,aes(x=effectsize,y=-log10(p.value),col=topgene))+
+  geom_point()+
+  scale_color_manual(values = c("top" = "red", "other" = "black"))+
+  theme_bw()+
+  theme(legend.position = "none")+
+  xlim(-3,3)
+```
+
+We repeat the same plot based on the simulated data.
+
+```{r}
+res.de.sim%>%
+  dplyr::mutate(topgene=ifelse(p.value.fdr<0.05&abs(effectsize)>1,"top","other"))%>%
+  ggplot(.,aes(x=effectsize,y=-log10(p.value),col=topgene))+
+  geom_point()+
+  scale_color_manual(values = c("top" = "red", "other" = "black"))+
+  theme_bw()+
+  theme(legend.position = "none")+
+  xlim(-3,3)+ylim(0,10)
+```
+
+
+## Variance shrinkage and empirical Bayes
+
+The basis of the statistical inference are the Z-scores 
+
+\begin{align*}
+Z_{j}&=\frac{\bar{Y}_{j}^b-\bar{Y}_{j}^a}{{\rm S_{j}}}.
+\end{align*}
+
+with the effect size in the numerator and the pooled standard deviation in the denominator. In a small sample size setting the estimated standard deviations exhibit high variability which can lead to large Z-scores. In order to counteract this methodology has been developed which shrinks $\rm S^2_{j}$ towards a common variance $S^2_0$
+
+\begin{align*}
+\tilde{S}_{j}^2&=\frac{d_0 S_0^2+d S^2_{j}}{d_0+d}.
+\end{align*}
+
+We can now replace the denominator with the "shrunken" $\tilde{S}_{j}$ which leads to a *moderated* Z-score which has favourable statistical properties in the small $n$ setting. The methodology behind this approach is referred to as empirical Bayes and is implemented in the function `eBayes` of the `limma`.  We will explore this package in the exercises.
+
+
+
+<!-- ```{r include=FALSE} -->
+<!-- library(tidyverse) -->
+<!-- library(devtools) -->
+<!-- install_github("genomicsclass/GSE5859Subset") -->
+<!-- library("GSE5859Subset") -->
+<!-- ``` -->
+
+<!-- We have RNA expression measurements for 8793 genes from blood taken from 24 individuals (the experimental units). For most statistical analyses, we will also need information about the individuals. For example, in this case the data was originally collected to compare gene expression across ethnic groups. However, we have created a subset of this dataset for illustration and separated the data into two groups: -->
+
+<!-- ```{r} -->
+<!-- library(GSE5859Subset) -->
+<!-- data(GSE5859Subset) ##this loads the three tables -->
+<!-- dim(geneExpression) -->
+
+<!-- head(sampleInfo) -->
+
+<!-- head(geneAnnotation) -->
+<!-- g <- factor(sampleInfo$group) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- t.d <- data.frame(y=geneExpression[25,],x=g) -->
+<!-- t.d%>% -->
+<!--   ggplot(.,aes(x=x,y=y))+ -->
+<!--   geom_boxplot()+ -->
+<!--   geom_jitter(width=0.25)+ -->
+<!--   theme_bw()+ -->
+<!--   ylab("Gene25")+ -->
+<!--   xlab("") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- myttest <- function(x) t.test(x[g==1],x[g==0],var.equal=TRUE)$p.value -->
+<!-- pvals <- apply(geneExpression,1,myttest) -->
+<!-- ``` -->
+
+
+
+<!-- ```{r} -->
+<!-- library(Biobase) -->
+<!-- library(maPooling) -->
+<!-- data(maPooling) ##this loads the three tables -->
+<!-- pd <- pData(maPooling) -->
+<!-- individuals <- which(rowSums(pd)==1) -->
+<!-- geneexpr <- exprs(maPooling)[,individuals] -->
+<!-- g <- factor(as.numeric(grepl("b",names(individuals)))) -->
+<!-- levels(g) <- c("Stamm 1","Stamm 2") -->
+
+<!-- boxplot(geneexpr[11425,]~g) -->
+<!-- t.test(geneexpr[11425,]~x,var.equal=TRUE)$p.value -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- boxplot(geneexpr[11878,]~g) -->
+<!-- t.test(geneexpr[11878,]~g,var.equal=TRUE)$p.value -->
+<!-- ``` -->
+
