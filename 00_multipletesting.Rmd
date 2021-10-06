@@ -98,7 +98,7 @@ res.de <- data.frame(p.value=pvals,z.score=zscore,geneid=names(zscore))
 
 Next we count the number of significant genes
 
-```{r, eval=FALSE}
+```{r}
 sum(res.de$p.value<0.05)
 ```
 
@@ -146,11 +146,23 @@ We performed a significant test for each gene which makes the expected number of
 
 In the next section we will discuss method for *p-value adjustment* which aims to counteract the multiple testing problem.
 
+Under the null hypothesis we would expect the p-values to follow a uniform distribution. Indeed, that is what we observe in our simulation example.
+
+```{r}
+hist(res.de.sim$p.value)
+```
+
+Whereas the distribution for the real data has a peak near zero which indicates that some genes truly differentially expressed.
+
+```{r}
+hist(res.de$p.value)
+```
+
 ## P-value adjustment
 
 Our previous consideration suggest that we could adjust the p-values by scaling with the number $p$ of performed tests, i.e.
 
-\[P_{j}^{\rm adjust}=P_j/p.\]
+\[P_{j}^{\rm adjust}=p\times P_j.\]
 
 This adjustment method is known as the Bonferroni correction. The method has the property that it controls the so-called family-wide-error rate (FWER).
 
@@ -158,7 +170,7 @@ This adjustment method is known as the Bonferroni correction. The method has the
 {\rm FWER}&=P({\rm at\;least\;one\;rejection})\\
 &=P({\rm min}\; P^{\rm adjust}_j\leq \alpha)\\
 &=P({\rm min}\; P_j\leq p\times \alpha)\\
-&\leq \sum_{j=1}^p P(P_j\leq p \times \alpha)\\
+&\leq \sum_{j=1}^p P(P_j\leq \alpha/p)\\
 &=p\frac{\alpha}{p}=\alpha.
 \end{align*}
 
