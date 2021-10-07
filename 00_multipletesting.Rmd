@@ -230,7 +230,9 @@ res.de%>%
   scale_color_manual(values = c("top" = "red", "other" = "black"))+
   theme_bw()+
   theme(legend.position = "none")+
-  xlim(-3,3)
+  xlim(-3,3)+ylim(0,10)+
+  geom_vline(xintercept = 1)+
+  geom_vline(xintercept = -1)
 ```
 
 We repeat the same plot based on the simulated data.
@@ -243,7 +245,9 @@ res.de.sim%>%
   scale_color_manual(values = c("top" = "red", "other" = "black"))+
   theme_bw()+
   theme(legend.position = "none")+
-  xlim(-3,3)+ylim(0,10)
+  xlim(-3,3)+ylim(0,10)+
+  geom_vline(xintercept = 1)+
+  geom_vline(xintercept = -1)
 ```
 
 
@@ -261,7 +265,30 @@ with the effect size in the numerator and the pooled standard deviation in the d
 \tilde{S}_{j}^2&=\frac{d_0 S_0^2+d S^2_{j}}{d_0+d}.
 \end{align*}
 
-We can now replace the denominator with the "shrunken" $\tilde{S}_{j}$ which leads to a *moderated* Z-score which has favourable statistical properties in the small $n$ setting. The methodology behind this approach is referred to as empirical Bayes and is implemented in the function `eBayes` of the `limma`.  We will explore this package in the exercises.
+We can now replace the denominator with the "shrunken" $\tilde{S}_{j}$ which leads to a *moderated* Z-score which has favourable statistical properties in the small $n$ setting. The methodology behind this approach is referred to as empirical Bayes and is implemented in the function `eBayes` of the `limma`. We repeat our analysis using `limma`. 
+
+The function `lmFit`runs a linear regression model for each gene. The first argument is
+the gene expression matrix with genes in rows and sample in columns. The second argument is the design matrix.
+```{r}
+library(limma)
+fit <- lmFit(t(y), design=model.matrix(~ x))
+head(coef(fit))
+```
+
+We can compare this to a simple `lm` fit.
+```{r}
+coef(lm(y[,1]~x)) # gene 1
+coef(lm(y[,2]~x)) # gene 2
+```
+
+We know use `eBayes` to perform the empirical Bayes procedure and to obtain inference based on the moderated z-scores.
+
+```{r, eval=FALSE}
+ebfit <- eBayes(fit)
+head(ebfit$t) # moderated t statistics
+head(ebfit$s2.post) # shrunken standard deviations
+head(ebfit$p.values) # p.values based on moderated t statistics
+```
 
 
 
