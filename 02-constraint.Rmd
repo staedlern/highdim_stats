@@ -152,6 +152,7 @@ fit.svd <- svd(xtrain) #fit.svd$d
 
 # ridge degree of freedom for lambdaopt
 df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
+df_lambdaopt
 ```
 
 Thus, the residual degrees of freedom in our example is $n-\nu^{\rm ridge}_{\lambda}$=`r round(nrow(xtrain)-df_lambdaopt,2)`. Note that this is inline with the "rule of thumb" which we mentioned in Section \@ref(overfitting).
