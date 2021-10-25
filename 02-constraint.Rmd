@@ -188,7 +188,7 @@ We will elaborate on this connection in the exercises.
 
 Ridge regression and high-dimensionality play a role in many subfields of statistics. We illustrate this with the example of smoothing splines for univariate non-parametric regression.
 
-Sometimes it is extremely unlikely that the true function $f(X)$ is actually linear in $X$. Consider the following example
+Sometimes it is extremely unlikely that the true function $f(X)$ is actually linear in $X$. Consider the following example.
 
 ```{r, echo=FALSE}
 # define a non-linear function
@@ -203,19 +203,21 @@ y <- fx + rnorm(n, sd = 0.5)
 plot(x, y)# plot of the data
 ```
 
-How would we approximate the relationship between Y and X without this prior knowledge?
-The most simple approximation would be a straight horizontal line (the true function is depicted in black). 
+How can we approximate the relationship between Y and X?
+The most simple approximation is a straight horizontal line (note: the true sinusoidal function is depicted in black). 
 
 ```{r echo=FALSE}
 const <- mean(y)
 plot(x, y)
 abline(h=const, lty = 2, col = "blue",lwd=3)
+lines(x, fx, lwd = 2)
 legend("topright", legend = "f(x)", lty = 1, lwd = 2, bty = "n")
 ```
 
 
 
-Clearly this approximation is too rigid. Next, we try a piecewise constant approximation with two inner "knots".
+
+Clearly this approximation is too rigid. Next, we try it with a piecewise constant approximation with two inner "knots".
 
 ```{r echo=FALSE}
 # see https://bobby.gramacy.com/surrogates/splines.html
@@ -229,6 +231,7 @@ fit.pwc <- lm(y~.,data=Hc)
 plot(x, y)
 lines(x, fx, lwd = 2)
 lines(x, predict(fit.pwc), lty = 2, col = "blue",lwd=3)
+#abline(v=1/3,col="white",lwd=6);abline(v=2/3,col="white",lwd=6)
 ```
 
 We also try it with a piecewise linear function. 
@@ -243,10 +246,10 @@ lines(x, predict(fit.pwl), lty = 2, col = "blue",lwd=3)
 ```
 
 
-This looks better. Nevertheless it would be nice if the different line segments would line up better. What we need are piecewise polynomials which are smooth at the knots. Such functions are calles "splines". We will now approximate $f$ using a spline function. For that we assume that $f$ can be expressed by a set of basis functions 
+The approximation improves. Nevertheless it would be nice if the different line segments would line up better. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We will now approximate $f$ using a spline function. For that we assume that $f$ can be expressed by a set of basis functions 
 
 $$ f(X)=\sum_{m=1}^{p}\beta_m B_m(X).$$
-For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$ the design matrix consists of $p=K+d+1$ features and the estimation problem becomes quickly high-dimensional.  
+For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$ the design matrix consists of $p=K+d+1$ features and quickly run into issues due to overfitting.
 
 In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
 ```{r}
@@ -379,16 +382,25 @@ In the case of orthonormal design matrix $\bf X$, ie. $\bf X^T\bf X=\bf I$, we h
 
 \begin{align*}
 \rm{RSS}(\beta)&=({\bf y}-{\bf X}\beta)^T({\bf y}-{\bf X}\beta)\\
-&={\bf y}{\bf y}-2\beta^T\hat\beta^{\rm OLS}+beta^T\hat\beta
+&={\bf y}{\bf y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
 \end{align*}
 
 and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems
 
-\[\rm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+\beta_j^2+\lambda |\beta_j|.\]
+\[\rm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+0.5\beta_j^2+0.5\lambda |\beta_j|.\]
 
 In the exercises we will show that the solution is
 
-\[\hat \beta_{\lambda,j}^{\rm Lasso}=\rm{sign}(\hat\beta_j^{\rm OLS})\left(|\hat\beta_j^{\rm OLS}|-0.5\lambda\right)_{+}.\]
+\begin{align*}
+\hat \beta_{\lambda,j}^{\rm Lasso}&=\rm{sign}(\hat\beta_j^{\rm OLS})\left(|\hat\beta_j^{\rm OLS}|-0.5\lambda\right)_{+}\\
+&=\left\{\begin{array}{ll}
+      \hat\beta^{\rm OLS}_j-0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j>0.5\lambda\\
+      0 & {\rm if}\;|\hat\beta^{\rm OLS}_j|\leq 0.5\lambda\\
+ \hat\beta^{\rm OLS}_j+0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j<-0.5\lambda
+    \end{array}
+  \right.
+\end{align*}
+
 
 That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next figure, is referred to as *soft-thresholding*.
 
@@ -423,12 +435,12 @@ We have encountered the L1 and L2 penalty. The Lasso penalty
 has the nice property that it leads to sparse solutions, i.e. it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge penalty, on the other hand, tends
 to shrink the coefficients of correlated variables toward each other. An attempt to take the best of both worlds is the *Elastic Net* penalty which has the form 
 
-\[\lambda \big(\alpha \|\beta\|_2^2+(1-\alpha)\|\beta\|_1\big).\]
+\[\lambda \Big(\alpha \|\beta\|_1+(1-\alpha)\|\beta\|_2^2\Big).\]
 
 The second term encourages highly correlated features to be averaged, while
 the first term encourages a sparse solution in the coefficients of these averaged features.
 
-In `glmnet` the Elastic Net penalty is implemented with the argument $\alpha$. The default is $\alpha=0$, i.e. the Lasso.
+In `glmnet` the Elastic Net penalty is implemented using the mixing parameter $\alpha$. The default is $\alpha=1$, i.e. the Lasso.
 
 ## Diabetes example
 
