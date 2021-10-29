@@ -21,7 +21,7 @@ What is high-dimensional statistics? The Statistics Department of the University
 
 *High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the    number of observations.  Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.*
 
-High-dimensional statistics is often paraphrased with $p>>n$ referring to a linear regressoin setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are often already present when $p$ is comparable to $n$ and in situations where the manifestation of model complexity is more subtle.
+High-dimensional statistics is often paraphrased with $p>>n$ referring to a linear regression setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are often already present when $p$ is comparable to $n$ and in situations where the manifestation of model complexity is more subtle.
 
 High-dimensional data are omnipresent and the approaches which we will discuss apply to many disciplines. We will discuss in the lecture a few specific applications ranging from molecular biology, health care, speech recognition and financial time series. 
 
