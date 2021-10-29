@@ -15,7 +15,20 @@ description: "This book is for the CAS Module High-dimensional statistics"
 # Prerequisites
 
 This book is thought as accompanying material for the course on *High-dimensional statistics*. 
-Much of the content and examples are taken from the book @elements. This book focuses on regularized regression and its application using **R** [@R-base].
+Much of the content is based on the book @elements as well as some other sources. The book has a focus on applications using **R** [@R-base].
+
+What is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:
+
+*High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the    number of observations.  Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.*
+
+High-dimensional statistics is often paraphrased with $p>>n$ referring to a linear regressoin setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are often already present when $p$ is comparable to $n$ and in situations where the manifestation of model complexity is more subtle.
+
+High-dimensional data are omnipresent and the approaches which we will discuss apply to many disciplines. We will discuss in the lecture a few specific applications ranging from molecular biology, health care, speech recognition and financial time series. 
+
+For this course we distinguish between two "tasks" of high-dimension statistics, 1) Prediction & feature selection and 2) Features assessment. 
+
+
+
 
 ```{r include=FALSE}
 # automatically create a bib database for R packages
