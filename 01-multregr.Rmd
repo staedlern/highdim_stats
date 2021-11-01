@@ -1,4 +1,4 @@
-# Multiple regression and challenges in high-dimensions
+# Multiple regression and high-dimensionality
 
 ```{r include=FALSE}
 library(gridExtra)
@@ -7,9 +7,9 @@ library(tidyverse)
 library(caret)
 ```
 
-In this chapter we will review multiple linear regression and in particular the *Ordinary Least Squares* (OLS) estimator. We will further illustrate challenges in high dimensions.
+In this chapter we will review multiple linear regression and in particular the *Ordinary Least Squares* (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$.
 
-## Ordinary least squares
+## OLS regression
 
 Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, in multivariate regression we predict the output $Y$ via the linear model:
 
@@ -51,12 +51,7 @@ knitr::include_graphics("ols_geom2.JPG")
 knitr::include_graphics("ols_geom1.JPG")
 ```
 
-
-## High-dimensionality
-
-The field of high-dimensional statistics deals with inference in situations where the model complexity is large compared to the number of independent observations. In the multivariate regression setup this is often paraphrased as $p>>n$, referring to the situation where we have more covariates than observations. The challenge with high-dimensions is manifested in *overfitting* and *collinearity*. 
-
-### Overfitting 
+## Overfitting 
 
 Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response $Y$) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
 but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
@@ -179,7 +174,7 @@ det(t(x)%*%x)
 ```
 A useful quantity in the context of overfitting is the *residual degrees of freedom* which is defined as $n-{\rm df}$, where ${\rm df}$ are the degrees of freedom of the model. For a linear regression model we have ${\rm df}=p+1$. A rule of thumb to avoid overfitting is that the residual degrees of freedom $n-{\rm df}$ should be at least $5$ (be aware that this is not a general applicable rule!).
 
-### Collinearity
+## Collinearity
 
 Recall that *collinearity* in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred to as *super-collinearity*.
 
@@ -242,7 +237,7 @@ diag(vcov(modelb))
 
 In a high-dimensional setting where $p>n$ we always have super-collinearity: the rank of the design matrix cannot exceed $n$ which implies that the columns of $\bf X$ are linearly dependent. 
 
-### Prediction error
+## Prediction error
 
 So far we investigated the fitted model visually and by inspecting the output of the regression analysis. Another important aspect is to assess how the fitted model generalizes beyond the observed data. We do this by distinguishing between model fitting and model testing, i.e. we assesses the prediction error on separate test data.
 

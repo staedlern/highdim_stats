@@ -1,4 +1,4 @@
-# Contrained least squares
+# Subset selection, Ridge and Lasso regularization
 
 ```{r, include=FALSE}
 library(knitr)
@@ -13,7 +13,72 @@ library(splines)
 ```
 
 We have seen that OLS regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the estimation
-procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some contstraints on the parameter $\beta$.
+procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some constraints on the parameter $\beta$.
+
+
+## Statistical learning
+
+For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). $\hat Y$ is the outcome of a learning rule $\hat{f}(X)$.
+
+We need data to construct learning rules. We thus suppose we have available a set of measurements $(x_i,y_i)$, $i=1,\ldots,N$, known as the training data, with which to construct $\hat{f}(X)$. 
+
+A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
+the observed data is extremely important in practice. 
+
+When building a good learning rule $\hat{f}(X)$ we need to keep in mind the following **2 fundamental steps**:
+
+1. *Training step*: In this step we explore based on training data a series of learning rules $\hat{f}_{\alpha}(X)$, where the index $\alpha$ is a tuning parameter. We compare the prediction performance of each rule and choose the model with smallest error.
+This step is often referred to as *model selection*. An approximation of the prediction error is either achieved analytically using so-call information criteria (e.g. AIC, BIC or Mallows' Cp) or by efficient use of re-sampling (cross-validation and the bootstrap).
+
+2. *Testing step*: In this step we evaluate the generalization error of the learning rule $\hat{f}(X)$ obtained in the training step based on independent test data. 
+
+A key part of the training step is the selection of the tuning parameter. We briefly review cross-validation and the Akaike information criterion (AIC). Probably the simplest and most widely used method is K-fold cross-validation. It approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
+
+```{r crossvalidation,echo=FALSE,out.width="70%"}
+knitr::include_graphics("crossvalidation.JPG")
+```
+
+Each chunk is then used as "hold-out" validation data to calculate the error of $\alpha$th model trained on the other $K-1$ data chunks. In that way we obtain $K$ error estimates and we typically take the average as the cross-validation error (denoted by ${\rm CV}(\alpha)$). The next plot shows a typical cross-validation error plot. This curve attains its minimum at model with  $\alpha=4$ (here $\alpha$ represents the number of included predictors).
+
+```{r message=FALSE,warning=FALSE,echo=FALSE}
+set.seed(1)
+library(glmnet)
+library(caret)
+x <-  matrix(rnorm(20 * 20), 20, 15)
+y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
+data <- data.frame(x,y)
+train.control <- trainControl(method = "cv", number = 5)
+step.model <- train(y ~., data = data,
+                    method = "leapForward", 
+                    tuneGrid = data.frame(nvmax = 1:15),
+                    trControl = train.control
+                    )
+ggplot(step.model)+
+  theme_bw()+
+  ylab("CV")+xlab("Alpha [Number of Predictors]")
+```
+
+The AIC approach is founded in information theory. We select the model with smallest AIC
+
+$$
+{\rm AIC}(\alpha)=-2\;{\rm loglik}+2\;d_{\alpha}.
+$$
+Thus, AIC rewards goodness of fit (as assessed by the likelihood function *loglik*), but it also includes a penalty that is an increasing function of the number of estimated parameters $d_{\alpha}$. The figure below shows for the same example the AIC curve. Also the AIC approaches suggests to use a model with $\alpha=4$ predictors.
+
+```{r message=FALSE,warning=FALSE,echo=FALSE}
+models <- leaps::regsubsets(y~., data = data, 
+                            nvmax = 15,
+                            method = "forward")
+
+smodels <-  summary(models)
+nvar <- apply(smodels$which,1,sum)-1
+k <- nvar+2
+n <- nrow(data)
+aic <- smodels$bic-log(n)*k+k*(2+(2*k+2)/(n-k-1))
+plot(nvar, aic, xlab = "Alpha [Number of Predictors]", ylab = "AIC",type="b")
+```
+
+
 
 
 ## Subset selection

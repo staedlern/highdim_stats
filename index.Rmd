@@ -15,17 +15,21 @@ description: "This book is for the CAS Module High-dimensional statistics"
 # Prerequisites
 
 This book is thought as accompanying material for the course on *High-dimensional statistics*. 
-Much of the content is based on the book @elements as well as some other sources. The book has a focus on applications using **R** [@R-base].
+Much of the content is based on the book from @elements. The book has a focus on applications using **R** [@R-base].
 
 What is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:
 
 *High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the    number of observations.  Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.*
 
-High-dimensional statistics is often paraphrased with $p>>n$ referring to a linear regression setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are often already present when $p$ is comparable to $n$ and in situations where the manifestation of model complexity is more subtle.
+High-dimensional statistics is often paraphrased with the expression "$p>>n$" referring to a linear regression setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are already present when $p$ is comparable to $n$ and often the model complexity manifests itself in a more subtle manner.
 
-High-dimensional data are omnipresent and the approaches which we will discuss apply to many disciplines. We will discuss in the lecture a few specific applications ranging from molecular biology, health care, speech recognition and financial time series. 
+High-dimensional data are omnipresent and the approaches which we will discuss have applications in many disciplines. In the lecture we will see examples in molecular biology, health care, speech recognition and financial time series. 
 
-For this course we distinguish between two "tasks" of high-dimension statistics, 1) Prediction & feature selection and 2) Features assessment. 
+For this course we distinguish between two "tasks" of high-dimension statistics. The first task is *Prediction & Feature Selection* where we have many explanatory variables (features) $X_1,\ldots,X_p$ and one response variable $Y$. The goal is to predict the response based on features and to identify the features which contribute most to prediction. The topics which we will discuss for this first task are: multiple linear regression; challenges in high-dimensions due overfitting, collinearity and numerical singularity; prediction error and cross-validation; Subset-, Ridge- and Lasso-regression; Classification and logistic regression; and Glmnet and Boosting. The second task we refer to as *Feature Assessment*. Here the starting point is one (or few) explanatory variable $X$ and many response variables $Y_1, \ldots, Y_p$. $X$ often defines two or more groups (e.g. treatment groups or groups with specific characteristics) and the aim is to find variables which differ with respect to $X$. The topics which we will cover here are: hypothesis testing; multiple testing problem; Bonferroni inequality; P-value adjustment and variance shrinkage.
+
+```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Two tasks in high-dimensional statistics. Left figure (Prediction and Feature selection). The task is to predict the response based on many explanatory variables and to select the most important variables. Right figure (Feature assessment). The task is to identify features which differ with respect to $X$ (e.g. treatment groups A vs B)."}
+knitr::include_graphics("twotasks.JPG")
+```
 
 
 
@@ -46,70 +50,8 @@ library(knitr)
 library(tidyverse)
 ```
 
-## General notation
+## Remarks on notation
 
 We will typically denote an input variable by the symbol $X$. If $X$ is a vector, its components can be accessed
 by subscripts $X_j$. Quantative outputs will be denoted by $Y$, and qualitative outputs by $G$ (for group). We use uppercase letters such as $X$, $Y$ or $G$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
-
-## Statistical learning
-
-For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). $\hat Y$ is the outcome of a learning rule $\hat{f}(X)$.
-
-We need data to construct learning rules. We thus suppose we have available a set of measurements $(x_i,y_i)$, $i=1,\ldots,N$, known as the training data, with which to construct $\hat{f}(X)$. 
-
-A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
-the observed data is extremely important in practice. 
-
-When building a good learning rule $\hat{f}(X)$ we need to keep in mind the following **2 fundamental steps**:
-
-1. *Training step*: In this step we explore based on training data a series of learning rules $\hat{f}_{\alpha}(X)$, where the index $\alpha$ is a tuning parameter. We compare the prediction performance of each rule and choose the model with smallest error.
-This step is often referred to as *model selection*. An approximation of the prediction error is either achieved analytically using so-call information criteria (e.g. AIC, BIC or Mallows' Cp) or by efficient use of re-sampling (cross-validation and the bootstrap).
-
-2. *Testing step*: In this step we evaluate the generalization error of the learning rule $\hat{f}(X)$ obtained in the training step based on independent test data. 
-
-A key part of the training step is the selection of the tuning parameter. We briefly review cross-validation and the Akaike information criterion (AIC). Probably the simplest and most widely used method is K-fold cross-validation. It approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
-
-```{r crossvalidation,echo=FALSE,out.width="70%"}
-knitr::include_graphics("crossvalidation.JPG")
-```
-
-Each chunk is then used as "hold-out" validation data to calculate the error of $\alpha$th model trained on the other $K-1$ data chunks. In that way we obtain $K$ error estimates and we typically take the average as the cross-validation error (denoted by ${\rm CV}(\alpha)$). The next plot shows a typical cross-validation error plot. This curve attains its minimum at model with  $\alpha=4$ (here $\alpha$ represents the number of included predictors).
-
-```{r message=FALSE,warning=FALSE,echo=FALSE}
-set.seed(1)
-library(glmnet)
-library(caret)
-x <-  matrix(rnorm(20 * 20), 20, 15)
-y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
-data <- data.frame(x,y)
-train.control <- trainControl(method = "cv", number = 5)
-step.model <- train(y ~., data = data,
-                    method = "leapForward", 
-                    tuneGrid = data.frame(nvmax = 1:15),
-                    trControl = train.control
-                    )
-ggplot(step.model)+
-  theme_bw()+
-  ylab("CV")+xlab("Alpha [Number of Predictors]")
-```
-
-The AIC approach is founded in information theory. We select the model with smallest AIC
-
-$$
-{\rm AIC}(\alpha)=-2\;{\rm loglik}+2\;d_{\alpha}.
-$$
-Thus, AIC rewards goodness of fit (as assessed by the likelihood function *loglik*), but it also includes a penalty that is an increasing function of the number of estimated parameters $d_{\alpha}$. The figure below shows for the same example the AIC curve. Also the AIC approaches suggests to use a model with $\alpha=4$ predictors.
-
-```{r message=FALSE,warning=FALSE,echo=FALSE}
-models <- leaps::regsubsets(y~., data = data, 
-                            nvmax = 15,
-                            method = "forward")
-
-smodels <-  summary(models)
-nvar <- apply(smodels$which,1,sum)-1
-k <- nvar+2
-n <- nrow(data)
-aic <- smodels$bic-log(n)*k+k*(2+(2*k+2)/(n-k-1))
-plot(nvar, aic, xlab = "Alpha [Number of Predictors]", ylab = "AIC",type="b")
-```
 

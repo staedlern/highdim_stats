@@ -1,4 +1,4 @@
-# Extension to survival analysis
+# Appendix 2: Prediction and features selection for survival endpoints
 
 ```{r include=FALSE}
 library(knitr)
