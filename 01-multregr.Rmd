@@ -1,4 +1,4 @@
-# Multiple regression and high-dimensionality
+# Linear regression and high-dimensionality
 
 ```{r include=FALSE}
 library(gridExtra)
@@ -7,9 +7,9 @@ library(tidyverse)
 library(caret)
 ```
 
-In this chapter we will review multiple linear regression and in particular the *Ordinary Least Squares* (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$.
+In this chapter we will review multiple linear regression and in particular the Ordinary Least Squares (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$.
 
-## OLS regression
+## Linear regression and Least Squares
 
 Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, in multivariate regression we predict the output $Y$ via the linear model:
 
@@ -31,7 +31,7 @@ If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by
 
 \[\hat\beta=(\bf X^T \bf X)^{-1}\bf X^T \bf y.\]
 
-Thus, the learning rule at the new input point $X_{\rm new}$ is
+Thus, the prediction at the new input point $X_{\rm new}$ is
 
 \begin{align*}
 \hat{Y}&=\hat{f}(X_{\rm new})\\
@@ -244,7 +244,7 @@ So far we investigated the fitted model visually and by inspecting the output of
 ```{r traintest,echo=FALSE,out.width="80%",fig.cap="Training and Test data"}
 knitr::include_graphics("traintest.JPG")
 ```
-To illustrate this with our dummy data example we simulate test data.
+We illustrate this by simulating dummy test data.
 
 ```{r}
 set.seed(2)

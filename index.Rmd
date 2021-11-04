@@ -12,22 +12,40 @@ github-repo: staedlern/highdim_stats
 description: "This book is for the CAS Module High-dimensional statistics"
 ---
 
-# Prerequisites
+# Introduction
 
 This book is thought as accompanying material for the course on *High-dimensional statistics*. 
 Much of the content is based on the book from @elements. The book has a focus on applications using **R** [@R-base].
 
+## High-dimensional statistics
+
 What is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:
 
-*High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the    number of observations.  Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.*
+*High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the number of observations.  Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.*
 
 High-dimensional statistics is often paraphrased with the expression "$p>>n$" referring to a linear regression setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are already present when $p$ is comparable to $n$ and often the model complexity manifests itself in a more subtle manner.
 
-High-dimensional data are omnipresent and the approaches which we will discuss have applications in many disciplines. In the lecture we will see examples in molecular biology, health care, speech recognition and financial time series. 
+High-dimensional data are omnipresent and the approaches which we will discuss have applications in many disciplines. In the lecture we will explore examples from molecular biology, health care, speech recognition and financial time series. 
 
-For this course we distinguish between two "tasks" of high-dimension statistics. The first task is *Prediction & Feature Selection* where we have many explanatory variables (features) $X_1,\ldots,X_p$ and one response variable $Y$. The goal is to predict the response based on features and to identify the features which contribute most to prediction. The topics which we will discuss for this first task are: multiple linear regression; challenges in high-dimensions due overfitting, collinearity and numerical singularity; prediction error and cross-validation; Subset-, Ridge- and Lasso-regression; Classification and logistic regression; and Glmnet and Boosting. The second task we refer to as *Feature Assessment*. Here the starting point is one (or few) explanatory variable $X$ and many response variables $Y_1, \ldots, Y_p$. $X$ often defines two or more groups (e.g. treatment groups or groups with specific characteristics) and the aim is to find variables which differ with respect to $X$. The topics which we will cover here are: hypothesis testing; multiple testing problem; Bonferroni inequality; P-value adjustment and variance shrinkage.
+For this course we distinguish between *two tasks* of high-dimension statistics. 
 
-```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Two tasks in high-dimensional statistics. Left figure (Prediction and Feature selection). The task is to predict the response based on many explanatory variables and to select the most important variables. Right figure (Feature assessment). The task is to identify features which differ with respect to $X$ (e.g. treatment groups A vs B)."}
+The first task is *Prediction & Feature Selection*: We have many explanatory variables $X_1,\ldots,X_p$ and one response variable $Y$. The goal is to predict the response based on these variables and to identify those which contribute most. For this task we will discuss 
+
+* Multiple linear regression
+* Overfitting, collinearity and prediction error
+* Akaike information criterion (AIC) and cross-validation
+* Subset selection, Ridge- and Lasso-regression
+* Classification and regularized logistic regression
+* Regression trees and boosting. 
+
+The second task we refer to as *Feature Assessment*. Here the starting point is one (or few) explanatory variable $X$ and many response variables $Y_1, \ldots, Y_p$. $X$ often defines two or more groups (e.g. treatment groups) and the aim is to find variables which differ with respect to $X$. The topics which we will cover here are
+
+* Hypothesis testing
+* Multiple testing problem
+* Bonferroni inequality and P-value adjustment
+* Variance shrinkage.
+
+```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Two tasks in high-dimensional statistics. Prediction and Feature selection: The task is to predict the response based on many explanatory variables. Feature assessment: The task is to identify features which differ with respect to $X$ (e.g. treatment groups A vs B)."}
 knitr::include_graphics("twotasks.JPG")
 ```
 

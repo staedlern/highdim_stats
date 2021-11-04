@@ -12,27 +12,13 @@ library(stats)
 library(splines)
 ```
 
-We have seen that OLS regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the estimation
+We have seen that multiple regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the estimation
 procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some constraints on the parameter $\beta$.
 
 
-## Statistical learning
+## AIC and cross-validation
 
-For the moment we can loosely state the learning task as follows: given the value of an input vector $X$, make a good prediction of the output $Y$, denoted by $\hat Y$ (pronounced "y-hat"). $\hat Y$ is the outcome of a learning rule $\hat{f}(X)$.
-
-We need data to construct learning rules. We thus suppose we have available a set of measurements $(x_i,y_i)$, $i=1,\ldots,N$, known as the training data, with which to construct $\hat{f}(X)$. 
-
-A key goal of a statistical learning is prediction. Therefore the assessment of how the method generalizes beyond 
-the observed data is extremely important in practice. 
-
-When building a good learning rule $\hat{f}(X)$ we need to keep in mind the following **2 fundamental steps**:
-
-1. *Training step*: In this step we explore based on training data a series of learning rules $\hat{f}_{\alpha}(X)$, where the index $\alpha$ is a tuning parameter. We compare the prediction performance of each rule and choose the model with smallest error.
-This step is often referred to as *model selection*. An approximation of the prediction error is either achieved analytically using so-call information criteria (e.g. AIC, BIC or Mallows' Cp) or by efficient use of re-sampling (cross-validation and the bootstrap).
-
-2. *Testing step*: In this step we evaluate the generalization error of the learning rule $\hat{f}(X)$ obtained in the training step based on independent test data. 
-
-A key part of the training step is the selection of the tuning parameter. We briefly review cross-validation and the Akaike information criterion (AIC). Probably the simplest and most widely used method is K-fold cross-validation. It approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
+We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models. These models are indexed by a tuning parameter which defines the "amount" of constraints to be imposed on the regression coefficients. Importantly the selection of the tuning parameter is part of the training step. We briefly review cross-validation and the Akaike information criterion (AIC). Probably the simplest and most widely used method is K-fold cross-validation. It approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
 
 ```{r crossvalidation,echo=FALSE,out.width="70%"}
 knitr::include_graphics("crossvalidation.JPG")

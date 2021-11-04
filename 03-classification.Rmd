@@ -89,7 +89,7 @@ $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0
 Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize this to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
-\hat{\beta}_{\alpha,\lambda}&=\rm{argmin}-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big((1-\alpha)\|\beta\|_2^2/2+\alpha\|\beta\|_1\big).
+\hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
 \end{align*}
 
 With $\alpha=0$ and $\alpha=1$ we obtain the Ridge and the Lasso solution, respectively. 
