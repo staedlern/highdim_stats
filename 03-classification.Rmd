@@ -7,6 +7,7 @@ library(mlbench)
 library(tidyverse)
 library(MASS)
 library(glmnet)
+library(rpart)
 ```
 
 Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
@@ -196,9 +197,38 @@ The misclassification error on the test data can be calculated as follows.
 round(mean(pred!=ytest),3)
 ```
 
-## Boosting and data mining
+## Classification trees and Boosting
 
-Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular approaches are *Support Vector Machines*, *Random Forest*, *Neural Networks* and *Boosting*. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to elastic net regression. 
+Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. One such approach are so-called Classification trees. They learn a binary tree where leaves represent class labels and branches represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn a classification tree.
+
+
+```{r}
+# load packages
+library(rpart)
+library(rpart.plot)
+
+# grow a classification tree
+fit.tree <- rpart(chd~.,data=dat,method="class")
+rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+# plot(fit.tree, uniform=TRUE)
+# text(fit.tree, use.n=TRUE, all=TRUE, cex=.8)
+```
+The algorithm start by growing a typically too large tree which overfits the data. The next step is to "prune" the tree to obtain a good tradeoff between goodness of fit and complexity. `rpart` provides cost-complexity prunings based on cross-validation.
+
+```{r}
+plotcp(fit.tree,cex.lab=1.5,cex.axis=1.2,cex=1.5)
+```
+
+We plot the optimally pruned tree.
+
+```{r}
+# prune the tree
+fit.prune<- prune(fit.tree, cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+rpart.plot(fit.prune,extra=1)
+```
+
+
+Two of the most famous classifiers are based on classification trees: Random Forest combines boostrap with decision trees and the Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular approaches are *Support Vector Machines*, *Random Forest*, *Neural Networks* and *Boosting*. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to elastic net regression. 
 
 The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
 
