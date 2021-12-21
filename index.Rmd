@@ -14,42 +14,22 @@ description: "This book is for the CAS Module High-dimensional statistics"
 
 # Introduction
 
-This book is thought as accompanying material for the course on *High-dimensional statistics*. 
-Much of the content is based on the book from @elements. The book has a focus on applications using **R** [@R-base].
-
-## High-dimensional statistics
+This bookdown is thought as accompanying material for the course on *High-dimensional statistics*. 
+Much of the content is based on the book from @elements. The course has a focus on applications using **R** [@R-base].
 
 What is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:
 
 *High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the number of observations.  Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.*
 
-High-dimensional statistics is often paraphrased with the expression "$p>>n$" referring to a linear regression setting where the number of features $p$ is much larger than the sample size $n$. However, challenges due to high-dimensionality are already present when $p$ is comparable to $n$ and often the model complexity manifests itself in a more subtle manner.
+High-dimensional statistics is often paraphrased with the expression $p>>n$ which refers to a linear regression setting where the number of covariates $p$ is much larger than the number of samples $n$. Nevertheless, challenges with standard statistical approaches already appear when $p$ is comparable to $n$ and in more complex models issues due to high-dimensionality often manifest itself in a more subtle manners.
 
-High-dimensional data are omnipresent and the approaches which we will discuss have applications in many disciplines. In the lecture we will explore examples from molecular biology, health care, speech recognition and financial time series. 
+High-dimensional data are omnipresent and the approaches which we will discuss find applications in many disciplines. In this course we will explore examples from molecular biology, health care, speech recognition and financial time series. 
 
-For this course we distinguish between *two tasks* of high-dimension statistics. 
+We find it instructive to distinguish between *two tasks* of high-dimension statistics. The first task considers many explanatory variables $X_1,\ldots,X_p$ and one response variable $Y$. The goal is to predict the response and to identify the most relevant covariates. We refer to this task as *Prediction and Feature Selection*. The second task considers one (or few) explanatory variable $X$ and many response variables $Y_1, \ldots, Y_p$. The aim is to identify those variables which differ with respect to $X$ (e.g. treatment groups A vs B). We refer to this task as *Feature Assessment*.
 
-The first task is *Prediction & Feature Selection*: We have many explanatory variables $X_1,\ldots,X_p$ and one response variable $Y$. The goal is to predict the response based on these variables and to identify those which contribute most. For this task we will discuss 
-
-* Multiple linear regression
-* Overfitting, collinearity and prediction error
-* Akaike information criterion (AIC) and cross-validation
-* Subset selection, Ridge- and Lasso-regression
-* Classification and regularized logistic regression
-* Regression trees and boosting. 
-
-The second task we refer to as *Feature Assessment*. Here the starting point is one (or few) explanatory variable $X$ and many response variables $Y_1, \ldots, Y_p$. $X$ often defines two or more groups (e.g. treatment groups) and the aim is to find variables which differ with respect to $X$. The topics which we will cover here are
-
-* Hypothesis testing
-* Multiple testing problem
-* Bonferroni inequality and P-value adjustment
-* Variance shrinkage.
-
-```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Two tasks in high-dimensional statistics. Prediction and Feature selection: The task is to predict the response based on many explanatory variables. Feature assessment: The task is to identify features which differ with respect to $X$ (e.g. treatment groups A vs B)."}
+```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Two tasks in high-dimensional statistics. Prediction and Feature Selection (left graph) and Feature assessment (right graph)."}
 knitr::include_graphics("twotasks.JPG")
 ```
-
-
 
 
 ```{r include=FALSE}
@@ -67,9 +47,4 @@ knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
 library(knitr)
 library(tidyverse)
 ```
-
-## Remarks on notation
-
-We will typically denote an input variable by the symbol $X$. If $X$ is a vector, its components can be accessed
-by subscripts $X_j$. Quantative outputs will be denoted by $Y$, and qualitative outputs by $G$ (for group). We use uppercase letters such as $X$, $Y$ or $G$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
 

@@ -1,4 +1,4 @@
-# Subset selection, Ridge and Lasso regularization
+# Regularization
 
 ```{r, include=FALSE}
 library(knitr)
@@ -16,15 +16,15 @@ We have seen that multiple regression falls short in the high-dimensional contex
 procedure with a constraint on the regression coefficients is a simple remedy to large parameter estimates. As a consequence it decreases the probability of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some constraints on the parameter $\beta$.
 
 
-## AIC and cross-validation
+## Model Selection
 
-We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models. These models are indexed by a tuning parameter which defines the "amount" of constraints to be imposed on the regression coefficients. Importantly the selection of the tuning parameter is part of the training step. We briefly review cross-validation and the Akaike information criterion (AIC). Probably the simplest and most widely used method is K-fold cross-validation. It approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
+We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models. These models are indexed by a tuning parameter which defines the "amount" of constraints to be imposed on the regression coefficients. Model selection refers to the choice of an optimal tuning parameter achieving a low generalization error. Importantly model selection is part of the training step. We review cross-validation and the Akaike information criterion (AIC). K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
 
 ```{r crossvalidation,echo=FALSE,out.width="70%"}
 knitr::include_graphics("crossvalidation.JPG")
 ```
 
-Each chunk is then used as "hold-out" validation data to calculate the error of $\alpha$th model trained on the other $K-1$ data chunks. In that way we obtain $K$ error estimates and we typically take the average as the cross-validation error (denoted by ${\rm CV}(\alpha)$). The next plot shows a typical cross-validation error plot. This curve attains its minimum at model with  $\alpha=4$ (here $\alpha$ represents the number of included predictors).
+Each chunk is then used as "hold-out" validation data to calculate the error of $\alpha$th model trained on the other $K-1$ data chunks. In that way we obtain $K$ error estimates and we typically take the average as the cross-validation error (denoted by ${\rm CV}(\alpha)$). The next plot shows a typical cross-validation error plot. This curve attains its minimum at a model with  $\alpha=4$ (here $\alpha$ represents the number of included predictors).
 
 ```{r message=FALSE,warning=FALSE,echo=FALSE}
 set.seed(1)
@@ -44,7 +44,7 @@ ggplot(step.model)+
   ylab("CV")+xlab("Alpha [Number of Predictors]")
 ```
 
-The AIC approach is founded in information theory. We select the model with smallest AIC
+The AIC approach is founded in information theory and selects the model with smallest AIC
 
 $$
 {\rm AIC}(\alpha)=-2\;{\rm loglik}+2\;d_{\alpha}.
@@ -65,15 +65,13 @@ plot(nvar, aic, xlab = "Alpha [Number of Predictors]", ylab = "AIC",type="b")
 ```
 
 
+## Subset- and Stepwise Regression
 
-
-## Subset selection
-
-The most traditional approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
+The most common approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
 
 
 \begin{align*}
-\hat{\beta}_{S}&={\rm argmin}_{\beta_j=0\;\rm{for\; all}\;j\notin S}\rm{RSS}(\beta).
+\hat{\beta}_{S}&=\text{arg}\!\!\!\!\!\!\min\limits_{\beta_j=0\;\forall j\notin S}\!\!\!\rm{RSS}(\beta).
 \end{align*}
 
 It is easy to show that this is equivalent to OLS regression based on subset $S$ covariates, i.e.
@@ -82,9 +80,9 @@ It is easy to show that this is equivalent to OLS regression based on subset $S$
 \hat{\beta}_{S}=({\bf X}_S^T {\bf X}_S)^{-1}{\bf X}_S^T {\bf y}.
 \]
 
-In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose an optimal subset by either a re-sampling approach or by using an information criteria (see Section \@ref(statistical-learning)). There are a number of different strategies available. *Best subsets regression* consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are *backward stepwise* selection which starts with the full model and sequentially deletes covariates, whereas *forward stepwise* selection starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
+In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose an optimal subset by either a re-sampling approach or by using an information criteria (see Section \@ref(model-selection)). There are a number of different strategies available. *Best subsets regression* consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are *backward stepwise* regression which starts with the full model and sequentially deletes covariates, whereas *forward stepwise* regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
 
-In `R` we can use `regsubsets` from the `leaps` package or `stepAIC` from the `MASS` package to perform subset selection. For example to perform forward stepwise selection based on AIC we proceed as follows.
+In `R` we can use `regsubsets` from the `leaps` package or `stepAIC` from the `MASS` package to perform subset- and stepwise regression. For example to perform forward stepwise regression based on AIC we proceed as follows.
 
 ```{r include=FALSE}
 set.seed(1)
@@ -113,19 +111,19 @@ fit.fw <- stepAIC(fit0,
 )
 ```
 
-We can summarize the stepwise selection process.
+We can summarize the stepwise process.
 
 ```{r}
 kable(as.data.frame(fit.fw$anova),digits=3)
 ```
 
-Finally we can retrieve the regression coefficients of the chosen model.
+Finally we can retrieve the regression coefficients of the optimal model.
 
 ```{r}
 kable(broom::tidy(fit.fw),digits=3)
 ```
 
-## Ridge regression
+## Ridge Regression
 
 Subset selection as outlined above works by either including or
 excluding covariates, i.e. contrain specific regression coefficients to be zero.
@@ -134,27 +132,27 @@ An alternative is *Ridge Regression*, which constrains (or regularizes) the opti
 models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{c}&=\rm{argmin}_{\|\beta\|_2^2\leq c}\rm{RSS}(\beta).
+\hat{\beta}^{\rm Ridge}_{c}&=\text{arg}\min\limits_{\|\beta\|_2^2\leq c}\rm{RSS}(\beta).
 \end{align*}
 
 The geometry of the optimization problem is illustrated in Figure \@ref(fig:ridgegeom). It shows the levels sets of ${\rm RSS}(\beta)$, ellipsoids centered around the OLS estimate, and the circular ridge
 parameter constraint, centered around zero with radius $c > 0$. The Ridge estimator
-is then the point where the smallest level set hits the constraint. Exactly at that point the $\rm{RSS}(\beta)$ is
+is the point where the smallest level set hits the constraint. Exactly at that point the $\rm{RSS}(\beta)$ is
 minimized over those $\beta$’s that "live" inside the constraint.
 
-```{r ridgegeom,echo=FALSE,out.width="70%",fig.cap="Ridge regression geometry."}
+```{r ridgegeom,echo=FALSE,out.width="70%",fig.cap="Geometry of Ridge regression."}
 knitr::include_graphics("ridge_geometry.JPG")
 ```
 
 Alternatively, ridge regression can be cast as the optimization of the penalised residual sum of squares with a *penalty* on the magnitude of the coefficients, i.e. 
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\rm{argmin}\; \rm{RSS}(\beta)+\lambda\|\beta\|^2_2.
+\hat{\beta}^{\rm Ridge}_{\lambda}&=\text{arg}\min\limits_{\beta}\rm{RSS}(\beta)+\lambda\|\beta\|^2_2.
 \end{align*}
 
 Both formulations are equivalent in the sense that there is a one-to-one relationship between the tuning parameters $c$ and $\lambda$. We will use more often the latter "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that with no penalization, $\lambda=0$, ridge regression coincides with OLS. Increasing $\lambda$ has the effect of shrinking the regression coefficients to zero. 
 
-The Ridge optimization problem has the closed form solution (see exercises, Section \@ref(exercises))
+The Ridge optimization problem has the closed form solution (see exercises)
 
 \begin{align*}
 \hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
@@ -172,14 +170,14 @@ plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
 
 ### Choice of penalty parameter
 
-We need to select the tuning parameters is $\lambda$. We proceed by choosing a grid values $0<\lambda_1<\lambda_2<\ldots<\lambda_K<\infty$ and proceed as explained in Section \@ref(statistical-learning), that is we choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation using the command `cv.glmnet`.
+In subset- and stepwise regression we had to identify an optimal subset. Similarly, for Ridge regression we need to select the tuning parameter $\lambda$. We proceed by choosing a grid values $0<\lambda_1<\lambda_2<\ldots<\lambda_K<\infty$ and proceed as explained in Section \@ref(model-selection), that is we choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation using the command `cv.glmnet`.
 
 ```{r warning=FALSE}
 cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0) 
 plot(cv.ridge.glmnet)
 ```
 
-The tuning parameter with smallest cross-validation error is stored in the argument `lambda.min`.
+The tuning parameter with the smallest cross-validation error is stored in the argument `lambda.min`.
 ```{r}
 cv.ridge.glmnet$lambda.min
 ```
@@ -192,7 +190,7 @@ cv.ridge.glmnet$lambda.1se
 
 ### Effective degrees of freedom
 
-Although ridge regression involves all $p$ covariates the *effective degrees of freedom* is smaller than $p$ as we have imposed constraints through the penalty. In the book @elements it is shown that the effective degrees of freedom for Ridge regression, $\nu^{\rm ridge}_{\lambda}$, is given by
+Although Ridge regression involves all $p$ covariates the *effective degrees of freedom* is smaller than $p$ as we have imposed constraints through the penalty. In the book @elements it is shown that the effective degrees of freedom for Ridge regression, $\nu^{\rm ridge}_{\lambda}$, is given by
 
 \[\nu^{\rm ridge}_{\lambda}=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
 where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
@@ -206,17 +204,17 @@ df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
 df_lambdaopt
 ```
 
-Thus, the residual degrees of freedom in our example is $n-\nu^{\rm ridge}_{\lambda}$=`r round(nrow(xtrain)-df_lambdaopt,2)`. Note that this is inline with the "rule of thumb" which we mentioned in Section \@ref(overfitting).
+Thus, the residual degrees of freedom in our example is $n-\nu^{\rm ridge}_{\lambda}$=`r round(nrow(xtrain)-df_lambdaopt,2)`. Note that this is inline with the "rule of thumb" from Section \@ref(overfitting).
 
 ### Shrinkage property
 
-In Section \@ref(collinearity) we have seen that in presence of collinearity the OLS estimator becomes unstable (high variance) and that this poses a challenge especially in high-dimensions. A nice property of ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
+In Section \@ref(collinearity) we have seen that in presence of collinearity the OLS estimator becomes unstable (high variance) and that this poses a challenge especially in high-dimensions. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
 
-The OLS vector of fitted values ${\bf \hat y}^{\rm OLS}$ is the orthogonal projection of ${\bf y}$ onto the column space of $\bf X$. In terms of normalized principle components we have
+For OLS the vector of fitted values ${\bf \hat y}^{\rm OLS}$ is the orthogonal projection of ${\bf y}$ onto the column space of $\bf X$. In terms of normalized principle components we have
 
 \[{\bf\hat y}^{\rm OLS}=\sum_{j=1}^{p}{\bf u}_j {\bf u}_j^T {\bf y}.\]
 
-Similarly we can represent the Ridge projection as
+Similarly, we can represent the Ridge projection as
 
 \[{\bf\hat y}^{\rm Ridge}=\sum_{j=1}^{p}{\bf u}_j \frac{d_j^2}{d_j^2+\lambda}{\bf u}_j^T {\bf y}.\]
 
@@ -285,7 +283,7 @@ lines(x, predict(fit.pwc), lty = 2, col = "blue",lwd=3)
 #abline(v=1/3,col="white",lwd=6);abline(v=2/3,col="white",lwd=6)
 ```
 
-We also try it with a piecewise linear function. 
+We also try it a piecewise linear function. 
 
 ```{r echo=FALSE}
 Hl <- cbind(Hc, hc1(x)*x, hc2(x)*x, hc3(x)*x)
@@ -297,12 +295,11 @@ lines(x, predict(fit.pwl), lty = 2, col = "blue",lwd=3)
 ```
 
 
-The approximation improves. Nevertheless it would be nice if the different line segments would line up better. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We will now approximate $f$ using a spline function. For that we assume that $f$ can be expressed by a set of basis functions 
+The approximation improves. Nevertheless it would be nice if the different line segments would line up better. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We assume that $f$ can be expressed by a set of basis functions 
 
 $$ f(X)=\sum_{m=1}^{p}\beta_m B_m(X).$$
-For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$ the design matrix consists of $p=K+d+1$ features and quickly run into issues due to overfitting.
+For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$ the design matrix consists of $p=K+d+1$ features and quickly run into issues due to overfitting. In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
 
-In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
 ```{r}
 spl <- bs(x,df=10) # cubic spline with p=10 degrees of freedom
 plot(spl[,1]~x, ylim=c(0,max(spl)), type='l', lwd=2, col=1, 
@@ -326,7 +323,7 @@ lines(x, predict(fit.csp), lty = 2, col = "violet",lwd=3)
 
 An alternative approach are so-called *smoothing splines*, where we take $p=n$ and the $B_m(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_m$ cannot be estimated using OLS as the number $p$ of basis function (columns of the design matrix) equals the number of observations $n$. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients $\beta_j$, i.e.
 
-\[\hat{\beta}_{\lambda}=\rm{argmin}\;\|\bf y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
+\[\hat{\beta}_{\lambda}=\text{arg}\min\limits_{\beta}\;\|\bf y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
 
 where $\bf B$ is the design matrix with $jth$ column $(B_j(x_1),\ldots,B_j(x_n))^T$. In practice we can fit 
 smoothing spline using the function `smooth.spline`. The penalty term is specified by setting the effective degrees of freedom ($\nu$) or by selecting $\lambda$ using cross-validation (see Section \@ref(choice-of-penalty-parameter)).
@@ -371,7 +368,7 @@ The smoothing spline with $\nu=30$ (in green) leads to overfitting. The smoothin
 fit.smsp.cv$df
 ```
 
-## Lasso regression
+## Lasso Regression
 
 We have seen that ridge regression works in the high-dimensional context and we have also discussed some nice properties. However, a disadvantage of ridge regression is that it does not perform variable selection and therefore the interpretation of the model is more challenging. 
 
@@ -392,7 +389,7 @@ knitr::include_graphics("lasso_geometry.JPG")
 Similar to ridge regression the Lasso can be formulated as a penalisation problem
 
 \begin{align*}
-\hat{\beta}^{\rm Lasso}_{\lambda}&=\rm{argmin}\;\rm{RSS}(\beta)+\lambda\|\beta\|_1.
+\hat{\beta}^{\rm Lasso}_{\lambda}&=\text{arg}\min\limits_{\beta}\;\rm{RSS}(\beta)+\lambda\|\beta\|_1.
 \end{align*}
 
 To fit the Lasso we use `glmnet`.

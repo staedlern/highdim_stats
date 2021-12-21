@@ -1,4 +1,4 @@
-# Linear regression and high-dimensionality
+# Multiple linear regression
 
 ```{r include=FALSE}
 library(gridExtra)
@@ -9,9 +9,14 @@ library(caret)
 
 In this chapter we will review multiple linear regression and in particular the Ordinary Least Squares (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$.
 
-## Linear regression and Least Squares
+## Remarks on notation
 
-Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, in multivariate regression we predict the output $Y$ via the linear model:
+We will typically denote the covariates by the symbol $X$. If $X$ is a vector, its components can be accessed
+by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
+
+## Ordinary Least Squares
+
+Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, in multiple regression we predict the output $Y$ via the linear model:
 
 \[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
 
@@ -56,8 +61,8 @@ knitr::include_graphics("ols_geom1.JPG")
 Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response $Y$) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
 but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
 
-In high-dimensional settings overfitting is a real threat! In the situation where $p>n$ it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. In general, large estimates of regression coefficients are often an indication of overfitting. We illustrate overfitting in the next example.
-We simulate $n=10$ training data points. We take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d $N(0,1)$. The response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d $N(0,0.5)$. 
+We illustrate overfitting with a simulation exercise.
+We simulate $n=10$ training data points and take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d $N(0,0.5)$. 
 
 ```{r}
 set.seed(1)
@@ -73,19 +78,19 @@ dtrain$y <- ytrain
 ```
 
 
-We start by fitting a linear regression model with only the first covariate.
+We start by fitting a univariate linear regression model.
 
 ```{r}
 fit1 <- lm(y~X1,data=dtrain)
 ```
 
-The regression coefficients are obtained using `coef`.
+We print the `summary` of the estimated model.
 
 ```{r}
 summary(fit1)
 ```
 
-Next, we plot the fitted values against the first covariate and we add the reference line representing the “true” relationship. 
+Next, we plot the fitted values against $X_1$ and we add the reference line representing the “true” relationship. 
 
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit1)) 
@@ -97,15 +102,14 @@ t.d%>%
   xlab("X1")+ylab("Y")
 ```
 
-We add two "noise" covariates to the model.
+We re-fit the model including three "noise" covariates $X_2$, $X_3$ and $X_4$.
 
 ```{r}
 fit4 <- lm(y~X1+X2+X3+X4,data=dtrain)
 summary(fit4)
 ```
 
-
-The fitted values (red triangles) start to deviate from the truth (blue line).
+We note that the fitted values (red triangles) start to deviate from the truth (blue line).
 
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit4)) 
@@ -117,11 +121,13 @@ t.d%>%
   xlab("X1")+ylab("Y")
 ```
 
-With a total of 8 covariates the fitted values get closer to the data points (black dots). This means the fitted model also captures the deviations from the truth (blue line).
+Next, we fit a regression model with a total number of 8 covariates. 
 
 ```{r}
 fit8 <- lm(y~X1+X2+X3+X4+X5+X6+X7+X8,data=dtrain)
 ```
+
+The fitted values further deviate from the truth and at the same time they get closer to the actual data points (black dots). 
 
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit8)) 
@@ -133,22 +139,20 @@ t.d%>%
   xlab("X1")+ylab("Y")
 ```
 
-We investigate the model fit.
+From the `summary` we observe that the regression coefficients are clearly *over-estimated* (note the true coefficients $\beta = (2, 0, \ldots, 0)$). The model "overfits" the data. 
 
 ```{r}
 summary(fit8)
 ```
 
-We note that many regression coefficient are clearly *over-estimated* (the true coefficients are $\beta = (2, 0, \ldots, 0)$). The model "overfits" the data. 
-
-Finally we fit the model with all 15 covariates.
+Finally we re-fit the model with all 15 covariates.
 
 ```{r}
 # fit linear regression (all 15 covariates, intercept excluded for this illustration)
 fit15 <- lm(y~.,data=dtrain)
 ```
 
-The fitted values perfectly match the data.
+Now the fitted values match perfectly the data. The model perfectly explains the response, including the noise.
 
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit15)) 
@@ -160,25 +164,25 @@ t.d%>%
   xlab("X1")+ylab("Y")
 ```
 
-
-We investigate the model fit.
+We investigate the `summary`. The output indicates that something went wrong. We have a note saying that there are *no residual degrees of freedom*. Furthermore, many entries in the table of coefficients are not available and a message says that coefficients cannot be calculated because of *singularities*. 
 
 ```{r}
 summary(fit15)
 ```
-Clearly something went wrong. Many entries in the table of coefficients are not available. One message in the output says that there are no residual degrees of freedom. Further 6 coefficients cannot be calculated because of "singularities". In fact, the OLS estimator as introduced before is not well defined because the design matrix $\bf X$ is rank deficient (${\rm rank}({\bf X})=n< p$) and therefore the matrix ${\bf X}^T {\bf X}$ is singular.
+
+What has happened? In fact, the OLS estimator as introduced above is not well defined as the design matrix $\bf X$ is rank deficient (${\rm rank}({\bf X})=n< p$) and therefore the matrix ${\bf X}^T {\bf X}$ is singular (not invertible). We can check this by calculating the determinant.
 
 ```{r}
 x <- model.matrix(fit15)
 det(t(x)%*%x)
 ```
-A useful quantity in the context of overfitting is the *residual degrees of freedom* which is defined as $n-{\rm df}$, where ${\rm df}$ are the degrees of freedom of the model. For a linear regression model we have ${\rm df}=p+1$. A rule of thumb to avoid overfitting is that the residual degrees of freedom $n-{\rm df}$ should be at least $5$ (be aware that this is not a general applicable rule!).
+
+In this simulation exercise we illustrated that overfitting in high-dimensional settings becomes a real threat. In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting. Finally, a useful heuristic quantity when dealing with overfitting is the *residual degrees of freedom* given by $n-{\rm df}$, where ${\rm df}$ are the degrees of freedom of the model (for a linear regression model ${\rm df}=p+1$). A rule of thumb to avoid overfitting is that the residual degrees of freedom $n-{\rm df}$ should be at least $5$.
+
 
 ## Collinearity
 
-Recall that *collinearity* in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred to as *super-collinearity*.
-
-For illustration we generate some data.
+Recall that *collinearity* in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred to as *super-collinearity*. For illustration we generate artificial data.
 ```{r }
 set.seed(1315)
 n <- 20
@@ -211,21 +215,20 @@ gp3 <- dat%>%
 grid.arrange(gp1,gp2,gp3,ncol=3)
 ```
 
-In the presence of collinearity, the estimate of one variable's impact on the dependent variable $Y$ while controlling for the others tends to be less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplains for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplain is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
+An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplains for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplain is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
 
-```{r collinearity,echo=FALSE,out.width="80%",fig.cap="This Figure illustrates OLS regression in the context of covariates with high collinearity."}
+```{r collinearity,echo=FALSE,out.width="80%",fig.cap="OLS regression in the context of 2 highly correlated covariates."}
 knitr::include_graphics("collinearity.JPG")
 ```
 
-We will now illustrate this numerically by fitting the following two models.
+We can illustrate this numerically by fitting the following two models to the simulated data.
 
 ```{r}
 modela <- lm(y~x1+x2,data=dat)
 modelb <- lm(y~x1+x3,data=dat)
 ```
 
-We obtain the variances of the estimated regression coefficients. The variances are larger for model b where x1 and x3 are
-correlated.
+We obtain the variances of the estimated regression coefficients using the function `vcov`. The variances are larger for model b where x1 and x3 are highly correlated compared to model a with uncorrelated covariates.
 
 ```{r}
 # variance of model a
@@ -235,18 +238,19 @@ diag(vcov(modela))
 diag(vcov(modelb))
 ```
 
-In a high-dimensional setting where $p>n$ we always have super-collinearity: the rank of the design matrix cannot exceed $n$ which implies that the columns of $\bf X$ are linearly dependent. 
+The chance of collinearity increases with a larger number covariates. Ultimately, in a high-dimensional setting where $p>n$ we always have super-collinearity: the rank of the design matrix cannot exceed $n$ which implies that the columns of $\bf X$ are linearly dependent. 
 
 ## Prediction error
 
-So far we investigated the fitted model visually and by inspecting the output of the regression analysis. Another important aspect is to assess how the fitted model generalizes beyond the observed data. We do this by distinguishing between model fitting and model testing, i.e. we assesses the prediction error on separate test data.
+So far we investigated the fitted model visually and by inspecting the `summary` of the regression analysis. Another important aspect is to assess how the fitted model generalizes beyond the "observed" training data. We do this by distinguishing between model fitting and model testing, that is fit the model on training data and we assess the prediction error on separate test data.
 
 ```{r traintest,echo=FALSE,out.width="80%",fig.cap="Training and Test data"}
 knitr::include_graphics("traintest.JPG")
 ```
-We illustrate this by simulating dummy test data.
 
-```{r}
+To illustrate this we simulate dummy test data.
+
+```{r include=FALSE}
 set.seed(2)
 ```
 
@@ -259,14 +263,14 @@ dtest <- data.frame(xtest)
 dtest$y <- ytest
 ```
 
-Next, we use the models obtained based on the training data to make predictions on the test data.
+Next, we take the previously fitted models (`fit4` and `fit8`) and make predictions on the test data.
 
 ```{r warning=FALSE}
 pred4 <- predict(fit4,newdata = dtest)
 pred8 <- predict(fit8,newdata = dtest)
 ```
 
-We illustrate the predictions using a scatter plot which plots test data (in black) together with predictions from models `fit4` (in orange) and `fit8` (in green). The predictions from the model with 8 covariates lie way off from the truth.
+The following plot shows the test data points (in black) together with the predictions obtained from models `fit4` (in orange) and `fit8` (in green). 
 
 ```{r, echo=FALSE}
 dtest$pred4 <- pred4
@@ -281,6 +285,7 @@ dtest%>%
   theme_bw()
 ```
 
+The predictions from `fit8` (model with 8 covariates) lie way off from the truth! 
 We quantify the prediction error with the root-mean-square error (RMSE).
 
 $$ {\bf RMSE}= \sqrt{\frac{\sum_{i=1}^N(y_i-\hat y_i)^2}{N}}$$
