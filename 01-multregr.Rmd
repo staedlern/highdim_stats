@@ -177,7 +177,7 @@ x <- model.matrix(fit15)
 det(t(x)%*%x)
 ```
 
-In this simulation exercise we illustrated that overfitting in high-dimensional settings becomes a real threat. In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting. Finally, a useful heuristic quantity when dealing with overfitting is the *residual degrees of freedom* given by $n-{\rm df}$, where ${\rm df}$ are the degrees of freedom of the model (for a linear regression model ${\rm df}=p+1$). A rule of thumb to avoid overfitting is that the residual degrees of freedom $n-{\rm df}$ should be at least $5$.
+In this simulation exercise we illustrated that overfitting in high-dimensional settings becomes a real threat. In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting. Finally, a useful rule of thumb is that the number of predictors $p$ should be less than $n/10$ in order to avoid overfitting. We refer to this as the "10:1 rule". 
 
 
 ## Collinearity
