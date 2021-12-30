@@ -1,4 +1,4 @@
-# Extension to classification
+# Classification
 
 ```{r include=FALSE}
 library(knitr)
@@ -12,9 +12,9 @@ library(rpart)
 
 Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
 
-## Classification and logistic regression
+## Logistic Regression
 
-We start with standard logistic regression where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $$p(x;\beta)=P(G=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
+We start with standard logistic regression where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $$p(x;\beta)=P(G=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
 
 \[{\rm logit}(x;\beta)=\log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
@@ -56,7 +56,7 @@ set, and a sample of 302 controls. The variables are:
 - age: age at onset
 - chd: response, coronary heart disease.
 
-```{r sahd,echo=FALSE, fig.cap="Pairs plot of variables for the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
+```{r sahd,echo=FALSE, fig.cap="Pairs plot of variables in the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
 # data source: https://web.stanford.edu/~hastie/ElemStatLearn/
 dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
 vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
@@ -85,9 +85,9 @@ an increase of 1kg in lifetime tobacco usage accounts for an increase in the
 odds of coronary heart disease of $\exp(0.080)$=`r round(exp(0.080),3)` or $8.3$%. Incorporating the standard error we get an approximate $95$% confidence interval of
 $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0226,0.080+2*0.0226)),3),collapse = ",")),")")`.
 
-## Subset selection and elastic net
+## Regularized Logistic Regression
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize this to logistic regression. Subset selection is implemented in `stepAIC` and elastic net regularization in `glmnet`. In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
@@ -95,13 +95,13 @@ Similar as for linear regression, in the high-dimensional setting where $n$ is s
 
 With $\alpha=0$ and $\alpha=1$ we obtain the Ridge and the Lasso solution, respectively. 
 
-We turn back to the heart disease example and perform backward selection.
+We turn back to the heart disease example and perform backward stepwise logistic regression.
 
 ```{r warning=FALSE}
 fit.bw <- stepAIC(fit.logistic,direction = "backward",trace=FALSE)
 ```
 
-The terms deleted in each step are provided in the next table.
+The terms removed in each step are provided in the next table.
 
 ```{r}
 kable(as.data.frame(fit.bw$anova),digits=3)
@@ -124,7 +124,6 @@ plot(fit.lasso,xvar = "lambda",label=TRUE)
 
 The first coefficient which is shrunk to zero is alcohol followed by obesity and sbp. This is in line with the results from backward selection.
 
-## Gene expression example
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
 
@@ -197,23 +196,26 @@ The misclassification error on the test data can be calculated as follows.
 round(mean(pred!=ytest),3)
 ```
 
-## Classification trees and Boosting
+## Classification Trees and Boosting
 
-Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. One such approach are so-called Classification trees. They learn a binary tree where leaves represent class labels and branches represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn a classification tree.
+Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. So-called *Classification Trees* learn a binary tree where *leaves* represent class labels and *branches* represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn Classification Trees.
 
 
-```{r}
+```{r warning=FALSE}
 # load packages
 library(rpart)
 library(rpart.plot)
 
 # grow a classification tree
 fit.tree <- rpart(chd~.,data=dat,method="class")
-rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 # plot(fit.tree, uniform=TRUE)
 # text(fit.tree, use.n=TRUE, all=TRUE, cex=.8)
+rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 ```
-The algorithm start by growing a typically too large tree which overfits the data. The next step is to "prune" the tree to obtain a good tradeoff between goodness of fit and complexity. `rpart` provides cost-complexity prunings based on cross-validation.
+
+
+<!-- In the CORIS example the best first splitting criteria is `age < 51` followed by `famhist=Absent` and `tobacco<7.6`. -->
+The algorithm starts by growing a typically too large tree which overfits the data. The next step is to "prune" the tree to obtain a good tradeoff between goodness of fit and complexity. `rpart` provides cost-complexity pruning based on cross-validation.
 
 ```{r}
 plotcp(fit.tree,cex.lab=1.5,cex.axis=1.2,cex=1.5)
@@ -228,13 +230,12 @@ rpart.plot(fit.prune,extra=1)
 ```
 
 
-Two of the most famous classifiers are based on classification trees: Random Forest combines boostrap with decision trees and the Classification is a frequent task in data mining. There is a variety of methods developed for classification. Popular approaches are *Support Vector Machines*, *Random Forest*, *Neural Networks* and *Boosting*. We now briefly describe the *AdaBoost* method which is the most popular boosting algorithm. In the exercises we will then apply it to an example and also compare it to elastic net regression. 
-
+AdaBoost with Classification Trees as the “base learner” is one of the best “off-the-shelf” classifier in data mining. 
 The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
 
 1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$
 2. For $m=1$ to $M$:
-   a) Fit a weak classifier $G_m$ to the training data using weights $w_i$.
+   a) Fit a weak classifier $G_m$ (a Classification Tree) to the training data using weights $w_i$.
    b) Compute the weighted error rate
   $${\rm err}_m=\frac{\sum_{i=1}^n w_i I(y_i\neq G_m(x_i))}{\sum_{i=1}^n w_i}.$$
    c) Compute $\alpha_m=\log((1-{\rm err}_m)/{\rm err}_m)$
@@ -242,6 +243,4 @@ The key idea behind AdaBoost is to sequentially apply a weak classification algo
    
 3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
   
-In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book by @elements.
-
-AdaBoost with classification trees as the "base learner" is one of the best "off-the-shelf" classifier in data mining. Data mining also deals with large data sets, however, typically not only the number of variables $p$ is large but also the sample size $n$. In the classical high-dimensional setting with $p>>n$ the elastic net is a very powerful method. 
+In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book by @elements. AdaBoost is implemented in the package `gbm`. We will see an exmaple in the exercises. 

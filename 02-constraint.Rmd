@@ -251,7 +251,7 @@ plot(x, y)# plot of the data
 ```
 
 How can we approximate the relationship between Y and X?
-The most simple approximation is a straight horizontal line (note: the true sinusoidal function is depicted in black). 
+The most simple approximation is a straight horizontal line (shown in blue; note that the true sinusoidal function is depicted in black). 
 
 ```{r echo=FALSE}
 const <- mean(y)
@@ -264,7 +264,7 @@ legend("topright", legend = "f(x)", lty = 1, lwd = 2, bty = "n")
 
 
 
-Clearly this approximation is too rigid. Next, we try it with a piecewise constant approximation with two inner "knots".
+Clearly this approximation is too rigid. Next, we try a piecewise constant approximation with two inner "knots".
 
 ```{r echo=FALSE}
 # see https://bobby.gramacy.com/surrogates/splines.html
@@ -281,7 +281,7 @@ lines(x, predict(fit.pwc), lty = 2, col = "blue",lwd=3)
 #abline(v=1/3,col="white",lwd=6);abline(v=2/3,col="white",lwd=6)
 ```
 
-We also try it a piecewise linear function. 
+Finally, we use a piecewise linear function. The approximation improves.
 
 ```{r echo=FALSE}
 Hl <- cbind(Hc, hc1(x)*x, hc2(x)*x, hc3(x)*x)
@@ -296,7 +296,7 @@ lines(x, predict(fit.pwl), lty = 2, col = "blue",lwd=3)
 The approximation improves. Nevertheless it would be nice if the different line segments would line up better. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We assume that $f$ can be expressed by a set of basis functions 
 
 $$ f(X)=\sum_{m=1}^{p}\beta_m B_m(X).$$
-For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$ the design matrix consists of $p=K+d+1$ features and quickly run into issues due to overfitting. In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
+For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$, the design matrix consists of $p=K+d+1$ features and we quickly run into issues due to overfitting. In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
 
 ```{r}
 spl <- bs(x,df=10) # cubic spline with p=10 degrees of freedom
@@ -324,7 +324,7 @@ An alternative approach are so-called *smoothing splines*, where we take $p=n$ a
 \[\hat{\beta}_{\lambda}=\text{arg}\min\limits_{\beta}\;\|\bf y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
 
 where $\bf B$ is the design matrix with $jth$ column $(B_j(x_1),\ldots,B_j(x_n))^T$. In practice we can fit 
-smoothing spline using the function `smooth.spline`. The penalty term is specified by setting the effective degrees of freedom ($\nu$) or by selecting $\lambda$ using cross-validation (see Section \@ref(choice-of-penalty-parameter)).
+smoothing spline using the function `smooth.spline`. The penalty term is specified by setting the effective degrees of freedom $\nu$ or by selecting $\lambda$ using cross-validation (see Section \@ref(choice-of-penalty-parameter)).
 
 
 ```{r, eval=FALSE,include=FALSE}
@@ -347,7 +347,7 @@ plot(spl[,1]~x, ylim=c(min(spl),max(spl)), type='l', lwd=2, col=1,
 for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
 ```
 
-We fit a smoothing splines to our simulation example.
+We fit smoothing splines to our simulation example.
 
 ```{r}
 fit.smsp.df10 <- smooth.spline(x, y, df = 10) # smoothing spline with 10 effective degrees of freedom
@@ -368,7 +368,7 @@ fit.smsp.cv$df
 
 ## Lasso Regression
 
-We have discussed Ridge Regression and discussed its properties. Although Ridge Regression can deal with high-dimensional data a disadvantage compared to Subset-/Stepwise Regression is that it does not perform variable selection. Therefore the interpretation of the model is more challenging. 
+We have discussed Ridge Regression and discussed its properties. Although Ridge Regression can deal with high-dimensional data a disadvantage compared to Subset-/Stepwise Regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging. 
 
 In Ridge Regression we minimize $\rm RSS(\beta)$ given constraints on the so-called *L2-norm* of the regression coefficients
 
@@ -473,7 +473,7 @@ Shat <- rownames(beta.lasso)[which(beta.lasso != 0)]
 Shat
 ```
 
-An interesting question is whether the Lasso does a good job in variable selection. That is, does $\hat S^{\rm Lasso}_{\lambda}$ tend to agree with the true set of active variables $S_0$? Or, does the Lasso typically under - or over select covariates? These questions are an active field of statistical research. 
+An interesting question is whether the Lasso does a good job in variable selection. That is, does $\hat S^{\rm Lasso}_{\lambda}$ tend to agree with the true set of active variables $S_0$? Or, does the Lasso typically under- or overselect covariates? These questions are an active field of statistical research. 
 
 ### Elastic Net Regression
 
