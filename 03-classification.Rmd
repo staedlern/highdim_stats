@@ -87,7 +87,7 @@ $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0
 
 ## Regularized Logistic Regression
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. considered constrained estimation, i.e. subset selection and elastic net regularization. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
@@ -122,7 +122,7 @@ fit.lasso <- glmnet(x=x,y=y,family="binomial")
 plot(fit.lasso,xvar = "lambda",label=TRUE)
 ```
 
-The first coefficient which is shrunk to zero is alcohol followed by obesity and sbp. This is in line with the results from backward selection.
+The first coefficient which is shrunk to zero is alcohol followed by sbp and obesity. This is in line with the results from backward selection.
 
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
@@ -243,4 +243,4 @@ The key idea behind AdaBoost is to sequentially apply a weak classification algo
    
 3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
   
-In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book by @elements. AdaBoost is implemented in the package `gbm`. We will see an exmaple in the exercises. 
+In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book by @elements. AdaBoost is implemented in the package `gbm`. We will see an example in the exercises. 

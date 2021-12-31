@@ -1,4 +1,4 @@
-# Appendix 2: Prediction and features selection for survival endpoints
+# Survival analysis
 
 ```{r include=FALSE}
 library(knitr)
@@ -12,7 +12,7 @@ library(tidyverse)
 
 We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We start with a very brief introduction to survival analysis and introduce the cox proportional hazards model. Then we turn to the high-dimensional setting and discuss elastic net regularization for cox regression. Finally, we introduce the time-dependent Brier score, a popular prediction performance measure in the survival setting, and we benchmark backward selection and survival random forest on a gene expression example. 
 
-## Survival analysis and Cox regression
+## Survival endpoints and Cox regression
 
 For subject $i$ we denote the event time with $T_i$. Typically we do not for each subject observe the event time as a subject may be censored due to:
 
