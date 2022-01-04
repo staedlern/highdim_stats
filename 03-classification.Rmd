@@ -225,7 +225,8 @@ We plot the optimally pruned tree.
 
 ```{r}
 # prune the tree
-fit.prune<- prune(fit.tree, cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+fit.prune<- prune(fit.tree, 
+                  cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
 rpart.plot(fit.prune,extra=1)
 ```
 

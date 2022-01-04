@@ -9,6 +9,10 @@ library(MASS)
 library(lars)
 library(gridExtra)
 library(gbm)
+library(splines)
+library(randomForest)
+library(rpart)
+library(rpart.plot)
 ```
 
 ## Closed form solution for Ridge regression
@@ -213,38 +217,88 @@ rownames(b)[b!=0]
 ## lambda such that the cv-error is within 1 standard error of the minimum
 ```
 
-## Splines and South African heart disease data
+## Logistic regression and splines
 
-In the main text we fitted a linear logistic regression models to the South African heart disease data. Here we explore nonlinearities in the predictors using natural cubic splines. Proceed as follows:
+We explore the logistic regression based on the South African heart disease data. Proceed as follows:
 
-1. Fit the model using four natural cubic spline bases for each term in the model. 
-2. Run backward selection on the model
-3. Summarise the final model
-4. Plot the natural cubic spline functions for the different terms
+1. Fit a univariate logistic regression model with *age* as the covariate. Calculate the odds-ratio and elaborate on the interpretation. 
+2. Predict the probability of heart disease at age 65.   
+3. Fit a logistic regression model including all covariates. Run stepwise backward selection. Which variables are excluded? What is the AIC value of the final model?
+4. Fit a logistic regression model using four natural cubic spline bases for each term in the model. Run backward selection and summarise the final model. Plot the natural cubic spline functions for the age term (use `termplot`). What does the plot tell you?
 
-The solution to this exercise. First we read the data and fit the model.
-```{r}
-library(splines)
-dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+The solution to this exercise.
 
-# Computes the logistic regression model using natural splines (note famhist is included as a factor): 
-form <-  "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(obesity,df=4) + ns(alcohol,df=4) + ns(age,df=4)"
-form <-  formula(form)
-
-fit <-  glm( form, data=dat, family=binomial )
+```{r, include=FALSE, eval=FALSE}
+sahd <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
+sahd <- sahd[,vars]
+sahd$famhist <- factor(sahd$famhist)
+saveRDS(sahd,file="data/sahd.rds")
 ```
 
-Next we run Backward selection. 
+We load the data and fit a logistic regression with age as the covariate.
 ```{r}
-fit.bw <- stepAIC(fit,direction="backward",trace = 0)
+sahd <- readRDS(file="data/sahd.rds")
+fit <- glm(chd~age, data=sahd, family=binomial )
+summary(fit)
 ```
 
-The outcome of Backward selection is shown next.
+The odds ratio for age is given next. 
+
+```{r}
+exp(coef(fit)[2])
+```
+This means that an increase of 1 year in age leads to a $6.6\%$ increase in the odds of having a heart disease.
+
+The estimated probability of having a heart disease at age 65 can be calculated using the `predict` function.
+
+```{r}
+predict(fit,newdata=data.frame(age=65),type="response")
+```
+Alternatively, we can use the inverse logit formula.
+
+```{r}
+lp <- coef(fit)[1]+coef(fit)[2]*65
+exp(lp)/(exp(lp)+1)
+```
+
+We fit a logistic regression model including all covariates. Then we perform stepwise backward selection using `stepAIC`.
+
+```{r}
+fit.full <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,
+                    data=sahd,
+                    family="binomial")
+fit.bw <- stepAIC(fit.full,direction = "backward",trace=FALSE)
+```
+
+The terms removed in each step are provided in the next table.
+
 ```{r}
 kable(as.data.frame(fit.bw$anova),digits=3)
 ```
 
+The variables alcohol, sbp and obesity are excluded from the model. The AIC values are provided in the table above. We can also re-calculate the AIC for the final model.
+
+```{r}
+AIC(fit.bw)
+```
+
+We fit a logistic regression model using natural splines.
+
+```{r}
+# Computes the logistic regression model using natural splines (note famhist is included as a factor): 
+form <-  "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(obesity,df=4)+ ns(alcohol,df=4)  + ns(age,df=4)"
+form <-  formula(form)
+fit <-  glm( form, data=sahd, family=binomial )
+
+# stepwise backward selection
+fit.bw <- stepAIC(fit,direction="backward",trace = 0)
+kable(as.data.frame(fit.bw$anova),digits=3)
+```
+
+
 The summary of the final model is provided next.
+
 ```{r}
 kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2)
 ```
@@ -252,8 +306,118 @@ kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2)
 We can plot the natural spline function for the first term as follows.
 
 ```{r}
-termplot(fit.bw,se=TRUE,rug=TRUE,term=1)
+termplot(fit.bw,se=TRUE,rug=TRUE,term=6)
 ```
+
+The plot shows how the log-odds change with age (keeping the other variables fixed). We observe a slight deviation from linearity, i.e. the log-odds increase more strongly for age <35 than for age >35.
+
+## Decision trees, Random Forest and AdaBoost
+
+In this exercise we explore decision trees based on the South African heart disease data.
+
+1. Load the South African heart disease data and grow a decision tree using `rpart`. Visualize the tree using `rpart.plot`. How many leave nodes has the tree?
+2. Re-grow the tree but now relax the "default" control parameters (choose `rpart.control(cp=0, minsplit=50)`). How many leaves has the tree now?
+3. Plot the cross-validation error against the complexity parameter $\alpha$. What is the tree size of the optimal model?
+4. Prune the tree using `prune` and by choosing cp (=$\alpha$) to achieve minimal cross-validation error.
+5. Calculate the confusion matrix and the misclassification error.
+6. Generate a bootstrap sample. Grow a tree and calculate the out-of-bag error.
+7. Fit a random forest using `randomForest`. Plot the fitted object. What is this plot telling us? Calculate the variable importance. Which are the most important variables?
+8. Run AdaBoost using `gbm`. What is the prediction for a patient with covariates sbp=100, tobacco=0, ldl=5, famhist="Present", obesity=25, alcohol=10 and age=50. Compute the variable importance.
+
+The solution to this exercise. First we read the data and grow the tree.
+
+```{r warning=FALSE}
+# load packages
+library(rpart)
+library(rpart.plot)
+
+# grow a classification tree
+fit.tree <- rpart(chd~.,data=sahd,method="class")
+rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+```
+
+We re-grow the tree using different control parameters.
+
+```{r}
+# controlling the growth of the tree with rpart.control
+# cp: improvement in each split needs to be > cp
+# minsplit: minimal number of samples in a node inorder to do a split
+fit.tree2 <- rpart(chd~.,data=sahd,method="class",
+                  control = rpart.control(cp = 0,minsplit=10)
+                  
+)
+rpart.plot(fit.tree2,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+```
+
+We can get the tree size from the cptable (tree size=number of leaves=number splits+1).
+
+```{r}
+fit.tree2$cptable[fit.tree2$cptable[,"CP"]==0,"nsplit"]+1 # number of leaves
+```
+
+Next, we plot the cross-validation error against the complexity parameter $\alpha$.
+
+```{r}
+plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
+```
+
+We prune the tree and visualize the result.
+
+
+```{r}
+# prune the tree
+fit.prune<- prune(fit.tree2, 
+                  cp=fit.tree2$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+rpart.plot(fit.prune,extra=1)
+```
+
+
+Finally, we compute the confusion matrix and the misclassification error.
+
+```{r}
+# confusion matrix of actual and fitted class labels
+table(Actual=sahd$chd,Fitted=predict(fit.prune,type="class"))
+
+# missclassification error
+mean(sahd$chd!=predict(fit.prune,type="class"))
+```
+
+We sample with replacement.
+
+```{r}
+set.seed(1)
+inthebag <- sample(1:nrow(sahd),size=nrow(sahd),replace=TRUE)
+outofbag <- setdiff(1:nrow(sahd),inthebag)
+```
+
+We fit a tree on the in-the-bag samples and calculate the misclassification error on the out-of-bag samples.
+
+```{r}
+fit.in <- rpart(chd~.,data=sahd[inthebag,],method="class")
+pred.oob <- predict(fit.in,newdata=sahd[outofbag,],type="class")
+mean(sahd$chd[outofbag]!=pred.oob)
+```
+
+We fit the random forest, plot the error as a function of the number of trees and plot the variable importance.
+
+```{r message=FALSE, warning=FALSE}
+library(randomForest)
+sahd$chd <- factor(sahd$chd)
+fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
+plot(fit.rf)
+varImpPlot(fit.rf,type=1)
+```
+We run AdaBoost using `gbm` and specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`.
+
+```{r}
+fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
+summary(fit.boost)
+newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
+predict(fit.boost,
+        newdata=newd,
+        type="response" )
+```
+
 
 ## Phoneme Recognition
 
@@ -279,18 +443,18 @@ Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regressi
 
 The solution to this exercise. We prepare the data set.
 
-```{r include=FALSE}
+```{r include=FALSE,eval=FALSE}
 # https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
 # https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
 # https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
-
-# dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
-# save(dat,file="data/phoneme.rda")
+phoneme <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
+saveRDS(phoneme,file="data/phoneme.rds")
 ```
+
 
 ```{r}
 library(splines)
-load(file="data/phoneme.rda")
+dat <- readRDS(file="data/phoneme.rds")
 dat2 <- dat[dat$g%in%c("aa","ao"),]
 
 dtrain <- dat2[grepl("^train",dat2$speaker),-c(1,259)]
@@ -678,7 +842,7 @@ fit2 <- coxph(fm2,data=dtrain,x=TRUE)
 
 Finally, we calculate the Brier score on training and test data.
 
-```{r message=FALSE}
+```{r message=FALSE, eval=FALSE}
 library(pec)
 fit.pec.train <- pec::pec(
   object=list("mod1"=fit1,"mod2"=fit2), 
