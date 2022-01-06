@@ -87,7 +87,12 @@ $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0
 
 ## Regularized Logistic Regression
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. For logistic regression the *10:1 rule* can be phrased as:
+
+
+> $p$ should be less than $\min\{n_0,n_1\}/10$ in order to avoid overfitting.
+
+In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
@@ -134,7 +139,7 @@ We now turn to a truly high-dimensional example. The data consists of expression
 set.seed(15)
 
 # get leukemia data
-library(varbvs) # varbvs package contains the diabetes data
+library(varbvs) # varbvs package contains the leukemia data
 data(leukemia)
 x <- leukemia$x
 y <- leukemia$y
@@ -146,6 +151,26 @@ ytrain <- y[ind_train]
 xtest <- x[-ind_train,]
 ytest <- y[-ind_train]
 ```
+
+The following heatmap illustrates the gene expression values for the different patients.
+
+```{r, include=FALSE}
+library(pheatmap)
+xhp <- t(xtrain[,sample(1:ncol(xtrain),size=200)])
+colnames(xhp) <- paste0("P",seq(ncol(xhp)))
+annotation_col <- data.frame(
+  y=factor(ytrain,labels=c("ALL","AML"))
+)
+rownames(annotation_col) <- colnames(xhp)
+hp <- pheatmap(xhp,cluster_rows = FALSE,
+               annotation_col = annotation_col,
+               annotation_names_col = FALSE)
+```
+
+```{r echo=FALSE}
+print(hp)
+```
+
 
 We now run the elastic net logistic regression approach.
 
@@ -165,6 +190,7 @@ plot(fit.glmnet,xvar="lambda",label=TRUE)
 We run 10-fold cross-validation and show the misclassification error. 
 
 ```{r}
+set.seed(118)
 # run cv.glmnet
 nfolds <- 10 # number of cross-validation folds.
 cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
@@ -174,15 +200,25 @@ plot(cv.glmnet)
 
 We take `lambda.1se` as the optimal tuning parameter.
 
-```{r echo=FALSE}
+```{r}
+#sum(coef(fit.glmnet, s = cv.glmnet$lambda.1se)!=0)
+#sum(coef(fit.glmnet, s = cv.glmnet$lambda.min)!=0)
 (lambda.opt <- cv.glmnet$lambda.1se)
 ```
 
 We extract the coefficients and plot them as a barplot.
 
 ```{r}
-beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.1se)
-barplot(as.numeric(beta.glmnet)[-1],xlab="gene",ylab="beta glment")
+beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.min)
+df <- data.frame(Gene=paste0("G",1:(length(beta.glmnet)-1)),Beta=as.numeric(beta.glmnet)[-1])
+df%>%
+  arrange(desc(abs(Beta)))%>%
+  slice(1:200)%>%
+  ggplot(.,aes(x=Gene,y=Beta))+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  theme(axis.text.x = element_blank())+
+  geom_hline(yintercept = 0)
 ```
 
 Finally, we predict the disease outcome of the test samples using the fitted model and compare against the observed outcomes of the test samples.
@@ -196,10 +232,9 @@ The misclassification error on the test data can be calculated as follows.
 round(mean(pred!=ytest),3)
 ```
 
-## Classification Trees and Boosting
+## Classification Trees and Machine Learning
 
-Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. So-called *Classification Trees* learn a binary tree where *leaves* represent class labels and *branches* represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn Classification Trees.
-
+Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. We first introduce *Classification Trees* which learn a binary tree where *leaves* represent class labels and *branches* represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn Classification Trees.
 
 ```{r warning=FALSE}
 # load packages
@@ -230,18 +265,32 @@ fit.prune<- prune(fit.tree,
 rpart.plot(fit.prune,extra=1)
 ```
 
+Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)).
 
-AdaBoost with Classification Trees as the “base learner” is one of the best “off-the-shelf” classifier in data mining. 
-The key idea behind AdaBoost is to sequentially apply a weak classification algorithm (the "base learner") to weighted data with repeatedly modified weights. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by combining through a "majority vote". More specifically AdaBoost proceeds as follows:
 
-1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$
-2. For $m=1$ to $M$:
-   a) Fit a weak classifier $G_m$ (a Classification Tree) to the training data using weights $w_i$.
-   b) Compute the weighted error rate
-  $${\rm err}_m=\frac{\sum_{i=1}^n w_i I(y_i\neq G_m(x_i))}{\sum_{i=1}^n w_i}.$$
-   c) Compute $\alpha_m=\log((1-{\rm err}_m)/{\rm err}_m)$
-   d) Update $w_i\leftarrow w_i \exp(\alpha_m I(y_i\neq G_m(x_i)))$, $i=1,2,...,n.$
-   
-3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
-  
-In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. More details are provided in the book by @elements. AdaBoost is implemented in the package `gbm`. We will see an example in the exercises. 
+```{r randomforest,echo=FALSE,out.width="80%",fig.cap="The key idea of Random Forest"}
+knitr::include_graphics("randomforest.JPG")
+```
+
+The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). 
+
+```{r adaboost,echo=FALSE,out.width="80%",fig.cap="The key idea of AdaBoost"}
+knitr::include_graphics("adaboost.JPG")
+```
+
+<!-- More specifically AdaBoost proceeds as follows: -->
+
+<!-- 1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$ -->
+<!-- 2. For $m=1$ to $M$: -->
+<!--    a) Fit a weak classifier $G_m$ (a "stump") to the training data using weights $w_i$. -->
+<!--    b) Compute the weighted error rate -->
+<!--   $${\rm err}_m=\frac{\sum_{i=1}^n w_i I(y_i\neq G_m(x_i))}{\sum_{i=1}^n w_i}.$$ -->
+<!--    c) Compute $\alpha_m=\log((1-{\rm err}_m)/{\rm err}_m)$ -->
+<!--    d) Update $w_i\leftarrow w_i \exp(\alpha_m I(y_i\neq G_m(x_i)))$, $i=1,2,...,n.$ -->
+
+<!-- 3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$. -->
+
+<!-- In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. -->
+
+More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
+
