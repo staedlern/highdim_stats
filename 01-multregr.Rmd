@@ -12,13 +12,13 @@ In this chapter we will review multiple linear regression and in particular the 
 ## Remarks on notation
 
 We will typically denote the covariates by the symbol $X$. If $X$ is a vector, its components can be accessed
-by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
+by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence the $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
 
 ## Ordinary Least Squares
 
 Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, in multiple regression we predict the output $Y$ via the linear model:
 
-\[ \hat{Y}=\sum_{j=1}^{p}X_j\hat\beta_j.\]
+\[ \hat{Y}=\hat\beta_0+\sum_{j=1}^{p}X_j\hat\beta_j.\]
 
 The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X$, include $\hat\beta_0$ in the vector of coefficients $\hat\beta$, then we can write 
 
@@ -44,10 +44,10 @@ Thus, the prediction at the new input point $X_{\rm new}$ is
 &=X_{\rm new}^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
 \end{align*}
 
-Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $N$ data points $(y_i,x_{i2},\ldots,x_{ip})$ randomly spread around a $(p-1)$-dimensional hyperplane in a $p$-dimensional space; the random spread only occurs parallel to the y-axis. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ is a single point in the $N$-dimensional space ${\bf R}^N$; the fitted values $\hat {\bf y}$ are the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^N$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
+Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $N$ data points $(y_i,x_{i1},\ldots,x_{ip})$ randomly spread around a $p$-dimensional hyperplane in a $p+1$-dimensional space; the random spread only occurs parallel to the y-axis. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ is a single point in the $N$-dimensional space ${\bf R}^N$; the fitted $\hat {\bf y}$ is the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^N$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
 
 
-```{r olsgeom2,echo=FALSE,out.width="80%",fig.cap="N data points spreading around the (p-1)-dimensional OLS hyperplane."}
+```{r olsgeom2,echo=FALSE,out.width="80%",fig.cap="N data points spreading around the p-dimensional OLS hyperplane."}
 knitr::include_graphics("ols_geom2.JPG")
 ```
 
@@ -62,7 +62,7 @@ Overfitting refers to the phenomenon of modelling the noise rather than the sign
 but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
 
 We illustrate overfitting with a simulation exercise.
-We simulate $n=10$ training data points and take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d $N(0,0.5)$. 
+We simulate $n=10$ training data points and take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d. $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d. $N(0,0.5)$. 
 
 ```{r}
 set.seed(1)
@@ -90,7 +90,7 @@ We print the `summary` of the estimated model.
 summary(fit1)
 ```
 
-Next, we plot the fitted values against $X_1$ and we add the reference line representing the “true” relationship. 
+Next, we plot the fitted values (red triangles) against $X_1$ and we add the reference line representing the “true” relationship. 
 
 ```{r, echo=FALSE}
 t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit1)) 
@@ -139,7 +139,7 @@ t.d%>%
   xlab("X1")+ylab("Y")
 ```
 
-From the `summary` we observe that the regression coefficients are clearly *over-estimated* (note the true coefficients $\beta = (2, 0, \ldots, 0)$). The model "overfits" the data. 
+From the `summary` we observe that the regression coefficients are clearly *over-estimated* (note the true coefficients $\beta = (0,2, 0, \ldots, 0)$). The model "overfits" the data. 
 
 ```{r}
 summary(fit8)
@@ -148,7 +148,7 @@ summary(fit8)
 Finally we re-fit the model with all 15 covariates.
 
 ```{r}
-# fit linear regression (all 15 covariates, intercept excluded for this illustration)
+# fit linear regression (all 15 covariates)
 fit15 <- lm(y~.,data=dtrain)
 ```
 
@@ -215,7 +215,7 @@ gp3 <- dat%>%
 grid.arrange(gp1,gp2,gp3,ncol=3)
 ```
 
-An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplains for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplain is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
+An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplanes for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplane is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
 
 ```{r collinearity,echo=FALSE,out.width="80%",fig.cap="OLS regression in the context of 2 highly correlated covariates."}
 knitr::include_graphics("collinearity.JPG")
