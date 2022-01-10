@@ -78,99 +78,91 @@ dtrain$y <- ytrain
 ```
 
 
-We start by fitting a univariate linear regression model.
+We fit a univariate linear regression model with X1 as covariate and print the `summary`.
 
 ```{r}
 fit1 <- lm(y~X1,data=dtrain)
-```
-
-We print the `summary` of the estimated model.
-
-```{r}
 summary(fit1)
 ```
 
-Next, we plot the fitted values (red triangles) against $X_1$ and we add the reference line representing the “true” relationship. 
-
-```{r, echo=FALSE}
-t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit1)) 
-t.d%>%
-  ggplot(.,aes(x=x))+
-  geom_point(aes(y=y),size=2)+
-  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
-  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
-  xlab("X1")+ylab("Y")
-```
-
-We re-fit the model including three "noise" covariates $X_2$, $X_3$ and $X_4$.
+The coefficient for X1 is close to the true value. The R squared value $R^2=$ `r round(summary(fit1)$r.squared,2)` indicates that the model fits the data well. In order to explore what happens if we add noise covariates, we re-fit the model with an increasing number of covariates, i.e. $p=4$, $8$ and $15$.
 
 ```{r}
 fit4 <- lm(y~X1+X2+X3+X4,data=dtrain)
-summary(fit4)
-```
-
-We note that the fitted values (red triangles) start to deviate from the truth (blue line).
-
-```{r, echo=FALSE}
-t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit4)) 
-t.d%>%
-  ggplot(.,aes(x=x))+
-  geom_point(aes(y=y),size=2)+
-  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
-  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
-  xlab("X1")+ylab("Y")
-```
-
-Next, we fit a regression model with a total number of 8 covariates. 
-
-```{r}
 fit8 <- lm(y~X1+X2+X3+X4+X5+X6+X7+X8,data=dtrain)
+fit15 <- lm(y~.,data=dtrain) #all 15 covariates
 ```
 
-The fitted values further deviate from the truth and at the same time they get closer to the actual data points (black dots). 
+The next plot shows the data points together with the fitted values (red crosses).
 
 ```{r, echo=FALSE}
-t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit8)) 
-t.d%>%
+library(ggpubr)
+t.d <-data.frame(x=xtrain[,1],y=ytrain)
+t.d$yhat1 <- predict(fit1)
+t.d$yhat4 <- predict(fit4)
+t.d$yhat8 <- predict(fit8)
+t.d$yhat15 <- predict(fit15)
+p0 <- t.d%>%
   ggplot(.,aes(x=x))+
-  geom_point(aes(y=y),size=2)+
-  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
-  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
-  xlab("X1")+ylab("Y")
+  geom_point(aes(y=y),size=3)+
+  geom_abline(intercept=coef(fit1)[1],slope=coef(fit1)[2],col="blue",lty=2,lwd=1)+
+  xlab("X1")+ylab("Y")+
+  theme_bw()
+p1 <- p0+
+  geom_point(aes(y=yhat1),col="red",pch=3,size=2,stroke=1.5)
+p4 <- p0+
+  geom_point(aes(y=yhat4),col="red",pch=3,size=2,stroke=1.5)
+p8 <- p0+
+  geom_point(aes(y=yhat8),col="red",pch=3,size=2,stroke=1.5)
+p15 <- p0+
+  geom_point(aes(y=yhat15),col="red",pch=3,size=2,stroke=1.5)
+ggarrange(p1,p4,p8,p15,labels = c("p=1", "p=4", "p=8","p=15"),hjust=-2)
 ```
 
-From the `summary` we observe that the regression coefficients are clearly *over-estimated* (note the true coefficients $\beta = (0,2, 0, \ldots, 0)$). The model "overfits" the data. 
+With increasing $p$ the fitted values start to deviate from the true model (blue line) and they move closer towards the observed data points. Finally, with $p=15$, the fitted values match perfectly the data, i.e. the model captures the noise and overfits the data. In line with these plots we note that the R squared values increase with $p$.
 
-```{r}
-summary(fit8)
+```{r echo=FALSE}
+t.d <- data.frame(
+  model=c("p=1","p=4","p=8","p=15"),
+  R2=c(summary(fit1)$r.squared,summary(fit4)$r.squared,summary(fit8)$r.squared,summary(fit15)$r.squared)
+)
+kable(t.d,digits = 2)
 ```
 
-Finally we re-fit the model with all 15 covariates.
+The following table shows the regression coefficients for the different models. The larger the $p$, the bigger the discrepancy to the true coefficients.
 
-```{r}
-# fit linear regression (all 15 covariates)
-fit15 <- lm(y~.,data=dtrain)
+```{r echo=FALSE}
+t.d <- data.frame(matrix(0,nrow=16,ncol=4))
+t.d[1:2,1] <- coef(fit1)
+t.d[1:5,2] <- coef(fit4)
+t.d[1:9,3] <- coef(fit8)
+t.d[1:16,4] <- coef(fit15)
+colnames(t.d) <- paste0("p=",c(1,4,8,15))
+rownames(t.d) <- names(coef(fit15))
+t.d <- round(t.d,2)
+t.d[is.na(t.d)] <- 0
+kable(t.d,digits = 2)
 ```
 
-Now the fitted values match perfectly the data. The model perfectly explains the response, including the noise.
+This becomes even more evident when calculating the mean squared error between the estimated and true coefficients.
 
-```{r, echo=FALSE}
-t.d <-data.frame(x=xtrain[,1],y=ytrain,yhat=predict(fit15)) 
-t.d%>%
-  ggplot(.,aes(x=x))+
-  geom_point(aes(y=y),size=2)+
-  geom_point(aes(y=yhat),col="red",pch=2,size=3,stroke=1.5)+
-  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
-  xlab("X1")+ylab("Y")
+```{r echo=FALSE}
+ave.deviation <- apply(t.d,2,FUN=function(x)
+{
+  beta.true <- c(0,2,rep(0,14))
+  mean((x-beta.true)^2)
+}
+)
+kable(ave.deviation,col.names="mse",digits=2)
 ```
 
-We investigate the `summary`. The output indicates that something went wrong. We have a note saying that there are *no residual degrees of freedom*. Furthermore, many entries in the table of coefficients are not available and a message says that coefficients cannot be calculated because of *singularities*. 
+The `summary` of the full model with $p=15$ indicates that something went wrong. 
 
 ```{r}
 summary(fit15)
 ```
 
-What has happened? In fact, the OLS estimator as introduced above is not well defined as the design matrix $\bf X$ is rank deficient (${\rm rank}({\bf X})=n< p$) and therefore the matrix ${\bf X}^T {\bf X}$ is singular (not invertible). We can check this by calculating the determinant.
+There is a note saying "no residual degrees of freedom". Furthermore, many entries in the table of coefficients are not available and a note says that coefficients cannot be calculated because of *singularities*. What has happened? In fact, the OLS estimator as introduced above is not well defined.  The design matrix $\bf X$ is rank deficient (${\rm rank}({\bf X})=n< p$) and therefore the matrix ${\bf X}^T {\bf X}$ is singular (not invertible). We can check this by calculating the determinant.
 
 ```{r}
 x <- model.matrix(fit15)
