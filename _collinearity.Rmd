@@ -1,0 +1,59 @@
+## Collinearity
+
+Recall that *collinearity* in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred to as *super-collinearity*. For illustration we generate artificial data.
+```{r }
+set.seed(1315)
+n <- 20
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+x3 <- x1+rnorm(n,sd=0.25)
+x4 <- x1
+dat <- data.frame(x1,x2,x3,x4)
+dat$y <- 2*dat$x1+rnorm(n)
+```
+
+The figures show pairs of covariates with no-, high- and super-collinearity.
+
+```{r echo=FALSE, fig.height=4, fig.width=12}
+gp1 <- dat%>%
+  ggplot(.,aes(x=x1,y=x2))+
+  geom_point()+
+  ggtitle("no collinearity")
+
+gp2 <- dat%>%
+  ggplot(.,aes(x=x1,y=x3))+
+  geom_point()+
+  ggtitle("collinearity")
+
+gp3 <- dat%>%
+  ggplot(.,aes(x=x1,y=x4))+
+  geom_point()+
+  ggtitle("super collinearity")
+
+grid.arrange(gp1,gp2,gp3,ncol=3)
+```
+
+An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplanes for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplane is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
+
+```{r collinearity,echo=FALSE,out.width="80%",fig.cap="OLS regression in the context of 2 highly correlated covariates."}
+knitr::include_graphics("collinearity.JPG")
+```
+
+We can illustrate this numerically by fitting the following two models to the simulated data.
+
+```{r}
+modela <- lm(y~x1+x2,data=dat)
+modelb <- lm(y~x1+x3,data=dat)
+```
+
+We obtain the variances of the estimated regression coefficients using the function `vcov`. The variances are larger for model b where x1 and x3 are highly correlated compared to model a with uncorrelated covariates.
+
+```{r}
+# variance of model a
+diag(vcov(modela))
+
+#variance of model b
+diag(vcov(modelb))
+```
+
+The chance of collinearity increases with a larger number covariates. Ultimately, in a high-dimensional setting where $p>n$ we always have super-collinearity: the rank of the design matrix cannot exceed $n$ which implies that the columns of $\bf X$ are linearly dependent. 

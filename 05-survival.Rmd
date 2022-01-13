@@ -10,7 +10,7 @@ library(pec)
 library(tidyverse)
 ```
 
-We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We start with a very brief introduction to survival analysis and introduce the cox proportional hazards model. Then we turn to the high-dimensional setting and discuss elastic net regularization for cox regression. Finally, we introduce the time-dependent Brier score, a popular prediction performance measure in the survival setting, and we benchmark backward selection and survival random forest on a gene expression example. 
+We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We start with a very brief introduction to survival analysis and introduce the cox proportional hazards model. Then we turn to the high-dimensional setting and discuss elastic net regularization for cox regression. Finally, we introduce the time-dependent Brier score, a popular measure of prediction accuracy in the survival setting, and we benchmark backward selection and survival random forest on a gene expression example. 
 
 ## Survival endpoints and Cox regression
 
@@ -119,7 +119,7 @@ dbeta%>%
 
 ## Brier score and predictions in survival analysis
 
-Evaluating the predictive performance in the linear regression and classification context was straightforward. For time-to-event data this is more involved. A popular score to measure the prediction accuracy is the time-dependent Brier score
+We have seen how to evaluate the generalization error in the linear regression and classification context. For time-to-event data this is slightly more involved. A popular way to quantify the prediction accuracy is the time-dependent Brier score
 
 \[{\rm BS}(t,\hat{S})={\bf E}(Y_{\rm{new}}(t)-\hat{S}(t|X_{\rm new})) \]
 

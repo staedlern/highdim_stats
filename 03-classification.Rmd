@@ -267,16 +267,7 @@ rpart.plot(fit.prune,extra=1)
 
 Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)).
 
-
-```{r randomforest,echo=FALSE,out.width="80%",fig.cap="The key idea of Random Forest"}
-knitr::include_graphics("randomforest.JPG")
-```
-
 The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). 
-
-```{r adaboost,echo=FALSE,out.width="80%",fig.cap="The key idea of AdaBoost"}
-knitr::include_graphics("adaboost.JPG")
-```
 
 <!-- More specifically AdaBoost proceeds as follows: -->
 
@@ -294,3 +285,11 @@ knitr::include_graphics("adaboost.JPG")
 
 More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
 
+
+```{r randomforest,echo=FALSE,out.width="80%",fig.cap="The key idea of Random Forest"}
+knitr::include_graphics("randomforest.JPG")
+```
+
+```{r adaboost,echo=FALSE,out.width="80%",fig.cap="The key idea of AdaBoost"}
+knitr::include_graphics("adaboost.JPG")
+```

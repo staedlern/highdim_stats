@@ -61,8 +61,8 @@ knitr::include_graphics("ols_geom1.JPG")
 Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response $Y$) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
 but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
 
-We illustrate overfitting with a simulation exercise.
-We simulate $n=10$ training data points and take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d. $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d. $N(0,0.5)$. 
+We illustrate overfitting by generating artificial data.
+We simulate $n=10$ training data points, take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d. $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d. $N(0,0.5)$. 
 
 ```{r}
 set.seed(1)
@@ -129,28 +129,43 @@ t.d <- data.frame(
 kable(t.d,digits = 2)
 ```
 
-The following table shows the regression coefficients for the different models. The larger the $p$, the bigger the discrepancy to the true coefficients.
+The following figure shows the regression coefficients for the different models. The larger the $p$, the bigger the discrepancy to the true coefficients.
 
 ```{r echo=FALSE}
-t.d <- data.frame(matrix(0,nrow=16,ncol=4))
+t.d <- data.frame(matrix(NA,nrow=16,ncol=4))
 t.d[1:2,1] <- coef(fit1)
 t.d[1:5,2] <- coef(fit4)
 t.d[1:9,3] <- coef(fit8)
 t.d[1:16,4] <- coef(fit15)
 colnames(t.d) <- paste0("p=",c(1,4,8,15))
 rownames(t.d) <- names(coef(fit15))
-t.d <- round(t.d,2)
-t.d[is.na(t.d)] <- 0
-kable(t.d,digits = 2)
+t.d$true <- c(0,2,rep(0,14))
+
+# t.d2 <- round(t.d,2)
+# t.d2[is.na(t.d2)] <- "-"
+# kable(t.d2,digits = 2)
+
+t.d.l <- pivot_longer(t.d%>%
+                        rownames_to_column(var="beta"),cols=-beta)%>%
+  dplyr::mutate(beta=factor(beta,levels=unique(beta)),
+                model=factor(name,levels=c("true","p=1","p=4","p=8","p=15")))
+t.d.l$value[is.na(t.d.l$value)] <- 0
+t.d.l%>%
+  ggplot(.,aes(x=beta,y=value,fill=model,color=model))+
+  geom_bar(position = position_dodge(),stat="identity")+
+  theme_bw()+
+  theme(text =element_text(size=15),axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "top")+
+  xlab("")+ylab("beta")
 ```
 
 This becomes even more evident when calculating the mean squared error between the estimated and true coefficients.
 
 ```{r echo=FALSE}
-ave.deviation <- apply(t.d,2,FUN=function(x)
+ave.deviation <- apply(t.d[,-5],2,FUN=function(x)
 {
   beta.true <- c(0,2,rep(0,14))
-  mean((x-beta.true)^2)
+  mean((x-beta.true)^2,na.rm=TRUE)
 }
 )
 kable(ave.deviation,col.names="mse",digits=2)
@@ -169,78 +184,39 @@ x <- model.matrix(fit15)
 det(t(x)%*%x)
 ```
 
-In this simulation exercise we illustrated that overfitting in high-dimensional settings becomes a real threat. In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting. Finally, a useful rule of thumb is that the number of predictors $p$ should be less than $n/10$ in order to avoid overfitting. We refer to this as the "10:1 rule". 
+In this simulation exercise we illustrated the problem of overfitting. In high-dimensional settings ($p$ large relative to $n$) we quickly face models which fit the data well, but in fact are poor approximations of the true underlying data generation mechanism. 
 
+<!-- In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting.  -->
 
-## Collinearity
+In practice we do not know the underlying truth. How do we know when a model is overfitting? The following rule of thumb (the "10:1" rule) can be helpful: 
 
-Recall that *collinearity* in regression analysis refers to the event of two (or multiple) covariates being strongly linearly related. The case of two (or multiple) covariates being perfectly linearly dependent is referred to as *super-collinearity*. For illustration we generate artificial data.
-```{r }
-set.seed(1315)
-n <- 20
-x1 <- rnorm(n)
-x2 <- rnorm(n)
-x3 <- x1+rnorm(n,sd=0.25)
-x4 <- x1
-dat <- data.frame(x1,x2,x3,x4)
-dat$y <- 2*dat$x1+rnorm(n)
-```
+> In order to avoid overfitting the number of predictors $p$ should be less than $n/10$.
 
-The figures show pairs of covariates with no-, high- and super-collinearity.
+A more formal way to answer the question is by examining the so-called *Generalization Error*. This will be discussed next. 
 
-```{r echo=FALSE, fig.height=4, fig.width=12}
-gp1 <- dat%>%
-  ggplot(.,aes(x=x1,y=x2))+
-  geom_point()+
-  ggtitle("no collinearity")
+## Generalization error
 
-gp2 <- dat%>%
-  ggplot(.,aes(x=x1,y=x3))+
-  geom_point()+
-  ggtitle("collinearity")
+The ultimative goal of a good model is to make good predictions for the future. That is we need to assess how the fitted model generalizes beyond the "observed" data. Conceptually, given new input data $x_{\rm new}$, the model provides a prediction $\hat{Y}=\hat{f}(x_{\rm new})$. The *Generalization Error* is the expected discrepancy between the prediction $\hat{Y}$ and the actual outcome $Y_{\rm new}$
 
-gp3 <- dat%>%
-  ggplot(.,aes(x=x1,y=x4))+
-  geom_point()+
-  ggtitle("super collinearity")
+$${\rm Err}(x_{\rm new})=E[(Y_{\rm new}-\hat{f}(x_{\rm new}))^2].$$
+One can show that this error can be decomposed into three terms
 
-grid.arrange(gp1,gp2,gp3,ncol=3)
-```
+\begin{eqnarray}
+{\rm Err}(x_{\rm new})&=&\sigma_{\epsilon}^2+{\rm Bias}^2(\hat{f}(x_{\rm new})) + {\rm Var}(\hat{f}(x_{\rm new})),
+\end{eqnarray}
 
-An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplanes for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplane is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
+where the first term is the irreducible error (or "noise"), the second term describes the systematic bias from the truth and the third term is the variance of the predictive model. For linear regression the expected variance can be approximated by $\sigma^2_{\epsilon} \frac{p}{N}$. Complex models (with large number of covariates) have typically a small bias but a large variance. Therefore the equation above is referred to as the bias-variance dilemma as it describes the conflict in trying simultaneously minimize both sources of error, bias and variance.  
+<!-- the =(E[\hat{f}(x_{\rm new})]-f(x_{\rm new})\right)$ and ${\bf Var}(\hat{f}(x_{\rm new}))=E\left[(E[\hat{f}(x_{\rm new})]-\hat{f}(x_{\rm new}))^2\right]$. The first term represent the *irreducible error* (or noise), the second term is the  -->
 
-```{r collinearity,echo=FALSE,out.width="80%",fig.cap="OLS regression in the context of 2 highly correlated covariates."}
-knitr::include_graphics("collinearity.JPG")
-```
+How do we calculate the Generalization Error in practice? The most simple approach is to separate your data into a training and testing set (see Figure \@ref(fig:traintest). The model is fitted (or "trained") on the training data and the Generalization Error is calculated on the test data and quantified using the root-mean-square error (RMSE)
 
-We can illustrate this numerically by fitting the following two models to the simulated data.
-
-```{r}
-modela <- lm(y~x1+x2,data=dat)
-modelb <- lm(y~x1+x3,data=dat)
-```
-
-We obtain the variances of the estimated regression coefficients using the function `vcov`. The variances are larger for model b where x1 and x3 are highly correlated compared to model a with uncorrelated covariates.
-
-```{r}
-# variance of model a
-diag(vcov(modela))
-
-#variance of model b
-diag(vcov(modelb))
-```
-
-The chance of collinearity increases with a larger number covariates. Ultimately, in a high-dimensional setting where $p>n$ we always have super-collinearity: the rank of the design matrix cannot exceed $n$ which implies that the columns of $\bf X$ are linearly dependent. 
-
-## Prediction error
-
-So far we investigated the fitted model visually and by inspecting the `summary` of the regression analysis. Another important aspect is to assess how the fitted model generalizes beyond the "observed" training data. We do this by distinguishing between model fitting and model testing, that is fit the model on training data and we assess the prediction error on separate test data.
+$$ {\rm RMSE}= \sqrt{\frac{\sum_{i=1}^{n_{\rm test}}(y_{\rm test,i}-\hat y_{i})^2}{n_{\rm test}}}.$$  
 
 ```{r traintest,echo=FALSE,out.width="80%",fig.cap="Training and Test data"}
 knitr::include_graphics("traintest.JPG")
 ```
 
-To illustrate this we simulate dummy test data.
+We illustrate this based on the dummy data. First we simulate test data.
 
 ```{r include=FALSE}
 set.seed(2)
@@ -255,40 +231,55 @@ dtest <- data.frame(xtest)
 dtest$y <- ytest
 ```
 
-Next, we take the previously fitted models (`fit4` and `fit8`) and make predictions on the test data.
+Next, we take the fitted models and make predictions on the test data
 
 ```{r warning=FALSE}
+# prediction
+pred1 <- predict(fit1,newdata = dtest)
 pred4 <- predict(fit4,newdata = dtest)
 pred8 <- predict(fit8,newdata = dtest)
+pred15 <- predict(fit15,newdata = dtest)
 ```
 
-The following plot shows the test data points (in black) together with the predictions obtained from models `fit4` (in orange) and `fit8` (in green). 
+<!-- The following plot shows the test data points (in black) together with the predictions obtained from models `fit4` (in orange) and `fit8` (in green). -->
 
-```{r, echo=FALSE}
-dtest$pred4 <- pred4
-dtest$pred8 <- pred8
-dtest%>%
-  ggplot(.,aes(x=X1))+
-  geom_point(aes(y=y),size=3,col="black")+
-  geom_point(aes(y=pred4),col="orange",pch=3,size=2,stroke=1.5)+
-  geom_point(aes(y=pred8),col="green",pch=4,size=2,stroke=1.5)+
-  geom_abline(intercept=0,slope=2,col="blue",lty=2)+
-  xlab("X1")+ylab("Y")+
-  theme_bw()
-```
+<!-- ```{r, echo=FALSE} -->
+<!-- dtest$pred4 <- pred4 -->
+<!-- dtest$pred8 <- pred8 -->
+<!-- dtest%>% -->
+<!--   ggplot(.,aes(x=X1))+ -->
+<!--   geom_point(aes(y=y),size=3,col="black")+ -->
+<!--   geom_point(aes(y=pred4),col="orange",pch=3,size=2,stroke=1.5)+ -->
+<!--   geom_point(aes(y=pred8),col="green",pch=4,size=2,stroke=1.5)+ -->
+<!--   geom_abline(intercept=0,slope=2,col="blue",lty=2)+ -->
+<!--   xlab("X1")+ylab("Y")+ -->
+<!--   theme_bw() -->
+<!-- ``` -->
 
-The predictions from `fit8` (model with 8 covariates) lie way off from the truth! 
-We quantify the prediction error with the root-mean-square error (RMSE).
+<!-- The predictions from `fit8` (model with 8 covariates) lie way off from the truth!  -->
+<!-- We quantify the prediction error with the root-mean-square error (RMSE). -->
 
-$$ {\bf RMSE}= \sqrt{\frac{\sum_{i=1}^N(y_i-\hat y_i)^2}{N}}$$
+<!-- $$ {\bf RMSE}= \sqrt{\frac{\sum_{i=1}^N(y_i-\hat y_i)^2}{N}}$$ -->
 
-The RMSE measures how far off we should expect the prediction of our model to be.
-In our dummy data example we can calculate the prediction error using the function `RMSE`.
+<!-- The RMSE measures how far off we should expect the prediction of our model to be. -->
+<!-- In our dummy data example we can calculate the prediction error using the function `RMSE`. -->
+
+<!-- ```{r} -->
+<!-- RMSE(pred4,ytest) -->
+<!-- RMSE(pred8,ytest) -->
+<!-- ``` -->
+
+and we calculate the RMSE.
 
 ```{r}
-RMSE(pred4,ytest)
-RMSE(pred8,ytest)
+# rmse
+rmse <- data.frame(
+  RMSE(pred1,ytest),RMSE(pred4,ytest),
+  RMSE(pred8,ytest),RMSE(pred15,ytest)
+)
+colnames(rmse) <- paste0("p=",c(1,4,8,15))
+rownames(rmse) <- "RMSE"
+kable(rmse,digits=2)
 ```
 
-The RMSE=`r round(RMSE(pred4,ytest),2)` for model `fit4` is close to the inherent error $\sigma=0.5$. The RMSE=`r round(RMSE(pred8,ytest),2)` for model `fit8` indicates that a predictions deviate on average `r round(RMSE(pred8,ytest),2)` units from the observed values.
-
+The models with $p=1$ and $4$ achieve a good error close to the "irreducible" $\sigma_{\epsilon}$. On the other hand the predictions obtained with $p=8$ and $15$ are very poor (RMSE 6 to 8-fold larger).
