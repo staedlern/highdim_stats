@@ -58,10 +58,8 @@ set, and a sample of 302 controls. The variables are:
 
 ```{r sahd,echo=FALSE, fig.cap="Pairs plot of variables in the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
 # data source: https://web.stanford.edu/~hastie/ElemStatLearn/
-dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
-vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
-dat <- dat[,vars]
-
+# dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+dat <- readRDS(file="data/sahd.rds")
 pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
 ```
 
@@ -87,12 +85,7 @@ $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0
 
 ## Regularized Logistic Regression
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. For logistic regression the *10:1 rule* can be phrased as:
-
-
-> $p$ should be less than $\min\{n_0,n_1\}/10$ in order to avoid overfitting.
-
-In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
@@ -150,6 +143,10 @@ xtrain <- x[ind_train,]
 ytrain <- y[ind_train]
 xtest <- x[-ind_train,]
 ytest <- y[-ind_train]
+```
+
+```{r eval=FALSE, include=FALSE}
+saveRDS(leukemia,file="data/leukemia.rds")
 ```
 
 The following heatmap illustrates the gene expression values for the different patients.
@@ -265,9 +262,8 @@ fit.prune<- prune(fit.tree,
 rpart.plot(fit.prune,extra=1)
 ```
 
-Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)).
+Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)). The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
 
-The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). 
 
 <!-- More specifically AdaBoost proceeds as follows: -->
 
@@ -282,9 +278,6 @@ The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with 
 <!-- 3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$. -->
 
 <!-- In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. -->
-
-More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
-
 
 ```{r randomforest,echo=FALSE,out.width="80%",fig.cap="The key idea of Random Forest"}
 knitr::include_graphics("randomforest.JPG")

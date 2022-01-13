@@ -184,15 +184,13 @@ x <- model.matrix(fit15)
 det(t(x)%*%x)
 ```
 
-In this simulation exercise we illustrated the problem of overfitting. In high-dimensional settings ($p$ large relative to $n$) we quickly face models which fit the data well, but in fact are poor approximations of the true underlying data generation mechanism. 
+In this simulation exercise we illustrated the problem of overfitting. We have seen that the models with large $p$ fit the data very well, but the estimated coefficients are far off from the truth. In practice we do not know the truth. How do we know when a model is overfitting and how do we decide what a "good" model is? Shortly we will introduce the *Generalization Error* which will shed light on this question.
 
 <!-- In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting.  -->
 
-In practice we do not know the underlying truth. How do we know when a model is overfitting? The following rule of thumb (the "10:1" rule) can be helpful: 
+We end this section with the helpful **_10:1 rule:_** 
 
-> In order to avoid overfitting the number of predictors $p$ should be less than $n/10$.
-
-A more formal way to answer the question is by examining the so-called *Generalization Error*. This will be discussed next. 
+> In order to avoid overfitting the number of predictors (or covariates) **p should be less than n/10**. This rule can be extended to binary and time-to-event endpoints. For binary endpoints we replace $n$ with $\min\{n_0,n_1\}$ and for time-to-event with $n_{\rm events}$.
 
 ## Generalization error
 
