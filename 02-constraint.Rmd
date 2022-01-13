@@ -18,7 +18,9 @@ procedure with a constraint on the regression coefficients is a simple remedy to
 
 ## Model Selection
 
-We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models. These models are indexed by a tuning parameter which defines the "amount" of constraints to be imposed on the regression coefficients. Model selection refers to the choice of an optimal model (or tuning parameter) achieving a low generalization error. Importantly model selection is part of the model training for which we cannot use the test data (the test data has to be kept for a final evaluation of the selected model). Instead, model selection is guided by using an approximation of the generalization error based on training data only. We review now two such approximations, namely cross-validation and the Akaike information criterion (AIC). K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
+We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models. These models are indexed by a tuning parameter which defines the "amount" of constraints to be imposed on the regression coefficients. Model selection refers to the choice of an optimal model/tuning parameter achieving a low generalization error. Importantly, model selection is part of the training for which we cannot use the test data (the test data has to be kept for a final evaluation of the selected model). Instead, model selection is guided by using an approximation of the generalization error which is based on training data only. We review now two such approximations, namely, cross-validation and the Akaike information criterion (AIC). 
+
+K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
 
 ```{r crossvalidation,echo=FALSE,out.width="70%"}
 knitr::include_graphics("crossvalidation.JPG")
