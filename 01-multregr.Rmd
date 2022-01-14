@@ -220,7 +220,6 @@ We illustrate this based on the dummy data. First we simulate test data.
 set.seed(2)
 ```
 
-
 ```{r}
 # simulate test data
 xtest <- matrix(rnorm(n*p),n,p)

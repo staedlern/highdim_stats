@@ -33,7 +33,7 @@ gp3 <- dat%>%
 grid.arrange(gp1,gp2,gp3,ncol=3)
 ```
 
-An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplanes for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplane is stable alongside of the "hedge" of data points (but unstable in the orthogonal direction).
+An important implication of collinearity is that the estimated regression coefficients are less precise than if covariates were uncorrelated with one another. Intuitively this can be explained based on Figure \@ref(fig:collinearity) which shows the response Y and two highly correlated covariates x1 and x2. The depicted hyperplanes for the true ("modell") and estimated ("geschätzt") coefficients are deviating from each other. Further we see that the exact position of the estimated hyperplane is stable alongside of the "fence" of data points (but unstable in the orthogonal direction).
 
 ```{r collinearity,echo=FALSE,out.width="80%",fig.cap="OLS regression in the context of 2 highly correlated covariates."}
 knitr::include_graphics("collinearity.JPG")
