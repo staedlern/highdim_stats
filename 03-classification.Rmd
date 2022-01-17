@@ -249,13 +249,13 @@ rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 
 
 <!-- In the CORIS example the best first splitting criteria is `age < 51` followed by `famhist=Absent` and `tobacco<7.6`. -->
-The algorithm starts by growing a typically too large tree which overfits the data. The next step is to "prune" the tree to obtain a good tradeoff between goodness of fit and complexity. `rpart` provides cost-complexity pruning based on cross-validation.
+The algorithm starts by growing a typically too large tree which overfits the data. The next step is to "prune" the tree to obtain a good trade-off between goodness of fit and complexity. The following plot shows the relative cross-validation error (relative to the trivial tree consisting of only the root node) as a function of the complexity parameter. 
 
 ```{r}
 plotcp(fit.tree,cex.lab=1.5,cex.axis=1.2,cex=1.5)
 ```
 
-We plot the optimally pruned tree.
+The optimally pruned tree has size 4 (i.e., 4 leave nodes).
 
 ```{r}
 # prune the tree
@@ -264,7 +264,7 @@ fit.prune<- prune(fit.tree,
 rpart.plot(fit.prune,extra=1)
 ```
 
-Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootstrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)). The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
+Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootstrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)). The key idea behind AdaBoost is to sequentially fit a "stump" (i.e., a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
 
 
 <!-- More specifically AdaBoost proceeds as follows: -->
