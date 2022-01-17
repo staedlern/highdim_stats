@@ -14,7 +14,7 @@ Our high-dimensional considerations so far focused on the linear regression mode
 
 ## Logistic Regression
 
-We start with standard logistic regression where response $G$ takes values $0$ and $1$, and, the aim is to do prediction based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success $$p(x;\beta)=P(G=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
+We start with standard logistic regression where the response $Y$ takes values $0$ and $1$, and the aim is to do prediction based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success (i.e., $Y=1$) $$p(x;\beta)=P(Y=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
 
 \[{\rm logit}(x;\beta)=\log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
@@ -28,7 +28,7 @@ In logistic regression we estimate the regression parameter $\beta$ by maximizin
 Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ can be obtained via the predicted probability of success $p(X_{\rm new};\hat \beta)$, e.g. the class labels corresponding to the maximum probability
 
 \begin{align*}
-  \hat{G}(X_{\rm new})=\left\{
+  \hat{Y}\equiv\hat{G}(X_{\rm new})\equiv\left\{
     \begin{array}{ll}
       1, & \mbox{if $p(X_{\rm new};\hat\beta)>0.5$}.\\
       0, & \mbox{otherwise}.
@@ -56,9 +56,11 @@ set, and a sample of 302 controls. The variables are:
 - age: age at onset
 - chd: response, coronary heart disease.
 
-```{r sahd,echo=FALSE, fig.cap="Pairs plot of variables in the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
-# data source: https://web.stanford.edu/~hastie/ElemStatLearn/
-# dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+
+<!-- data source: https://web.stanford.edu/~hastie/ElemStatLearn/ -->
+<!-- dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1) -->
+
+```{r sahd, fig.cap="Pairs plot of variables in the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
 dat <- readRDS(file="data/sahd.rds")
 pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
 ```
@@ -231,7 +233,7 @@ round(mean(pred!=ytest),3)
 
 ## Classification Trees and Machine Learning
 
-Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. We first introduce *Classification Trees* which learn a binary tree where *leaves* represent class labels and *branches* represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn Classification Trees.
+Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. We first introduce *classification trees* which learn a binary tree where *leaves* represent class labels and *branches* represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn classification trees.
 
 ```{r warning=FALSE}
 # load packages
@@ -262,7 +264,7 @@ fit.prune<- prune(fit.tree,
 rpart.plot(fit.prune,extra=1)
 ```
 
-Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)). The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
+Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely *Random Forest* and *AdaBoost*. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootstrapped data sets and by aggregating the results using a majority vote (see Figure \@ref(fig:randomforest)). The key idea behind AdaBoost is to sequentially fit a "stump" (i.e. a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers $\{G_m\}_{m=1}^M$ is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \@ref(fig:adaboost)). More details on these methods are provided in the book by @elements. Random Forest is implemented in the package `RandomForest` and AdaBoost in the package `gbm`. We will explore examples in the exercises. 
 
 
 <!-- More specifically AdaBoost proceeds as follows: -->

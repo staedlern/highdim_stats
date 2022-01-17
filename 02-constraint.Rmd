@@ -17,7 +17,7 @@ We have seen that multiple regression falls short in the high-dimensional contex
 
 ## Model Selection
 
-We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models (indexed as $m=1,\ldots,M$). Model selection refers to the choice of an optimal model achieving a low generalization error. Importantly, model selection is part of the training for which we cannot use the test data (the test data has to be kept for a final evaluation of the selected model). Instead, model selection is guided by using an approximation of the generalization error which is based on training data only. We review now two such approximations, namely, cross-validation and the Akaike information criterion (AIC). 
+We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models (indexed as $m=1,\ldots,M$). Model selection refers to the choice of an optimal model achieving a low generalization error. A plausible approach would be to fit the different models to  the training data and then select the model with smallest error on the test data. However, this is an illegitimate approach as the test data has to be kept untouched for the final evaluation of the selected model. A common strategy to guide model selection is to approximate the generalization error using training data only. We review now two such approximations, namely, cross-validation and the Akaike information criterion (AIC). 
 
 K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
 
@@ -81,7 +81,7 @@ It is easy to show that this is equivalent to OLS regression based on subset $S$
 \hat{\beta}_{S}=({\bf X}_S^T {\bf X}_S)^{-1}{\bf X}_S^T {\bf y}.
 \]
 
-In practice we need to explore a sequence of subsets $S_1,\ldots,S_K$ and choose an optimal subset by either a re-sampling approach or by using an information criteria (see Section \@ref(model-selection)). There are a number of different strategies available. *Best subsets regression* consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are *backward stepwise* regression which starts with the full model and sequentially deletes covariates, whereas *forward stepwise* regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
+In practice we need to explore a sequence of subsets $S_1,\ldots,S_M$ and choose an optimal subset by either a re-sampling approach or by using an information criterion (see Section \@ref(model-selection)). There are a number of different strategies available. *Best subsets regression* consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are *backward stepwise* regression which starts with the full model and sequentially deletes covariates, whereas *forward stepwise* regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
 
 In `R` we can use `regsubsets` from the `leaps` package or `stepAIC` from the `MASS` package to perform subset- and stepwise regression. For example to perform forward stepwise regression based on AIC we proceed as follows.
 
@@ -127,9 +127,9 @@ kable(broom::tidy(fit.fw),digits=3)
 ## Ridge Regression
 
 Subset selection as outlined above works by either including or
-excluding covariates, i.e. contrain specific regression coefficients to be zero.
+excluding covariates, i.e. constrain specific regression coefficients to be zero.
 
-An alternative is *Ridge Regression*, which constrains (or regularizes) the optimization problem by shrinking regression coefficients towards zero. This discourages complex models because
+An alternative is *Ridge regression*, which regularizes the optimization problem by shrinking regression coefficients towards zero. This discourages complex models because
 models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem
 
 \begin{align*}
@@ -145,13 +145,13 @@ minimized over those $\beta$’s that "live" inside the constraint.
 knitr::include_graphics("ridge_geometry.JPG")
 ```
 
-Alternatively, ridge regression can be cast as the optimization of the penalised residual sum of squares with a *penalty* on the magnitude of the coefficients, i.e. 
+Alternatively, Ridge regression can be cast as the optimization of the penalised residual sum of squares with a *penalty* on the magnitude of the coefficients, i.e. 
 
 \begin{align*}
 \hat{\beta}^{\rm Ridge}_{\lambda}&=\text{arg}\min\limits_{\beta}\rm{RSS}(\beta)+\lambda\|\beta\|^2_2.
 \end{align*}
 
-Both formulations are equivalent in the sense that there is a one-to-one relationship between the tuning parameters $c$ and $\lambda$. We will use more often the latter "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that with no penalization, $\lambda=0$, ridge regression coincides with OLS. Increasing $\lambda$ has the effect of shrinking the regression coefficients to zero. 
+Both formulations are equivalent in the sense that there is a one-to-one relationship between the tuning parameters $c$ and $\lambda$. We will use more often the latter "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that with no penalization, $\lambda=0$, Ridge regression coincides with OLS. Increasing $\lambda$ has the effect of shrinking the regression coefficients to zero. 
 
 The Ridge optimization problem has the closed form solution (see exercises)
 
@@ -161,7 +161,7 @@ The Ridge optimization problem has the closed form solution (see exercises)
 
 Note that for $\lambda>0$ the matrix ${\bf X}^T {\bf X}+\lambda \bf I$ has always full rank and therefore Ridge regression is well defined even in the high-dimensional context (in contrast to OLS).
 
-Ridge regression is implemented in the package `glmnet`. We can call 
+Ridge regression is implemented in the package `glmnet`. We use `alpha=0` and can call 
 
 ```{r}
 fit.ridge.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=0) 
@@ -171,10 +171,15 @@ plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
 
 ### Choice of penalty parameter
 
-In subset- and stepwise regression we had to identify an optimal subset. Similarly, for Ridge regression we need to select the tuning parameter $\lambda$. We proceed by choosing a grid values $0<\lambda_1<\lambda_2<\ldots<\lambda_K<\infty$ and proceed as explained in Section \@ref(model-selection), that is we choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation using the command `cv.glmnet`.
+In subset- and stepwise regression we had to identify the optimal subset. Similarly, for Ridge regression model selection consists of selecting the tuning parameter $\lambda$. We proceed by choosing a grid of values $0<\lambda_1<\lambda_2<\ldots<\lambda_M<\infty$ and proceed as explained in Section \@ref(model-selection), that is we choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation using the command `cv.glmnet`.
 
 ```{r warning=FALSE}
 cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0) 
+```
+
+The next plot shows the cross-validation error with upper and lower standard deviations as a function of the lambda values (note the log scale for the lambdas).  
+
+```{r}
 plot(cv.ridge.glmnet)
 ```
 
@@ -191,7 +196,7 @@ cv.ridge.glmnet$lambda.1se
 
 ### Effective degrees of freedom
 
-Although Ridge regression involves all $p$ covariates the *effective degrees of freedom* is smaller than $p$ as we have imposed constraints through the penalty. In the book @elements it is shown that the effective degrees of freedom for Ridge regression, $\nu^{\rm ridge}_{\lambda}$, is given by
+Although Ridge regression involves all $p$ covariates the *effective degrees of freedom* are smaller than $p$ as we have imposed constraints through the penalty. In the book @elements it is shown that the effective degrees of freedom for Ridge regression, $\nu^{\rm ridge}_{\lambda}$, are given by
 
 \[\nu^{\rm ridge}_{\lambda}=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
 where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
@@ -201,19 +206,19 @@ where $d_1,\ldots,d_p$ are the singular values of $\bf X$.
 fit.svd <- svd(xtrain) #fit.svd$d
 
 # ridge degree of freedom for lambdaopt
-df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.1se))
+df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.min))
 df_lambdaopt
 ```
 
 ### Shrinkage property
 
-In Section \@ref(collinearity) we have seen that in presence of collinearity the OLS estimator becomes unstable (high variance) and that this poses a challenge especially in high-dimensions. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
+The OLS estimator becomes unstable (high variance) in presence of collinearity. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
 
 For OLS the vector of fitted values ${\bf \hat y}^{\rm OLS}$ is the orthogonal projection of ${\bf y}$ onto the column space of $\bf X$. In terms of normalized principle components we have
 
 \[{\bf\hat y}^{\rm OLS}=\sum_{j=1}^{p}{\bf u}_j {\bf u}_j^T {\bf y}.\]
 
-Similarly, we can represent the Ridge projection as
+Similarly, we can represent the fitted values from Ridge regression as
 
 \[{\bf\hat y}^{\rm Ridge}=\sum_{j=1}^{p}{\bf u}_j \frac{d_j^2}{d_j^2+\lambda}{\bf u}_j^T {\bf y}.\]
 
@@ -257,7 +262,7 @@ The most simple approximation is a straight horizontal line (shown in blue; note
 ```{r echo=FALSE}
 const <- mean(y)
 plot(x, y)
-abline(h=const, lty = 2, col = "blue",lwd=3)
+abline(h=const, lty = 1, col = "blue",lwd=3)
 lines(x, fx, lwd = 2)
 legend("topright", legend = "f(x)", lty = 1, lwd = 2, bty = "n")
 ```
@@ -278,11 +283,13 @@ names(Hc) <- paste("hc", 1:3, sep="")
 fit.pwc <- lm(y~.,data=Hc)
 plot(x, y)
 lines(x, fx, lwd = 2)
-lines(x, predict(fit.pwc), lty = 2, col = "blue",lwd=3)
+lines(x[x<xi[1]], predict(fit.pwc)[x<xi[1]], lty = 1, col = "blue",lwd=3)
+lines(x[x>xi[1]&x<xi[2]], predict(fit.pwc)[x>xi[1]&x<xi[2]], lty = 1, col = "blue",lwd=3)
+lines(x[x>xi[2]], predict(fit.pwc)[x>xi[2]], lty = 1, col = "blue",lwd=3)
 #abline(v=1/3,col="white",lwd=6);abline(v=2/3,col="white",lwd=6)
 ```
 
-Finally, we use a piecewise linear function. The approximation improves.
+Finally, we use a piecewise linear function.
 
 ```{r echo=FALSE}
 Hl <- cbind(Hc, hc1(x)*x, hc2(x)*x, hc3(x)*x)
@@ -290,11 +297,13 @@ names(Hl)[4:6] <- paste("hl", 1:3, sep="")
 fit.pwl <- lm(y~., data=Hl)
 plot(x, y)
 lines(x, fx, lwd = 2)
-lines(x, predict(fit.pwl), lty = 2, col = "blue",lwd=3)
+lines(x[x<xi[1]], predict(fit.pwl)[x<xi[1]], lty = 1, col = "blue",lwd=3)
+lines(x[x>xi[1]&x<xi[2]], predict(fit.pwl)[x>xi[1]&x<xi[2]], lty = 1, col = "blue",lwd=3)
+lines(x[x>xi[2]], predict(fit.pwl)[x>xi[2]], lty = 1, col = "blue",lwd=3)
 ```
 
 
-The approximation improves. Nevertheless it would be nice if the different line segments would line up better. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We assume that $f$ can be expressed by a set of basis functions 
+The approximation improves. Nevertheless it would be nice if the different line segments would line up. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We assume that $f$ can be expressed by a set of basis functions 
 
 $$ f(X)=\sum_{m=1}^{p}\beta_m B_m(X).$$
 For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$, the design matrix consists of $p=K+d+1$ features and we quickly run into issues due to overfitting. In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
@@ -320,12 +329,12 @@ lines(x, fx, lwd = 2)
 lines(x, predict(fit.csp), lty = 2, col = "violet",lwd=3)
 ```
 
-An alternative approach are so-called *smoothing splines*, where we take $p=n$ and the $B_m(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_m$ cannot be estimated using OLS as the number $p$ of basis function (columns of the design matrix) equals the number of observations $n$. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients $\beta_j$, i.e.
+An alternative approach are so-called *smoothing splines*, where we take $p=n$ and the $B_m(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_m$ cannot be estimated using OLS as the number $p$ of basis functions (columns of the design matrix) equals the number of observations $n$. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients $\beta_j$, i.e.
 
 \[\hat{\beta}_{\lambda}=\text{arg}\min\limits_{\beta}\;\|\bf y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
 
 where $\bf B$ is the design matrix with $jth$ column $(B_j(x_1),\ldots,B_j(x_n))^T$. In practice we can fit 
-smoothing spline using the function `smooth.spline`. The penalty term is specified by setting the effective degrees of freedom $\nu$ or by selecting $\lambda$ using cross-validation (see Section \@ref(choice-of-penalty-parameter)).
+smoothing splines using the function `smooth.spline`. The penalty term is specified by setting the effective degrees of freedom $\nu$ or by selecting $\lambda$ using cross-validation (see Section \@ref(choice-of-penalty-parameter)).
 
 
 ```{r, eval=FALSE,include=FALSE}
@@ -369,23 +378,23 @@ fit.smsp.cv$df
 
 ## Lasso Regression
 
-We have discussed Ridge Regression and discussed its properties. Although Ridge Regression can deal with high-dimensional data a disadvantage compared to Subset-/Stepwise Regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging. 
+We have discussed Ridge regression and discussed its properties. Although Ridge regression can deal with high-dimensional data a disadvantage compared to subset- and stepwise regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging. 
 
-In Ridge Regression we minimize $\rm RSS(\beta)$ given constraints on the so-called *L2-norm* of the regression coefficients
+In Ridge regression we minimize $\rm RSS(\beta)$ given constraints on the so-called *L2-norm* of the regression coefficients
 
 \[\|\beta\|^2_2=\sum_{j=1}^p \beta^2_j \leq c.\] 
 
-Another very popular approach in high-dimensional statistics is *Lasso Regression*. The Lasso works very similarly. The only difference is that constraints are imposed on the *L1-norm* of the coefficients
+Another very popular approach in high-dimensional statistics is *Lasso regression* (Lasso=least absolute shrinkage and selection operator). The Lasso works very similarly. The only difference is that constraints are imposed on the *L1-norm* of the coefficients
 
 \[\|\beta\|_1=\sum_{j=1}^p |\beta_j| \leq c.\]
 
-Therefore the Lasso is referred to as L1 regularization (penalization). The change in the form of the constraints (L2 vs L1) has important implications. Figure \@ref(fig:lassogeom) illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with "corners" (the Ridge constraint is a circle). If the sum of squares "hits" one of these corners then the coefficient corresponding to the axis is shrunk to zero. As $p$ increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the "diamond" geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).
+Therefore the Lasso is referred to as L1 regularization. The change in the form of the constraints (L2 vs L1) has important implications. Figure \@ref(fig:lassogeom) illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with "corners" (the Ridge constraint is a circle). If the sum of squares "hits" one of these corners then the coefficient corresponding to the axis is shrunk to zero. As $p$ increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the "diamond" geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).
 
-```{r lassogeom,echo=FALSE,out.width="80%",fig.cap="Geometry of Lasso Regression."}
+```{r lassogeom,echo=FALSE,out.width="80%",fig.cap="Geometry of Lasso regression."}
 knitr::include_graphics("lasso_geometry.JPG")
 ```
 
-Similar to Ridge Regression the Lasso can be formulated as a penalisation problem
+Similar to Ridge regression the Lasso can be formulated as a penalisation problem
 
 \begin{align*}
 \hat{\beta}^{\rm Lasso}_{\lambda}&=\text{arg}\min\limits_{\beta}\;\rm{RSS}(\beta)+\lambda\|\beta\|_1.
@@ -397,7 +406,7 @@ To fit the Lasso we use `glmnet` (with $\alpha=1$).
 fit.lasso.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=1) 
 ```
 
-The following Figure shows the Lasso solution for a grid of $\lambda$ values. We note that the Lasso shrinks some coefficients to exactly zero.
+The following figure shows the Lasso solution for a grid of $\lambda$ values. We note that the Lasso shrinks some coefficients to exactly zero.
 
 ```{r}
 plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
@@ -423,7 +432,7 @@ We now discuss some properties of the Lasso.
 
 ### Numerical optimization and soft thresholding
 
-In general there is no closed-form solution for the Lasso. The optimization has to be performed numerically. An efficient algorithm is implemented in `glmnet` and is referred to as "Pathwise Coordinate Optimization". The algorithm updates one regression coefficient at a time using the so-called soft-thresholding function. This is done iteratively until some convergence criteria is met.
+In general there is no closed-form solution for the Lasso. The optimization has to be performed numerically. An efficient algorithm is implemented in `glmnet` and is referred to as "Pathwise Coordinate Optimization". The algorithm updates one regression coefficient at a time using the so-called soft-thresholding function. This is done iteratively until some convergence criterion is met.
 
 An exception is the case with an orthonormal design matrix $\bf X$, i.e. $\bf X^T\bf X=\bf I$. Under this assumption we have
 
@@ -449,7 +458,7 @@ In the exercises we will show that the solution is
 \end{align*}
 
 
-That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next Figure, is referred to as *soft-thresholding*.
+That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next figure, is referred to as *soft-thresholding*.
 
 ```{r, echo=FALSE}
 softthreshold <- function(x,lambda=1){
@@ -462,8 +471,7 @@ The soft-thresholding function is not only used for numerical optimization of th
 
 ### Variable selection
 
-The Lasso does not only shrink coefficients to zero but also performs variable selection and therefore 
-leads to more interpretabel models. For the Lasso we can define the set of selected variables
+We have seen that the Lasso simultaneously shrinks coefficients and sets some of them to zero. Therefore the Lasso performs variable selection which leads to more interpretabel models (compared to Ridge regression). For the Lasso we can define the set of selected variables
 
 $$\hat S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}\neq 0\}$$
 
@@ -474,24 +482,24 @@ Shat <- rownames(beta.lasso)[which(beta.lasso != 0)]
 Shat
 ```
 
-An interesting question is whether the Lasso does a good job in variable selection. That is, does $\hat S^{\rm Lasso}_{\lambda}$ tend to agree with the true set of active variables $S_0$? Or, does the Lasso typically under- or overselect covariates? These questions are an active field of statistical research. 
+An interesting question is whether the Lasso does a good or bad job in variable selection. That is, does $\hat S^{\rm Lasso}_{\lambda}$ tend to agree with the true set of active variables $S_0$? Or, does the Lasso typically under- or over-select covariates? These questions are an active field of statistical research. 
 
-### Elastic Net Regression
+### Elasticnet Regression
 
-We have encountered the L1 and L2 penalty. The Lasso penalty
-has the nice property that it leads to sparse solutions, i.e. it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge penalty, on the other hand, tends
-to shrink the coefficients of correlated variables toward each other. An attempt to take the best of both worlds is the *Elastic Net* penalty which has the form 
+We have encountered the L1 and L2 penalty. The Lasso (L1) penalty
+has the nice property that it leads to sparse solutions, i.e. it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge (L2) penalty, on the other hand, tends
+to shrink the coefficients of correlated variables toward each other. An attempt to take the best of both worlds is the *elastic net* penalty which has the form 
 
 \[\lambda \Big(\alpha \|\beta\|_1+(1-\alpha)\|\beta\|_2^2\Big).\]
 
 The second term encourages highly correlated features to be averaged, while
 the first term encourages a sparse solution in the coefficients of these averaged features.
 
-In `glmnet` the Elastic Net Regression is implemented using the mixing parameter $\alpha$. The default is $\alpha=1$, i.e. the Lasso.
+In `glmnet` the elastic net regression is implemented using the mixing parameter $\alpha$. The default is $\alpha=1$, i.e. the Lasso.
 
 ## Diabetes example
 
-We now review what we have learned with an example.The data which we consider consist of
+We now review what we have learned with an example. The data that we consider consist of
 observations on 442 patients, with the response of interest being a quantitative
 measure of disease progression one year after baseline. There are ten baseline
 variables — age, sex, body-mass index, average blood pressure, and six blood
@@ -515,7 +523,7 @@ xtest <- as.matrix(data_test[,-1])
 ytest <- data_test[,1]
 ```
 
-We perform Forward Stepwise Regression.
+We perform forward stepwise regression.
 
 ```{r}
 # Forward regression
@@ -545,7 +553,7 @@ The regression coefficients and the corresponding statistics of the AIC-optimal 
 kable(broom::tidy(fit.fw),digits=2)
 ```
 
-We continue by fitting Ridge Regression. We show the trace plot and the cross-validation plot.
+We continue by fitting Ridge regression. We show the trace plot and the cross-validation plot.
 
 ```{r}
 # Ridge
@@ -556,7 +564,7 @@ plot(fit.ridge,xvar="lambda")
 plot(fit.ridge.cv)
 ```
 
-Finally, we run the Lasso approach and show trace and cross-validation plots.
+Finally, we run the Lasso approach and show the trace and the cross-validation plots.
 
 ```{r}
 # Lasso

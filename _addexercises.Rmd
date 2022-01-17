@@ -275,3 +275,37 @@ max(fit.lasso$lambda)
 max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
 ```
 
+
+
+```{r, eval=FALSE, include=FALSE}
+set.seed(1)
+spam <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data")
+colnames(spam)[58] <- "spam"
+spam$spam <- factor(spam$spam)
+# b) Fit a random Forest (library(randomForest)) with the default settings. 
+
+library(randomForest)
+set.seed(123)
+system.time(rf.spam <- randomForest(spam ~ ., data = spam)) # about 17 sec
+plot(rf.spam)
+
+
+
+# c) Plot the error rate vs. the number of fitted trees. How many trees are necessary? Refit the model with the chosen number of trees. How long does it take now?
+
+plot(rf.spam)# Choose no more than 100 trees.
+set.seed(123)
+system.time(rf.spam <- randomForest(spam ~ ., data = spam, ntree = 100)) # about 3 sec
+rf.spam
+
+set.seed(123)
+idx <- sample(1:nrow(spam), 2601)
+dTrain <- spam[idx,]
+dTest <- spam[-idx,]
+rf.train <- randomForest(spam ~ ., data = dTrain, ntree = 100)
+rf.train ## OOB error: 5.04%
+pred.rf <- predict(rf.train, newdata = dTest)
+mean(pred.rf != dTest$spam) ## Test error: 5.4%
+
+```
+
