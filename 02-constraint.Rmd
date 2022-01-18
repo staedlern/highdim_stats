@@ -510,8 +510,7 @@ which covariates were important factors in disease progression.
 We start by splitting the data into training and test data.
 
 ```{r}
-library(lars) # lars package contains the diabetes data
-data("diabetes")
+diabetes <- readRDS(file="data/diabetes.rds")
 data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
 colnames(data) <- gsub(":",".",colnames(data))
 train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
@@ -614,6 +613,7 @@ res.coef.l%>%
 
 
 ```{r, eval=FALSE,echo=FALSE}
+library(lars)
 data("diabetes")
 x <- diabetes$x #mean=0, L2 norm=1
 xs <- scale(diabetes$x) #mean=0, var=1
@@ -627,10 +627,10 @@ fit <- glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
 plot(fit,xvar="norm",label=TRUE) # Fig 6.2 in SLS
 fit.cv <- cv.glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
 plot(fit.cv) # Fig 6.5
-
 ```
 
 ```{r, eval=FALSE,echo=FALSE}
+library(lars)
 data("diabetes")
 dat <- read.csv("data/diabetes_raw.csv")
 colnames(dat) <- c("age","sex","bmi","map","tc","ldl","hdl","tch","ltg","glu","y")

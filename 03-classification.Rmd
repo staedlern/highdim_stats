@@ -134,8 +134,7 @@ We now turn to a truly high-dimensional example. The data consists of expression
 set.seed(15)
 
 # get leukemia data
-library(varbvs) # varbvs package contains the leukemia data
-data(leukemia)
+leukemia <- readRDS(file="data/leukemia.rds")
 x <- leukemia$x
 y <- leukemia$y
 
@@ -145,10 +144,6 @@ xtrain <- x[ind_train,]
 ytrain <- y[ind_train]
 xtest <- x[-ind_train,]
 ytest <- y[-ind_train]
-```
-
-```{r eval=FALSE, include=FALSE}
-saveRDS(leukemia,file="data/leukemia.rds")
 ```
 
 The following heatmap illustrates the gene expression values for the different patients.
@@ -239,6 +234,9 @@ Classification is a frequent task in data mining and besides logistic regression
 # load packages
 library(rpart)
 library(rpart.plot)
+
+# read south african heart disease data
+dat <- readRDS(file="data/sahd.rds")
 
 # grow a classification tree
 fit.tree <- rpart(chd~.,data=dat,method="class")

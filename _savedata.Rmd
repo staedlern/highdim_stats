@@ -1,0 +1,81 @@
+---
+title: "Save external datasets in /data folder"
+author: "Nicolas Städler"
+date: "1/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Diabetes data.
+
+```{r}
+library(lars) # lars package contains the diabetes data
+data("diabetes")
+saveRDS(diabetes,file="data/diabetes.rds")
+```
+
+South African heart disease data.
+
+```{r}
+sahd <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
+vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
+sahd <- sahd[,vars]
+sahd$famhist <- factor(sahd$famhist)
+saveRDS(sahd,file="data/sahd.rds")
+```
+
+
+Leukemia data.
+
+```{r}
+library(varbvs) # varbvs package contains the leukemia data
+data(leukemia)
+saveRDS(leukemia,file="data/leukemia.rds")
+```
+
+## Lymphoma dataset
+
+The Lymphoma data was downloaded from  http://web.stanford.edu/~hastie/StatLearnSparsity/data.html.
+
+## Prostate Cancer dataset
+
+The Prostate Cancer data was downloaded from https://web.stanford.edu/~hastie/ElemStatLearn/datasets.
+
+## Riboflavin dataset
+
+```{r}
+library(hdi) # hdi package contains the riboflavin data
+data(riboflavin)
+saveRDS(riboflavin,file="data/riboflavin.rds")
+```
+
+
+## Phoneme dataset
+
+```{r include=FALSE,eval=FALSE}
+# https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
+# https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
+# https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
+phoneme <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
+saveRDS(phoneme,file="data/phoneme.rds")
+```
+
+## Sonar dataset
+
+```{r}
+library(mlbench) # mlbench package contains the sonar data
+data(Sonar)
+saveRDS(Sonar,file="data/sonar.rds")
+```
+
+## Spam dataset
+
+```{r}
+spam <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data")
+saveRDS(spam,file="data/spam.rds")
+```
+

@@ -52,7 +52,7 @@ knitr::include_graphics("ridge_map.JPG")
 
 Explore the prostate cancer data set described in the book @elements.
 
-1. Download the prostate cancer data set from the webpage https://web.stanford.edu/~hastie/ElemStatLearn/datasets. 
+1. Read the prostate cancer data set. 
 2. Run OLS, Best Subset selection (use the `leaps` package), Ridge Regression and Lasso Regression. 
 3. Print the coefficients as a table.
 4. Calculate for each method the Test error and compare the results with Table 3.3. in @elements. 
@@ -168,7 +168,7 @@ The Solution to this exercise. We first load the data and check the data structu
 ```{r}
 library(hdi)
 library(glmnet)
-data(riboflavin)
+riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
 ```
 Next we setup the design matrix and the response variable and we run the Lasso.
@@ -227,14 +227,6 @@ We explore the logistic regression based on the South African heart disease data
 4. Fit a logistic regression model using four natural cubic spline bases for each term in the model. Run backward selection and summarise the final model. Plot the natural cubic spline functions for the age term (use `termplot`). What does the plot tell you?
 
 The solution to this exercise.
-
-```{r, include=FALSE, eval=FALSE}
-sahd <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1)
-vars <- c("chd","sbp","tobacco","ldl","famhist","obesity","alcohol","age")
-sahd <- sahd[,vars]
-sahd$famhist <- factor(sahd$famhist)
-saveRDS(sahd,file="data/sahd.rds")
-```
 
 We load the data and fit a logistic regression with age as the covariate.
 ```{r}
@@ -443,14 +435,9 @@ Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regressi
 
 The solution to this exercise. We prepare the data set.
 
-```{r include=FALSE,eval=FALSE}
-# https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb
-# https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R
-# https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf
-phoneme <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data")
-saveRDS(phoneme,file="data/phoneme.rds")
-```
-
+ <!-- https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb -->
+ <!-- https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R -->
+ <!-- https://waxworksmath.com/Authors/G_M/Hastie/WriteUp/Weatherwax_Epstein_Hastie_Solution_Manual.pdf -->
 
 ```{r}
 library(splines)
@@ -565,22 +552,21 @@ In this exercise we explore the Sonar data set from the *mlbench* package. We us
 The solution to this exercise. We explore the Sonar data set from the `mlbench` package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into training and test data.
 
 ```{r}
-library(mlbench)
-data(Sonar)
+sonar <- readRDS(file="data/sonar.rds")
 
 set.seed(107)
 inTrain <- createDataPartition(
-  y = Sonar$Class,
+  y = sonar$Class,
   ## the outcome data are needed
   p = .5,
   ## The percentage of data in the
   ## training set
   list = FALSE
 )
-dtrain <- Sonar[ inTrain,]
+dtrain <- sonar[ inTrain,]
 xtrain <- as.matrix(dtrain[,-61])
 ytrain <- dtrain$Class
-dtest  <- Sonar[-inTrain,]
+dtest  <- sonar[-inTrain,]
 xtest <- as.matrix(dtest[,-61])
 ytest <- dtest$Class
 ```

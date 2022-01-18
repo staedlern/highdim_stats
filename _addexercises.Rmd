@@ -18,10 +18,10 @@ library(tidyverse)
 We start by splitting the data set into two halves.
 
 ```{r}
-library(hdi)
 library(multcomp)
-data(riboflavin)
+riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
+
 x <- riboflavin$x
 colnames(x) <- make.names(colnames(x))
 y <- riboflavin$y
@@ -279,7 +279,7 @@ max(abs(t(xtrain)%*%ytrain))/nrow(xtrain)
 
 ```{r, eval=FALSE, include=FALSE}
 set.seed(1)
-spam <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data")
+spam <- readRDS(file="data/spam.rds")
 colnames(spam)[58] <- "spam"
 spam$spam <- factor(spam$spam)
 # b) Fit a random Forest (library(randomForest)) with the default settings. 
