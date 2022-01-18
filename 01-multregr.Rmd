@@ -1,4 +1,4 @@
-# Multiple linear regression
+# Multiple Linear Regression
 
 ```{r include=FALSE}
 library(gridExtra)
@@ -9,7 +9,7 @@ library(caret)
 
 In this chapter we will review multiple linear regression and in particular the Ordinary Least Squares (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$.
 
-## Remarks on notation
+## Notation
 
 We will typically denote the covariates by the symbol $X$. If $X$ is a vector, its components can be accessed
 by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence the $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.

@@ -1,5 +1,5 @@
 --- 
-title: "High-dimensional statistics"
+title: "High-Dimensional Statistics"
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site

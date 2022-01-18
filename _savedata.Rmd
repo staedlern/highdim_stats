@@ -79,3 +79,23 @@ spam <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/s
 saveRDS(spam,file="data/spam.rds")
 ```
 
+
+## Mouse strains gene expression data
+
+```{r}
+# create subset of maPooling with only biological replicates
+library(Biobase)
+library(maPooling)
+data(maPooling) ##this loads the three tables
+pd <- pData(maPooling)
+individuals <- which(rowSums(pd)==1)
+individuals <- individuals[-grep("tr",names(individuals))] #rm technical replicates
+g <- factor(as.numeric(grepl("b",names(individuals))))
+levels(g) <- c("A","B")
+
+ex <- exprs(maPooling)[,individuals]
+esetmouse <- ExpressionSet(ex)
+esetmouse$strain <- g
+saveRDS(esetmouse,file="data/esetmouse.rds")
+```
+
