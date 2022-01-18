@@ -192,7 +192,7 @@ We end this section with the helpful **_10:1 rule:_**
 
 > In order to avoid overfitting the number of predictors (or covariates) **p should be less than n/10**. This rule can be extended to binary and time-to-event endpoints. For binary endpoints we replace $n$ with $\min\{n_0,n_1\}$ and for time-to-event with $n_{\rm events}$.
 
-## Generalization error
+## Generalization Error
 
 The ultimative goal of a good model is to make good predictions for the future. That is we need to assess how the fitted model generalizes beyond the "observed" data. Conceptually, given new input data $x_{\rm new}$, the model provides a prediction $\hat{Y}=\hat{f}(x_{\rm new})$. The *Generalization Error* is the expected discrepancy between the prediction $\hat{Y}$ and the actual outcome $Y_{\rm new}$
 
@@ -279,4 +279,4 @@ rownames(rmse) <- "RMSE"
 kable(rmse,digits=2)
 ```
 
-The models with $p=1$ and $4$ achieve a good error close to the "irreducible" $\sigma_{\epsilon}$. On the other hand the predictions obtained with $p=8$ and $15$ are very poor (RMSE 6 to 8-fold larger).
+The models with $p=1$ and $4$ achieve a good error close to the "irreducible" $\sigma_{\epsilon}$. On the other hand the predictions obtained with $p=8$ and $15$ are very poor (RMSEs are 6 to 8-fold larger).

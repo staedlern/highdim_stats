@@ -1,4 +1,4 @@
-# High-dimensional Feature Assessment
+# High-Dimensional Feature Assessment
 
 ```{r include=FALSE}
 library(Biobase)

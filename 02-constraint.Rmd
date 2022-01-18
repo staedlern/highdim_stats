@@ -305,8 +305,8 @@ lines(x[x>xi[2]], predict(fit.pwl)[x>xi[2]], lty = 1, col = "blue",lwd=3)
 
 The approximation improves. Nevertheless it would be nice if the different line segments would line up. What we need are piecewise polynomials which are "smooth" at the knots. Such functions are called "splines". We assume that $f$ can be expressed by a set of basis functions 
 
-$$ f(X)=\sum_{m=1}^{p}\beta_m B_m(X).$$
-For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_m(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$, the design matrix consists of $p=K+d+1$ features and we quickly run into issues due to overfitting. In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_m(x)$ as follows.
+$$ f(X)=\sum_{j=1}^{p}\beta_j B_j(X).$$
+For example for a cubic spline with $K$ fixed knots and fixed polynomial degree $d=3$ ("cubic") we have $p=K+d+1$ and the $B_j(x)$'s form a B-spline basis (one could also use the truncated-power basis). The coefficients $\beta_m$ are estimated using OLS. Although we have only one single variable $X$, the design matrix consists of $p=K+d+1$ features and we quickly run into issues due to overfitting. In `R` we obtain a B-spline basis with `bs` and we can plot the basis functions $B_j(x)$ as follows.
 
 ```{r}
 spl <- bs(x,df=10) # cubic spline with p=10 degrees of freedom
@@ -315,7 +315,7 @@ plot(spl[,1]~x, ylim=c(0,max(spl)), type='l', lwd=2, col=1,
 for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
 ```
 
-The estimated coefficients $\hat \beta_m$ are obtain using `lm`.
+The estimated coefficients $\hat \beta_j$ are obtain using `lm`.
 ```{r}
 fit.csp <- lm(y~spl)
 #fit.csp <- lm(y~bs(x,df=10))
@@ -329,7 +329,7 @@ lines(x, fx, lwd = 2)
 lines(x, predict(fit.csp), lty = 2, col = "violet",lwd=3)
 ```
 
-An alternative approach are so-called *smoothing splines*, where we take $p=n$ and the $B_m(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_m$ cannot be estimated using OLS as the number $p$ of basis functions (columns of the design matrix) equals the number of observations $n$. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients $\beta_j$, i.e.
+An alternative approach are so-called *smoothing splines*, where we take $p=n$ and the $B_j(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_j$ cannot be estimated using OLS as the number $p$ of basis functions (columns of the design matrix) equals the number of observations $n$. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients $\beta_j$, i.e.
 
 \[\hat{\beta}_{\lambda}=\text{arg}\min\limits_{\beta}\;\|\bf y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
 
