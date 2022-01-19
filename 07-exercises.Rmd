@@ -1,4 +1,6 @@
-# Appendix 1: Exercises
+# (APPENDIX) Appendix {-} 
+
+# Exercises
 
 ```{r, include=FALSE, warning=FALSE}
 library(knitr)
