@@ -15,7 +15,7 @@ description: "Script for the course on High-Dimensional Statistics of the CAS in
 # Introduction
 
 This script was written for the course on *High-Dimensional Statistics* of the CAS in Advanced Statistical Data Science (CAS ASDS) held at the University of Bern.
-Much of the content is based on the book from @elements. The course has a focus on applications using **R** [@R-base]. All data sets used throughout the script and the exercises can be downloaded from [github](https://github.com/staedlern/highdim_stats/tree/main/data).
+Much of the content is based on the book from @elements. The course has a focus on applications using **R** [@R-base]. All data sets used throughout the script can be downloaded from [github](https://github.com/staedlern/highdim_stats/tree/main/data).
 
 What is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:
 
@@ -31,7 +31,7 @@ In this script we distinguish between two typical tasks of high-dimensional stat
 knitr::include_graphics("twotasks.JPG")
 ```
 
-The script starts with the *multiple linear regression* model and the *least squares* estimator. We discuss the limitations of least squares in the $p>>n$ scenario, explain the challenge of *overfitting*, introduce the *generalization error* and elaborate on the *bias-variance dilemma*. We then discuss methods designed to overcome challenges in high dimensions. We start with *subset-* and *stepwise regression* and then discuss in more detail regularization methods, including *Ridge regression*, *Lasso regression* and *Elasticnet regression*. Next, we then turn our attention to binary endpoints. In particular we discuss regularization in the context of the *logistic regression* model. We then talk about *classification trees*, *Random Forest* and *AdaBoost*. We then move to *time-to-event endpoints* and show how to extend the previously introduced methods to *survival data*. We introduce the *Brier score* to assess the generalization error in the survival context. The last section is devoted to *high-dimensional feature assessment*. Based on a *differential gene expression* example we will discuss the issue of *multiple testing*, introduce methods for *p-value adjustment*, and finally we will touch upon *variance shrinkage*.
+The script starts with the *multiple linear regression* model and the *least squares* estimator. We discuss the limitations of least squares in the $p>>n$ scenario, explain the challenge of *overfitting*, introduce the *generalization error* and elaborate on the *bias-variance dilemma*. We then discuss methods designed to overcome challenges in high dimensions. We start with *subset-* and *stepwise regression* and then discuss in more detail regularization methods, including *Ridge regression*, *Lasso regression* and *Elasticnet regression*. Next, we turn our attention to binary endpoints. In particular we discuss regularization in the context of the *logistic regression* model. We then talk about *classification trees*, *Random Forest* and *AdaBoost*. We then move to *time-to-event endpoints* and show how to extend the previously introduced methods to *survival data*. We introduce the *Brier score* to assess the generalization error in the survival context. The last section is devoted to *high-dimensional feature assessment*. Based on a *differential gene expression* example we will discuss the issue of *multiple testing*, introduce methods for *p-value adjustment*, and finally we will touch upon *variance shrinkage*.
 
 
 ```{r include=FALSE}
