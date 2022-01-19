@@ -27,7 +27,7 @@ High-dimensional data are omnipresent and the approaches which we will discuss f
 
 In this script we distinguish between two typical tasks of high-dimensional statistics. The first task considers many explanatory variables $X_1,\ldots,X_p$ and one response variable $Y$. The goal is to predict the response and to identify the most relevant covariates. We refer to this task as *Prediction and Feature Selection*. The second task considers one (or few) explanatory variable $X$ and many response variables $Y_1, \ldots, Y_p$. The aim is to identify those variables which differ with respect to $X$ (e.g. treatment groups A vs B). We refer to this task as *Feature Assessment*.
 
-```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Two tasks in high-dimensional statistics. Prediction and feature selection (left graph) and feature assessment (right graph)."}
+```{r twotasks,echo=FALSE,out.width="90%",fig.cap="Prediction and feature selection (left graph) and feature assessment (right graph)."}
 knitr::include_graphics("twotasks.JPG")
 ```
 
