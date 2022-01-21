@@ -17,6 +17,133 @@ library(rpart)
 library(rpart.plot)
 ```
 
+
+## Prostate cancer data and linear regression
+
+Explore the prostate cancer data set described in the book @elements. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
+The aim is to investigate the relationship between the level of prostate-specific antigen (`lpsa`) and several clinical covariates. The covariates are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test set.
+
+1. Read the prostate cancer data set and make histogram for all variables.
+2. Create a scatterplot matrix of the prostate cancer data.
+3. Standardize the predictors to have unit variance and create divide the data into training and test sets. How many test/training samples do we have?
+4. Run a univariate regression model with `lcavol' as covariate. Study the `summary`. What is the interpretation of the coefficient? Produce a scatter plot of `lpsa` on `lcavol` and add the regression line with confidence band. Make a Tukey Anscombe plot and a QQ plot.
+5. Run a multiple regression model with using all covariates. Study the `summary`. What is the interpretation of the coefficient? Make a Tukey Anscombe plot and a QQ plot.
+6. Calculate the RSS for both models. Which model is better? 
+2. Split the data into training and test set. How many training and test samples do we have?
+
+
+Solution to the exercise.
+
+We read the data set.
+```{r}
+dat <- read.csv("data/prostate.csv")
+```
+
+Histogram of `lpsa`.
+```{r}
+hist(dat$lpsa)
+```
+Scatterplot matrix of the prostate cancer data.
+
+```{r}
+pairs(dat[,-10])
+```
+
+Standardize predictors and create training and test data.
+```{r}
+dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
+dtrain <- dat[dat$train,-10]
+dtest <- dat[!dat$train,-10]
+nrow(dtrain)
+nrow(dtest)
+```
+Univariate regression model.
+```{r}
+fit1 <- lm(lpsa~lcavol,data=dtrain)
+summary(fit1)
+```
+
+Scatter plot with regression line.
+
+```{r}
+dtrain%>%
+  ggplot(data=.,aes(x=lcavol,y=lpsa))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+Tukey Anscombe plot. The plot indicates that the residuals are independent and have mean 0 (no systemetic pattern).
+
+```{r}
+plot(fit1,which=1) # Tukey Anscombe plot
+```
+
+The QQ plot is used to check the normality assumption of the residuals. The residuals show slight tendency to be left-tailed.
+```{r}
+plot(fit1,which=2) # Tukey Anscombe plot
+hist(residuals(fit1))
+```
+
+
+The QQ plot. This plot can be used to checks the normality assumption of the residuals. In this case it 
+
+
+Multiple regression model
+```{r}
+fit2 <- lm(lpsa~.,data=dtrain)
+summary(fit2)
+plot(fit2,which=1)
+plot(fit2,which=2)
+```
+We calculate the RSS.
+
+```{r}
+sum(residuals(fit1)^2)
+sum(residuals(fit2)^2)
+```
+Make a scatter plot of fitted vs observed.
+
+```{r}
+plot(predict(fit1),dtrain$lpsa)
+RMSE(dtrain$lpsa,predict(fit1))
+plot(predict(fit2),dtrain$lpsa)
+RMSE(dtrain$lpsa,predict(fit2))
+summary(lm(dtrain$lpsa~predict(fit1)))
+summary(lm(dtrain$lpsa~predict(fit2)))
+```
+
+Calculate the RMSE on test data.
+
+```{r}
+RMSE(dtest$lpsa,predict(fit1,newdata=dtest))
+RMSE(dtest$lpsa,predict(fit2,newdata=dtest))
+```
+
+Calibration plot for model 1.
+
+```{r}
+dd <- data.frame(pred=predict(fit1,newdata=dtest),obs=dtest$lpsa)
+dd%>%
+  ggplot(.,aes(x=pred,y=obs))+
+  geom_point()+
+  geom_smooth(se=FALSE)+
+  geom_abline(slope=1,intercept=0)+
+  theme_bw()
+summary(lm(obs~pred,data=dd))
+```
+Calibration plot for model 2.
+```{r}
+dd <- data.frame(pred=predict(fit2,newdata=dtest),obs=dtest$lpsa)
+dd%>%
+  ggplot(.,aes(x=pred,y=obs))+
+  geom_point()+
+  geom_smooth(se=FALSE)+
+  geom_abline(slope=1,intercept=0)+
+  theme_bw()
+
+summary(lm(obs~pred,data=dd))
+```
+
+
 ## Closed form solution for Ridge regression
 Show that the Ridge optimization problem has the closed form solution 
 
@@ -52,9 +179,10 @@ knitr::include_graphics("ridge_map.JPG")
 
 ## Prostate Cancer data
 
-Explore the prostate cancer data set described in the book @elements.
+Explore the prostate cancer data set described in the book @elements. The data is available from [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
+The variables are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test set.
 
-1. Read the prostate cancer data set. 
+1. Read the prostate cancer data set.
 2. Run OLS, Best Subset selection (use the `leaps` package), Ridge Regression and Lasso Regression. 
 3. Print the coefficients as a table.
 4. Calculate for each method the Test error and compare the results with Table 3.3. in @elements. 
