@@ -20,16 +20,29 @@ library(rpart.plot)
 
 ## Prostate cancer data and linear regression
 
-Explore the prostate cancer data set described in the book @elements. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
+We explore the prostate cancer data set described in the book @elements. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
 The aim is to investigate the relationship between the level of prostate-specific antigen (`lpsa`) and several clinical covariates. The covariates are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test set.
 
-1. Read the prostate cancer data set and make histogram for all variables.
-2. Create a scatterplot matrix of the prostate cancer data.
-3. Standardize the predictors to have unit variance and create divide the data into training and test sets. How many test/training samples do we have?
-4. Run a univariate regression model with `lcavol' as covariate. Study the `summary`. What is the interpretation of the coefficient? Produce a scatter plot of `lpsa` on `lcavol` and add the regression line with confidence band. Make a Tukey Anscombe plot and a QQ plot.
-5. Run a multiple regression model with using all covariates. Study the `summary`. What is the interpretation of the coefficient? Make a Tukey Anscombe plot and a QQ plot.
-6. Calculate the RSS for both models. Which model is better? 
-2. Split the data into training and test set. How many training and test samples do we have?
+1. Read the prostate cancer data set and make a histogram for the response variable `lpsa`.
+2. Create a scatterplot matrix for all variables of the prostate cancer data. Use `pairs` or `ggpairs`.
+3. Standardize the predictors to have unit variance and divide the data into training and test sets (see variable `train`). How many test and training samples do we have?
+4. Run a univariate regression model with `lcavol' as covariate. Study the `summary` output. 
+
+   - What do you interpret the regression coefficients for `lcavol`?
+   - Explain the  *Multiple R-squared*? 
+   - What is the *Residual standard error*?
+   - Generate a scatter plot of `lpsa` on `lcavol` and add the regression line with confidence band (use `geom_smooth`, `method="lm"`). 
+   - Draw the Tukey Anscombe plot and the QQ plot (`?plot.lm`). What are these two plots telling us?
+   
+5. Run a multiple regression model using all covariates. Study the `summary` output. 
+
+   - What changes in the interpretation of the coefficient for `lcavol`? 
+   - What do you conclude from the *Multiple R-squared* and the *Residual standard error*?
+   - Create the Tukey Anscombe plot and a QQ plot (`?plot.lm`).
+   
+6. Run a multiple regression model including all covariates but `lacvol`. Proceed as in exercise 5. 
+7. Calculate the RSS for all 3 models. Write down your observation.
+8. Compare all 3 models using the `anova` function. What do you conclude?
 
 
 Solution to the exercise.
@@ -39,17 +52,18 @@ We read the data set.
 dat <- read.csv("data/prostate.csv")
 ```
 
-Histogram of `lpsa`.
+We generate a histogram of `lpsa`.
 ```{r}
 hist(dat$lpsa)
 ```
+
 Scatterplot matrix of the prostate cancer data.
 
 ```{r}
 pairs(dat[,-10])
 ```
 
-Standardize predictors and create training and test data.
+Standardize the predictors and create training and test data.
 ```{r}
 dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
 dtrain <- dat[dat$train,-10]
@@ -57,7 +71,7 @@ dtest <- dat[!dat$train,-10]
 nrow(dtrain)
 nrow(dtest)
 ```
-Univariate regression model.
+We fit a univariate regression model.
 ```{r}
 fit1 <- lm(lpsa~lcavol,data=dtrain)
 summary(fit1)
@@ -71,44 +85,106 @@ dtrain%>%
   geom_point()+
   geom_smooth(method="lm")
 ```
-Tukey Anscombe plot. The plot indicates that the residuals are independent and have mean 0 (no systemetic pattern).
+The Tukey Anscombe plot. The residuals scatter around the 0 line and do not show any systematic pattern. This indicates that the residuals are independent and have mean 0.
 
 ```{r}
 plot(fit1,which=1) # Tukey Anscombe plot
 ```
 
-The QQ plot is used to check the normality assumption of the residuals. The residuals show slight tendency to be left-tailed.
+The QQ plot. This plot is used to check the normality assumption of the residuals. The residuals show slight tendency to be left-tailed (see also the histogram).
 ```{r}
 plot(fit1,which=2) # Tukey Anscombe plot
 hist(residuals(fit1))
 ```
 
-
-The QQ plot. This plot can be used to checks the normality assumption of the residuals. In this case it 
-
-
-Multiple regression model
+We run the multiple regression model with all covariates. We print the `summary` and create the TA and QQ plots.
 ```{r}
 fit2 <- lm(lpsa~.,data=dtrain)
 summary(fit2)
 plot(fit2,which=1)
 plot(fit2,which=2)
 ```
-We calculate the RSS.
+
+
+We run the multiple regression model without covariate `lcavol`. We print the `summary` and create the TA and QQ plots.
+```{r}
+fit3 <- lm(lpsa~.-lcavol,data=dtrain)
+summary(fit2)
+plot(fit3,which=1)
+plot(fit3,which=2)
+```
+
+
+We calculate the RSS. 
 
 ```{r}
 sum(residuals(fit1)^2)
 sum(residuals(fit2)^2)
+sum(residuals(fit3)^2)
 ```
-Make a scatter plot of fitted vs observed.
+
+We compare the 3 models with the `anova` function.
 
 ```{r}
-plot(predict(fit1),dtrain$lpsa)
-RMSE(dtrain$lpsa,predict(fit1))
-plot(predict(fit2),dtrain$lpsa)
-RMSE(dtrain$lpsa,predict(fit2))
-summary(lm(dtrain$lpsa~predict(fit1)))
-summary(lm(dtrain$lpsa~predict(fit2)))
+anova(fit1,fit2,fit3)
+```
+
+## Generalization error and validation of a prognostic model
+
+1. Calculated the RMSE on the training data. Which model will perform best on future data?
+2. Use the test data and make scatter plots of the observed vs predicted outcomes (one scatter plot per model). This plot is also called a "calibration plot". Use `ggplot` and add a regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph.
+3. Repeat the plots in 2. but now focus on `predicted-observed` vs `predicted`.
+4. Generate boxplots of `predicted-observed` for the 3 models. What do you conclude?
+5. Finally calculate the generalization error, i.e., the RMSE on the test data.
+
+
+Solution to the exercise.
+
+We calculate the RMSEs on the training data. RMSE on training tells you how good the model "fits" the data. Unfortunately, we
+cannot make any conclusion about the generalizability of the models.
+
+```{r}
+RMSE(dtrain$lpsa,predict(fit1,newdata=dtrain))
+RMSE(dtrain$lpsa,predict(fit2,newdata=dtrain))
+RMSE(dtrain$lpsa,predict(fit3,newdata=dtrain))
+```
+We draw calibration plots for the 3 models. Model 3 does not calibrate well.
+
+```{r}
+dd <- data.frame(pred=c(predict(fit1,newdata=dtest),
+                        predict(fit2,newdata=dtest),
+                        predict(fit3,newdata=dtest)),
+                 obs = rep(dtest$lpsa,times=3),
+                 model=rep(c("mod1","mod2","mod3"),each=nrow(dtest))
+)
+dd%>%
+  ggplot(.,aes(x=pred,y=obs))+
+  geom_point()+
+  geom_smooth(se=FALSE,method="lm")+
+  geom_abline(slope=1,intercept=0)+
+  theme_bw()+
+  facet_wrap(~model)
+```
+
+We draw Tukey-Anscombe plots.
+
+```{r}
+dd%>%
+  ggplot(.,aes(x=pred,y=pred-obs))+
+  geom_point()+
+  geom_smooth(se=FALSE,method="lm")+
+  geom_abline(slope=0,intercept=0)+
+  theme_bw()+
+  facet_wrap(~model)
+```
+
+Boxplot of predcited vs observed. 
+
+```{r}
+dd%>%
+  ggplot(.,aes(x=model,y=pred-obs))+
+  geom_boxplot()+
+  geom_point()
 ```
 
 Calculate the RMSE on test data.
@@ -116,31 +192,128 @@ Calculate the RMSE on test data.
 ```{r}
 RMSE(dtest$lpsa,predict(fit1,newdata=dtest))
 RMSE(dtest$lpsa,predict(fit2,newdata=dtest))
+RMSE(dtest$lpsa,predict(fit3,newdata=dtest))
 ```
 
-Calibration plot for model 1.
+## Linear regression using simulated data
+
+In this exercise we explore linear regression using the following simulated data.
+
+```{r echo=FALSE}
+set.seed(1)
+
+# training data
+x <-  matrix(rnorm(20 * 15), 20, 15)
+y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
+dtrain <- data.frame(x,y)
+
+# test data
+x <-  matrix(rnorm(20 * 15), 20, 15)
+y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
+dtest <- data.frame(x,y)
+```
+
+1. Fit the following 3 models on the training data: a univariate regression model with only X1, a multiple regression model with X1-X4 as covariates and a multiple regression model including all covariates. Explore the fitted models.
+2. Repeat your calculations from exercise 2. What do you conclude?
+
+Solution to the exercise.
+
+We fit the 3 models.
 
 ```{r}
-dd <- data.frame(pred=predict(fit1,newdata=dtest),obs=dtest$lpsa)
+fit1 <- lm(y~X1,data=dtrain)
+fit2 <- lm(y~X1+X2+X3+X4,data=dtrain)
+fit3 <- lm(y~.,data=dtrain)
+```
+
+TA plots.
+
+```{r}
+plot(fit1,which=1)
+plot(fit2,which=1)
+plot(fit3,which=1)
+```
+
+RMSEs on training data.
+
+```{r}
+RMSE(dtrain$y,predict(fit1,newdata=dtrain))
+RMSE(dtrain$y,predict(fit2,newdata=dtrain))
+RMSE(dtrain$y,predict(fit3,newdata=dtrain))
+```
+We draw calibration plots for the 3 models. Only model 2 is well calibrated.
+
+```{r}
+dd <- data.frame(pred=c(predict(fit1,newdata=dtest),
+                        predict(fit2,newdata=dtest),
+                        predict(fit3,newdata=dtest)),
+                 obs = rep(dtest$y,times=3),
+                 model=rep(c("mod1","mod2","mod3"),each=nrow(dtest))
+)
 dd%>%
   ggplot(.,aes(x=pred,y=obs))+
   geom_point()+
-  geom_smooth(se=FALSE)+
+  geom_smooth(se=FALSE,method="lm")+
   geom_abline(slope=1,intercept=0)+
-  theme_bw()
-summary(lm(obs~pred,data=dd))
+  theme_bw()+
+  facet_wrap(~model)
 ```
-Calibration plot for model 2.
-```{r}
-dd <- data.frame(pred=predict(fit2,newdata=dtest),obs=dtest$lpsa)
-dd%>%
-  ggplot(.,aes(x=pred,y=obs))+
-  geom_point()+
-  geom_smooth(se=FALSE)+
-  geom_abline(slope=1,intercept=0)+
-  theme_bw()
 
-summary(lm(obs~pred,data=dd))
+We draw Tukey-Anscombe plots.
+
+```{r}
+dd%>%
+  ggplot(.,aes(x=pred,y=pred-obs))+
+  geom_point()+
+  geom_smooth(se=FALSE,method="lm")+
+  geom_abline(slope=0,intercept=0)+
+  theme_bw()+
+  facet_wrap(~model)
+```
+
+Boxplot of predcited vs observed. 
+
+```{r}
+dd%>%
+  ggplot(.,aes(x=model,y=pred-obs))+
+  geom_boxplot()+
+  geom_point()
+```
+
+Calculate the RMSE on test data.
+
+```{r}
+RMSE(dtest$y,predict(fit1,newdata=dtest))
+RMSE(dtest$y,predict(fit2,newdata=dtest))
+RMSE(dtest$y,predict(fit3,newdata=dtest))
+```
+
+
+## Calculus, optimization and the least squares estimator
+
+1. Consider the function $f(x)=2x^2 + x -5$. Use R to make a plot of the function.
+2. Use `optimize` to find the minimum of $f(x)$.
+3. Obtain the minimum of $f(x)$ by taking the derivative and setting equal to zero.
+4. Show that $\|a\|^2=a^Ta$.
+5. Use the result in 4. and show that $\bf RSS(\beta)=\bf y^Ty-2 y X \beta +\beta^T X^T X \beta$. 
+6. Invoke the result obtained in 4. and show that the derivative of $\bf RSS(\beta)$ equals $\bf -2X^Ty+2X^TX\beta$ (Hint: review the "Identities" section of [Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus)).
+7. Do you understand the derivation of the least squares estimator?
+
+
+Solution to the exercise.
+
+
+Plot of the function.
+```{r}
+myf <- function(x){
+  2*x^2 + x -5
+}
+curve(myf,from=-1,to=1)
+```
+
+
+```{r}
+optimize(myf,interval=c(-5,5))
 ```
 
 
