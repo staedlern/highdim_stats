@@ -135,7 +135,7 @@ anova(fit1,fit2,fit3)
 In the previous section we developed 3 models to predict `lpsa`. In this section we explore the generalizability of the models.
 
 1. Calculated the RMSE on the training data. Which model will perform best on future data?
-2. Use the test data and make scatter plots of the observed against predicted outcomes. Use `ggplot` to create one plot per model and add the regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph. This plot is also called "calibration plot". The model is "well" calibrated if the regression line agrees with the "y=X" line.
+2. Use the test data and make scatter plots of the observed against predicted outcomes. Use `ggplot` to create one plot per model and add the regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph. This plot is also called "calibration plot". The model is "well" calibrated if the regression line agrees with the "y=x" line.
 3. Repeat the plots in 2. but now focus on `predicted minus observed` vs `predicted`.
 4. Generate boxplots of `predicted minus observed` for the 3 models. What do you conclude?
 5. Calculate the generalization error, i.e., the RMSE on the test data.

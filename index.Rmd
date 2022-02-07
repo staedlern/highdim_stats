@@ -1,5 +1,5 @@
 --- 
-title: "High-Dimensional Statistics"
+title: "Analyisis of High-Dimensional Data: Prediction and Feature Selection"
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site

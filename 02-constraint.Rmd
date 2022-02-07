@@ -230,12 +230,12 @@ knitr::include_graphics("principlecomponents.JPG")
 
 ### Bayesian interpretation
 
-Ridge regression has a nice interpretation as the maximum a posteriori (MAP) estimate of a hierarchical bayesian model where the data follows a multivariate regression model
+
+We have introduced regularization by least-squares optimization with additional constraints on $\beta$. An alternative approach to regularization is based on Bayesian statistics. In a Bayesian setting the parameter $\beta=(\beta_1,\ldots,\beta_p)$ is itself a random variable with *prior* distribution $p(\beta)$. Bayesian Inference is based on the *posterior* distribution $$p(\beta|D)=\frac{p(D|\beta)p(\beta)}{p(D)},$$
+where $D$ denotes the data and $p(D|\beta)$ is the likelihood function. In the exercises we will show that the Ridge solution can be viewed as the maximum a posteriori (MAP) estimate of a hierarchical Bayesian model where the data follows a multivariate regression model
 \[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
 and the regression coefficients are equipped with prior
 \[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p.\]
-
-We will elaborate on this connection in the exercises.
 
 ### Splines
 
@@ -522,7 +522,14 @@ xtest <- as.matrix(data_test[,-1])
 ytest <- data_test[,1]
 ```
 
+
+```{r eval=FALSE, include=FALSE}
+fit <- lm(y~age+sex+bmi+map,data=data)
+summary(fit)
+```
+
 We perform forward stepwise regression.
+
 
 ```{r}
 # Forward regression

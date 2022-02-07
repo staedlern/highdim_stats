@@ -62,7 +62,7 @@ Overfitting refers to the phenomenon of modelling the noise rather than the sign
 but explain more than the signal alone: it also models the error. Hence, it overfits the data. 
 
 We illustrate overfitting by generating artificial data.
-We simulate $n=10$ training data points, take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d. $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d. $N(0,0.5)$. 
+We simulate $n=10$ training data points, take $p=15$ and $X_{i1},\ldots,X_{ip}$ i.i.d. $N(0,1)$. We assume that the response depends only on the first covariate, i.e.  $Y_i=\beta_1 X_{i1}+\epsilon_i$, where $\beta_1=2$ and $\epsilon_i$ i.i.d. $N(0,0.5^2)$. 
 
 ```{r}
 set.seed(1)

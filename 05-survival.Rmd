@@ -20,13 +20,13 @@ For subject $i$ we denote the event time with $T_i$. Typically we do not for eac
 * Withdrawal from study
 * No event by end of fixed study period.
 
-Therefore in practise we observe the survival time $\widetilde{T}_i$ (which equals the event time or the censoring time whichever occurs earlier) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event $=0$ in case of censoring).
+Therefore in practise we observe the survival time $\widetilde{T}_i$ (which equals the event time or the censoring time whichever occurs earlier) and the event indicator $\delta_i$ ($\delta_i=1$ in case of event, $\delta_i=0$ in case of censoring).
 
 A fundamental quantity in survival analysis is the survival probability
 
 \[S(t)=P(T>t)=1-F(t).\]
 
-Another important quantitiy is the hazard function $h(t)$, or the instantaneous rate at which events occur, which is defined as
+Another important quantity is the hazard function $h(t)$, or the instantaneous rate at which events occur, which is defined as
 
 \[h(t)=\lim_{dt\rightarrow 0}\frac{P(t\leq T < t+dt|T\geq t)}{dt}=-S'(t)/S(t).\]
 
@@ -36,7 +36,7 @@ How do we estimate these quantities where the event time is only partially known
 
 $h_0(t)$ is the baseline hazard and $\beta$ are the regression coefficients. The regression coefficients are estimated by maximizing the log partial likelihood $\ell(\beta|{\bf y,X})$. Note that $\bf y$ represents the observed response, i.e. the tuples $(\widetilde{T}_i,\delta_i)$, $i=1,\ldots,n$.
 
-To learn more about survival analysis I recommend to have a look at this short tutorial https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html.
+To learn more about survival analysis I recommend to have a look at this short [tutorial](https://www.emilyzabor.com/tutorials/survival_analysis_in_r_tutorial.html).
 
 
 ## Regularized Cox Regression
@@ -64,6 +64,23 @@ x <- scale(x[,topvar.genes])
 y <- read.table("data/lymphtime.txt",header = TRUE)%>%
   as.matrix
 ```
+
+
+```{r, include=FALSE, eval=FALSE}
+library(pheatmap)
+ind <- sample(1:nrow(x),size=25)
+xhp <- t(x[ind,])
+colnames(xhp) <- paste0("P",seq(ncol(xhp)))
+rownames(xhp) <- NULL
+annotation_col <- data.frame(
+  response=y[ind,1]
+)
+rownames(annotation_col) <- colnames(xhp)
+hp <- pheatmap(xhp,cluster_rows = FALSE,cluster_cols = FALSE,
+               annotation_col = annotation_col,
+               annotation_names_col = FALSE,fontsize=15)
+```
+
 The first column of `y` is the survival time and the second column the event indicator.
 
 ```{r}
@@ -78,13 +95,13 @@ fit.surv <- survfit(Surv(time, status) ~ 1, data = dat)
 ggsurvplot(fit.surv)
 ```
 
-We can use the `summary` function to obtain more specific information on estimated survival quantities, e.g. the probability of surviving beyond 10 years is obtain as follows. 
+We can use the `summary` function to obtain more specific information on estimated survival quantities, e.g. the probability of surviving beyond 10 years is obtained as follows. 
 
 ```{r, eval=FALSE}
 summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
 ```
 
-We are interested to find the genes which are most predictive for survival. We assume proportionality of hazards and use `glmnet` to perform L1-penalized cox regression. (Note that we only consider $p=500$ genes with largest variance.)
+We are interested to find the genes which are most predictive for survival. We assume proportionality of hazards and use `glmnet` to perform L1-penalized Cox regression. (Note that we only consider $p=500$ genes with largest variance.)
 
 ```{r}
 set.seed(1)
@@ -102,7 +119,7 @@ cv.coxnet <- cv.glmnet(x,y,
 plot(cv.coxnet)
 ```
 
-The C-index ranges from 0.5 to 1. A value of 0.5 means that the model is no better than predicting an outcome than random chance. The tuning parameter which maximizes the C-index is $\lambda_{\rm{opt}}=$ `r round(cv.coxnet$lambda.min,2)`. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).
+The C-index ranges from 0.5 to 1. A value of 0.5 means that the model is no better at predicting an outcome than random chance. The tuning parameter which maximizes the C-index is $\lambda_{\rm{opt}}=$ `r round(cv.coxnet$lambda.min,3)`. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).
 
 ```{r, echo=FALSE}
 dbeta <- data.frame(NULL)
@@ -111,9 +128,10 @@ dbeta$betaname <- colnames(x)
 dbeta%>%
   dplyr::filter(betahat!=0)%>%
   ggplot(.,aes(x=reorder(betaname,abs(betahat)),y=abs(betahat)))+
-  geom_bar(stat="identity",width=0.25)+
+  geom_bar(stat="identity",width=0.5)+
   xlab("gene")+ylab("abs(betahat)")+
-  theme(axis.text.x = element_text(angle = 45, hjust =1,size=7),
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5,size=7),
         text = element_text(size = 15))
 ```
 
@@ -121,7 +139,7 @@ dbeta%>%
 
 We have seen how to evaluate the generalization error in the linear regression and classification context. For time-to-event data this is slightly more involved. A popular way to quantify the prediction accuracy is the time-dependent Brier score
 
-\[{\rm BS}(t,\hat{S})={\bf E}(Y_{\rm{new}}(t)-\hat{S}(t|X_{\rm new})) \]
+\[{\rm BS}(t,\hat{S})={\bf E}[(Y_{\rm{new}}(t)-\hat{S}(t|X_{\rm new}))^2] \]
 
 where $Y_{\rm{new}}(t)={\bf 1}(T_{\rm new}\geq t)$ is the true status of a new test subject and
 $\hat{S}(t|X_{\rm new})$ is the predicted survival probability. Calculation of the Brier score is complicated by the fact that we do not always observe the event time $T$ due to censoring. The R package `pec` estimates the Brier score using a technique called *Inverse Probability of Censoring Weighting (IPCW)*. 
@@ -138,7 +156,7 @@ dtrain <- data.frame(cbind(ytrain,xtrain))
 dtest <- data.frame(cbind(ytest,xtest))
 ```
 
-For illustration we use forward selection on the training data to obtain a prediction model.
+For illustration we use forward selection on the training data to obtain a prediction model (we choose `steps=5` to reduce CPU time).
 
 ```{r}
 fit.lo <- coxph(Surv(time,status)~1,data=dtrain,
@@ -195,7 +213,7 @@ The plot on the right shows the Brier score on the test data and indicates that 
 
 The `pec` package can also be used to benchmark different prediction models. We illustrate this based on random forest and forward selection. In this illustration we do not split the data into training and test. Instead we use cross-validation to compare the two prediction approaches. 
 
-We start by writing a small wrapper function to use forward selection in `pec`.
+We start by writing a small wrapper function to use forward selection in `pec`. (A detailed description on the `pec` package and on how to set up wrapper functions is provided [here](https://pubmed.ncbi.nlm.nih.gov/25317082/).)
 
 ```{r}
 selectCoxfw <- function(formula,data,steps=5,direction="both")
@@ -239,7 +257,7 @@ fm <- as.formula(paste("Surv(time, status) ~ ",
 fit.coxfw <- selectCoxfw(fm,data=dat.top50,direction="forward",steps=10)
 ```
 
-We fit random forest using `cforest` from the `party` package.
+We fit a random forest using `cforest` from the `party` package.
 
 ```{r}
 fit.cforest <- pec::pecCforest(fm, data =dat.top50, 
