@@ -3,13 +3,16 @@ title: "Analysis of High-Dimensional Data: Prediction and Feature Assessment"
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
-output: bookdown::gitbook
+output: 
+  bookdown::gitbook:
+  bookdown::pdf_book:
+    keep_tex: true
 documentclass: book
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
 github-repo: staedlern/highdim_stats
-description: "Script for the course on High-Dimensional Statistics of the CAS in Advanced STatistical Data Science"
+description: "Script for the course on Analysis of High-Dimensional Data of the CAS in Advanced Statistical Data Science (CAS ASDS)"
 ---
 
 # Introduction
