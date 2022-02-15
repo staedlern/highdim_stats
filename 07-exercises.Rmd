@@ -541,7 +541,7 @@ $n\times p$ design matrix.
 3. Assuming a prior distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
 
 ```{r ridgemap,echo=FALSE,out.width="100%"}
-knitr::include_graphics("ridge_map.JPG")
+knitr::include_graphics("ridge_map.jpg")
 ```
 
 ## [Difficult] P-values for high-dimensional regression
