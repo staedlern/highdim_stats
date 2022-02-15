@@ -3,10 +3,7 @@ title: "Analysis of High-Dimensional Data: Prediction and Feature Assessment"
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
-output: 
-  bookdown::gitbook:
-  bookdown::pdf_book:
-    keep_tex: true
+output: bookdown::gitbook
 documentclass: book
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike

@@ -475,7 +475,8 @@ rownames(b)[b!=0]
 ```
 
 ## Closed form solution for Ridge regression
-Show that the Ridge optimization problem has the closed form solution 
+
+1. Show that the Ridge optimization problem has the closed form solution 
 
 \begin{align*}
 \hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
@@ -483,8 +484,44 @@ Show that the Ridge optimization problem has the closed form solution
 
 Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|_2^2$, set equal to zero and solve for $\beta$. 
 
+2. Use the code below to generate simulated data. Use the formula for the script to calculate the
+Ridge coefficients for $\lambda=35$. Compare the coefficients with those obtained using `glmnet`. Hint:
+Read the following [blog](https://stats.stackexchange.com/questions/129179/why-is-glmnet-ridge-regression-giving-me-a-different-answer-than-manual-calculat) on how to scale the $\lambda$.
+
+```{r}
+set.seed(1)
+
+# simulate data
+n <- 20
+p <- 15
+x <-  matrix(rnorm(n * p), n, p)
+y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(n)
+```
+
+Solution to the exercise.
+
 ```{r ridgeclosedform,echo=FALSE,out.width="100%"}
 knitr::include_graphics("ridge_closedform.JPG")
+```
+
+
+We obtain the Ridge coefficients using `glmnet`.
+
+```{r}
+my.lambda <- 35
+fit.ridge <- glmnet(x,y,alpha=0,lambda=my.lambda,
+                    intercept=FALSE,standardize = FALSE,thresh = 1e-20,exact=TRUE)
+coef.ridge <- as.vector(coef(fit.ridge))[-1]
+head(coef.ridge)
+```
+
+Next we calculate the coefficients based on the formula from the script. Note that we need to re-scale the lambda.
+
+```{r}
+sd_y <- sqrt(var(y)*(n-1)/n)[1,1]
+my.lambda2 <- n*my.lambda/sd_y
+coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
+head(coef.ridge2)[,1]
 ```
 
 ## [Difficult] Ridge and Lasso for the orthonormal design
