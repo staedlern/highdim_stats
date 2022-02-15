@@ -529,7 +529,7 @@ head(coef.ridge2)[,1]
 Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
 
 ```{r lassoorthonormal,echo=FALSE,out.width="100%"}
-knitr::include_graphics("lasso_orthonormal.JPG")
+knitr::include_graphics("lasso_orthonormal.jpg")
 ```
 
 ## [Difficult] Bayesian interpretation of Ridge regression
