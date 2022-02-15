@@ -501,7 +501,7 @@ y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(n)
 Solution to the exercise.
 
 ```{r ridgeclosedform,echo=FALSE,out.width="100%"}
-knitr::include_graphics("ridge_closedform.JPG")
+knitr::include_graphics("ridge_closedform.jpg")
 ```
 
 
