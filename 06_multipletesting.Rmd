@@ -147,14 +147,14 @@ Our previous consideration suggest that we could adjust the p-values by multiply
 
 \[q_{j}^{\rm adjust}=p\times q_j.\]
 
-This adjustment method is known as the Bonferroni correction. The method has the property that it controls the so-called family-wide-error rate (FWER). The derivation goes as follows
+This adjustment method is known as the Bonferroni correction. The method has the property that it controls the so-called family-wide-error rate (FWER). Let's assume that $p_0$ is the number of *true* null hypotheses (unknown to the researcher), then we can show 
 
 \begin{align*}
-{\rm FWER}&={\rm Prob}({\rm at\;least\;one\;rejection})\\
-&={\rm Prob}({\rm min}\; q^{\rm adjust}_j\leq \alpha)\\
-&={\rm Prob}({\rm min}\; q_j\leq \alpha/p)\\
-&\leq \sum_{j=1}^p {\rm Prob}(q_j\leq \alpha/p)\\
-&=p\frac{\alpha}{p}=\alpha.
+{\rm FWER}&={\rm Prob}({\rm at\;least\;one\;false\;positive})\\
+&={\rm Prob}(\min_{j=1..p_0} q^{\rm adjust}_j\leq \alpha)\\
+&={\rm Prob}(\min_{j=1..p_0} q_j\leq \alpha/p)\\
+&\leq \sum_{j=1}^{p_0} {\rm Prob}(q_j\leq \alpha/p)\\
+&={p_0}\frac{\alpha}{p}\leq\alpha.
 \end{align*}
 
 In our example we calculate the Bonferroni adjusted p-values.
