@@ -126,7 +126,7 @@ t.d <- data.frame(
   model=c("p=1","p=4","p=8","p=15"),
   R2=c(summary(fit1)$r.squared,summary(fit4)$r.squared,summary(fit8)$r.squared,summary(fit15)$r.squared)
 )
-kable(t.d,digits = 2)
+kable(t.d,digits = 2,booktabs=TRUE,caption="R2 for models with increasing p.")
 ```
 
 The following figure shows the regression coefficients for the different models. The larger the $p$, the bigger the discrepancy to the true coefficients.
@@ -168,7 +168,7 @@ ave.deviation <- apply(t.d[,-5],2,FUN=function(x)
   mean((x-beta.true)^2,na.rm=TRUE)
 }
 )
-kable(ave.deviation,col.names="mse",digits=2)
+kable(ave.deviation,col.names="mse",digits=2,booktabs=TRUE,caption="MSE between estimated and true coefficients.")
 ```
 
 The `summary` of the full model with $p=15$ indicates that something went wrong. 
@@ -276,7 +276,7 @@ rmse <- data.frame(
 )
 colnames(rmse) <- paste0("p=",c(1,4,8,15))
 rownames(rmse) <- "RMSE"
-kable(rmse,digits=2)
+kable(rmse,digits=2,booktabs=TRUE,caption="RMSE for models with increasing p.")
 ```
 
 The models with $p=1$ and $4$ achieve a good error close to the "irreducible" $\sigma_{\epsilon}$. On the other hand the predictions obtained with $p=8$ and $15$ are very poor (RMSEs are 6 to 8-fold larger).

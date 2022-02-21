@@ -175,7 +175,7 @@ fit.fw <- stepAIC(fit.lo,
 
 The following table summarizes the variables added in each step of the forward selection approach.
 ```{r}
-kable(as.data.frame(fit.fw$anova),digits=3)
+kable(as.data.frame(fit.fw$anova),digits=3,booktabs=TRUE)
 ```
 
 The next figure shows the estimated hazard ratios and confidence intervals. This type of plot is often referred to as forest plot.

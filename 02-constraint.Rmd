@@ -115,13 +115,13 @@ fit.fw <- stepAIC(fit0,
 We can summarize the stepwise process.
 
 ```{r}
-kable(as.data.frame(fit.fw$anova),digits=3)
+kable(as.data.frame(fit.fw$anova),digits=3,booktabs=TRUE)
 ```
 
 Finally we can retrieve the regression coefficients of the optimal model.
 
 ```{r}
-kable(broom::tidy(fit.fw),digits=3)
+kable(broom::tidy(fit.fw),digits=3,booktabs=TRUE)
 ```
 
 ## Ridge Regression
@@ -550,13 +550,13 @@ fit.fw <- stepAIC(fit0,direction="forward",
 The selection process is depicted in the following table.
 
 ```{r}
-kable(as.data.frame(fit.fw$anova),digits=2)
+kable(as.data.frame(fit.fw$anova),digits=2,booktabs=TRUE)
 ```
 
 The regression coefficients and the corresponding statistics of the AIC-optimal model are shown next.
 
 ```{r}
-kable(broom::tidy(fit.fw),digits=2)
+kable(broom::tidy(fit.fw),digits=2,booktabs=TRUE)
 ```
 
 We continue by fitting Ridge regression. We show the trace plot and the cross-validation plot.
@@ -594,7 +594,7 @@ pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
 res.rmse <- data.frame(
   method=c("full","forward","ridge","lasso"),
   rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
-kable(res.rmse,digits = 2)
+kable(res.rmse,digits = 2,booktabs=TRUE)
 ```
 
 The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
@@ -681,11 +681,11 @@ fit.fw <- stepAIC(fit0,direction="forward",
                              ),
                   trace = FALSE
                   )
-kable(as.data.frame(fit.fw$anova),digits=2)
+kable(as.data.frame(fit.fw$anova),digits=2,booktabs=TRUE)
 
 #summary(fit.fw)
 beta.fw <- coef(fit.fw)
-kable(broom::tidy(fit.fw),digits=2)
+kable(broom::tidy(fit.fw),digits=2,booktabs=TRUE)
 
 # Ridge
 set.seed(1515)

@@ -71,7 +71,7 @@ We first fit a logistic regression model using the function `glm`.
 fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,
                     data=dat,
                     family="binomial")
-kable(broom::tidy(fit.logistic),digits=3)
+kable(broom::tidy(fit.logistic),digits=3,booktabs=TRUE)
 ```
 
 There are some surprises in this table of coefficients, which must be interpreted with caution. Systolic blood pressure (sbp) is not significant! Nor
@@ -104,13 +104,13 @@ fit.bw <- stepAIC(fit.logistic,direction = "backward",trace=FALSE)
 The terms removed in each step are provided in the next table.
 
 ```{r}
-kable(as.data.frame(fit.bw$anova),digits=3)
+kable(as.data.frame(fit.bw$anova),digits=3,booktabs=TRUE)
 ```
 
 The regression coefficients of the final model are shown below.
 
 ```{r}
-kable(broom::tidy(fit.bw),digits=3)
+kable(broom::tidy(fit.bw),digits=3,booktabs=TRUE)
 ```
 
 We continue with the Lasso approach and show the trace plot.

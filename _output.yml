@@ -3,7 +3,7 @@ bookdown::gitbook:
   config:
     toc:
       before: |
-        <li><a href="./">High-dimensional statistics</a></li>
+        <li><a href="./">Analysis of High-Dimensional Data</a></li>
       after: |
         <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
     edit: https://github.com/staedlern/highdim_stats/edit/main/%s

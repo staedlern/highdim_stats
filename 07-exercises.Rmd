@@ -399,7 +399,7 @@ res[names(coef.ss.bic),"SSBIC"] <- coef.ss.bic
 res[names(coef.ss.cv),"SSCV"] <- coef.ss.cv
 res[,"RIDGE"] <- as.numeric(coef.ridge)
 res[,"LASSO"] <- as.numeric(coef.lasso)
-kable(res,digits = 3)
+kable(res,digits = 3,booktabs=TRUE)
 
 ```
 
@@ -409,7 +409,7 @@ Finally we show the test errors of the different methods.
 res <- data.frame(OLS=terr.lm,
                   SSBIC=terr.ss.bic,SSCV=terr.ss.cv,
                   RIDGE=terr.ridge,LASSO=terr.lasso)
-kable(res,digits = 3)
+kable(res,digits = 3,booktabs=TRUE)
 
 ```
 
@@ -710,7 +710,7 @@ fit.bw <- stepAIC(fit.full,direction = "backward",trace=FALSE)
 The terms removed in each step are provided in the next table.
 
 ```{r}
-kable(as.data.frame(fit.bw$anova),digits=3)
+kable(as.data.frame(fit.bw$anova),digits=3,booktabs=TRUE)
 ```
 
 The variables alcohol, sbp and obesity are excluded from the model. The AIC values are provided in the table above. We can also re-calculate the AIC for the final model.
@@ -729,14 +729,14 @@ fit <-  glm( form, data=sahd, family=binomial )
 
 # stepwise backward selection
 fit.bw <- stepAIC(fit,direction="backward",trace = 0)
-kable(as.data.frame(fit.bw$anova),digits=3)
+kable(as.data.frame(fit.bw$anova),digits=3,booktabs=TRUE)
 ```
 
 
 The summary of the final model is provided next.
 
 ```{r}
-kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2)
+kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2,booktabs=TRUE)
 ```
 
 We can plot the natural spline function for the first term as follows.
@@ -1060,7 +1060,7 @@ fit.fw <- stepAIC(fit.lo,
                   steps=10,
                   trace = FALSE)
 #summary(fit.fw)
-kable(broom::tidy(fit.fw),digits=2)
+kable(broom::tidy(fit.fw),digits=2,booktabs=TRUE)
 ```
 
 We can repeat the same analysis using the `train` function from the *caret* package. (Note that there is no tuning parameter involved for `glmStepAIC`.)
@@ -1076,10 +1076,10 @@ fit.fw.caret <- train(x=xtrain,
                       trace = FALSE
 )
 # accuracy
-kable(fit.fw.caret$results,digits=2)
+kable(fit.fw.caret$results,digits=2,booktabs=TRUE)
 
 # summary of the model
-kable(broom::tidy(fit.fw.caret$finalModel),digits=2)
+kable(broom::tidy(fit.fw.caret$finalModel),digits=2,booktabs=TRUE)
 ```
 
 Next we employ L1-penalized logistic regression.

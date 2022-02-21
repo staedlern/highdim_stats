@@ -42,7 +42,7 @@ knitr::write_bib(c(
 ```
 
 ```{r include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,warnings=FALSE)
+knitr::opts_chunk$set(echo = TRUE,warnings=FALSE,fig.align='center')
 ```
 
 ```{r include=FALSE}
