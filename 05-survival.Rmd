@@ -235,7 +235,8 @@ selectCoxfw <- function(formula,data,steps=5,direction="both")
     newform <-fwfit$formula
     newfit <- coxph(newform,data=data,x=TRUE,y=TRUE)
   }
-  out <- list(fit=newfit,In=attr(terms(newfit$formula), which = "term.labels"))
+  out <- list(fit=newfit,
+              In=attr(terms(newfit$formula),which = "term.labels"))
   out$call <-match.call()
   class(out) <- "selectCoxfw"
 
@@ -254,7 +255,8 @@ dat.top50 <- dat[,1:52]
 fm <- as.formula(paste("Surv(time, status) ~ ", 
                        paste(colnames(dat.top50[,-(1:2)]), 
                              collapse="+")))
-fit.coxfw <- selectCoxfw(fm,data=dat.top50,direction="forward",steps=10)
+fit.coxfw <- selectCoxfw(fm,data=dat.top50,
+                         direction="forward",steps=10)
 ```
 
 We fit a random forest using `cforest` from the `party` package.

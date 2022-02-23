@@ -18,9 +18,10 @@ class(esetmouse)
 dim(esetmouse)
 ```
 
-We can look at the expression values for the first 6 genes.
-```{r echo=FALSE}
-head(exprs(esetmouse))
+We can look at the expression values of the first sample and the first 6 genes.
+
+```{r }
+exprs(esetmouse)[1:6,1]
 ```
 An overview on the phenotype data can be obtained using the following commands.
 ```{r}
@@ -80,7 +81,9 @@ tscore <- apply(y,2,FUN=
                   function(y){
                     t.test(y~x,var.equal=TRUE)$statistic
                   })
-res.de <- data.frame(p.value=pvals,t.score=tscore,geneid=names(tscore))
+res.de <- data.frame(p.value=pvals,
+                     t.score=tscore,
+                     geneid=names(tscore))
 ```
 
 Next we count the number of significant genes.
@@ -205,10 +208,13 @@ A frequently used display is the volcano plot which shows on the y-axis the $-\l
 
 ```{r}
 res.de%>%
-  dplyr::mutate(topgene=ifelse(p.value.fdr<0.05&abs(magn)>1,"top","other"))%>%
+  dplyr::mutate(topgene=ifelse(p.value.fdr<0.05&abs(magn)>1,
+                               "top",
+                               "other")
+                )%>%
   ggplot(.,aes(x=magn,y=-log10(p.value),col=topgene))+
   geom_point()+
-  scale_color_manual(values = c("top" = "red", "other" = "black"))+
+  scale_color_manual(values = c("top"="red","other"="black"))+
   theme_bw()+
   theme(legend.position = "none")+
   xlim(-3,3)+ylim(0,10)+
@@ -220,10 +226,13 @@ We repeat the same plot with the simulated data.
 
 ```{r}
 res.de.sim%>%
-  dplyr::mutate(topgene=ifelse(p.value.fdr<0.05&abs(magn)>1,"top","other"))%>%
+  dplyr::mutate(topgene=ifelse(p.value.fdr<0.05&abs(magn)>1,
+                               "top",
+                               "other")
+                )%>%
   ggplot(.,aes(x=magn,y=-log10(p.value),col=topgene))+
   geom_point()+
-  scale_color_manual(values = c("top" = "red", "other" = "black"))+
+  scale_color_manual(values = c("top"="red","other"="black"))+
   theme_bw()+
   theme(legend.position = "none")+
   xlim(-3,3)+ylim(0,10)+

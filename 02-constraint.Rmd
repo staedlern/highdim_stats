@@ -71,14 +71,14 @@ plot(nvar, aic, xlab = "Number of Predictors", ylab = "AIC",type="b")
 The most common approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
 
 
-\begin{align*}
-\hat{\beta}_{S}&=\text{arg}\!\!\!\!\!\!\min\limits_{\beta_j=0\;\forall j\notin S}\!\!\!\rm{RSS}(\beta).
-\end{align*}
+\[
+\hat{\beta}_{S}=\text{arg}\!\!\!\!\!\min\limits_{\beta_j=0\;\forall j\notin S}\!\!\!\textrm{RSS}(\beta).
+\]
 
 It is easy to show that this is equivalent to OLS regression based on subset $S$ covariates, i.e.
 
 \[
-\hat{\beta}_{S}=({\bf X}_S^T {\bf X}_S)^{-1}{\bf X}_S^T {\bf y}.
+\hat{\beta}_{S}=(\textbf{X}_S^T \textbf{X}_S)^{-1}\textbf{X}_S^T \textbf{y}.
 \]
 
 In practice we need to explore a sequence of subsets $S_1,\ldots,S_M$ and choose an optimal subset by either a re-sampling approach or by using an information criterion (see Section \@ref(model-selection)). There are a number of different strategies available. *Best subsets regression* consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are *backward stepwise* regression which starts with the full model and sequentially deletes covariates, whereas *forward stepwise* regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
@@ -132,9 +132,9 @@ excluding covariates, i.e. constrain specific regression coefficients to be zero
 An alternative is *Ridge regression*, which regularizes the optimization problem by shrinking regression coefficients towards zero. This discourages complex models because
 models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem
 
-\begin{align*}
-\hat{\beta}^{\rm Ridge}_{c}&=\text{arg}\min\limits_{\|\beta\|_2^2\leq c}\rm{RSS}(\beta).
-\end{align*}
+\[
+\hat{\beta}^{\rm Ridge}_{c}=\text{arg}\min\limits_{\|\beta\|_2^2\leq c}\textrm{RSS}(\beta).
+\]
 
 The geometry of the optimization problem is illustrated in Figure \@ref(fig:ridgegeom). It shows the levels sets of ${\rm RSS}(\beta)$, ellipsoids centered around the OLS estimate, and the circular ridge
 parameter constraint, centered around zero with radius $c > 0$. The Ridge estimator
@@ -147,19 +147,17 @@ knitr::include_graphics("ridge_geometry.JPG")
 
 Alternatively, Ridge regression can be cast as the optimization of the penalised residual sum of squares with a *penalty* on the magnitude of the coefficients, i.e. 
 
-\begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=\text{arg}\min\limits_{\beta}\rm{RSS}(\beta)+\lambda\|\beta\|^2_2.
-\end{align*}
+\[\hat{\beta}^{\rm Ridge}_{\lambda}=\textrm{arg}\min\limits_{\beta}\textrm{RSS}(\beta)+\lambda\|\beta\|^2_2.\]
 
 Both formulations are equivalent in the sense that there is a one-to-one relationship between the tuning parameters $c$ and $\lambda$. We will use more often the latter "penalisation" formulation. The parameter $\lambda$ is the amount of penalisation. Note that with no penalization, $\lambda=0$, Ridge regression coincides with OLS. Increasing $\lambda$ has the effect of shrinking the regression coefficients to zero. 
 
 The Ridge optimization problem has the closed form solution (see exercises)
 
 \begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
+\hat{\beta}^{\rm Ridge}_{\lambda}&=(\textbf{X}^T \textbf{X}+\lambda \textbf{I})^{-1}\textbf{X}^T \textbf{y}.
 \end{align*}
 
-Note that for $\lambda>0$ the matrix ${\bf X}^T {\bf X}+\lambda \bf I$ has always full rank and therefore Ridge regression is well defined even in the high-dimensional context (in contrast to OLS).
+Note that for $\lambda>0$ the matrix $\textbf{X}^T \textbf{X}+\lambda \textbf{I}$ has always full rank and therefore Ridge regression is well defined even in the high-dimensional context (in contrast to OLS).
 
 Ridge regression is implemented in the package `glmnet`. We use `alpha=0` and can call 
 
@@ -216,11 +214,11 @@ The OLS estimator becomes unstable (high variance) in presence of collinearity. 
 
 For OLS the vector of fitted values ${\bf \hat y}^{\rm OLS}$ is the orthogonal projection of ${\bf y}$ onto the column space of $\bf X$. In terms of normalized principle components we have
 
-\[{\bf\hat y}^{\rm OLS}=\sum_{j=1}^{p}{\bf u}_j {\bf u}_j^T {\bf y}.\]
+\[\hat{\textbf{y}}^{\rm OLS}=\sum_{j=1}^{p}\textbf{u}_j \textbf{u}_j^T \textbf{y}.\]
 
 Similarly, we can represent the fitted values from Ridge regression as
 
-\[{\bf\hat y}^{\rm Ridge}=\sum_{j=1}^{p}{\bf u}_j \frac{d_j^2}{d_j^2+\lambda}{\bf u}_j^T {\bf y}.\]
+\[\hat{\textbf{y}}^{\rm Ridge}=\sum_{j=1}^{p}\textbf{u}_j \frac{d_j^2}{d_j^2+\lambda}\textbf{u}_j^T\textbf{y}.\]
 
 This shows that the level of shrinkage $\frac{d_j^2}{d_j^2+\lambda}$ is largest in the direction of the last principle component, which in return is the direction in the column space of $\bf X$ with largest variance (see Figure \@ref(fig:principlecomponent)).
 
@@ -331,7 +329,7 @@ lines(x, predict(fit.csp), lty = 2, col = "violet",lwd=3)
 
 An alternative approach are so-called *smoothing splines*, where we take $p=n$ and the $B_j(x)$'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of $x_i$, $i=1,\ldots,n$. The coefficients $\beta_j$ cannot be estimated using OLS as the number $p$ of basis functions (columns of the design matrix) equals the number of observations $n$. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients $\beta_j$, i.e.
 
-\[\hat{\beta}_{\lambda}=\text{arg}\min\limits_{\beta}\;\|\bf y- \bf B \beta\|^2+\lambda \beta^T\Omega\beta,\]
+\[\hat{\beta}_{\lambda}=\textrm{arg}\min\limits_{\beta}\;\|\textbf{y}- \textbf{B} \beta\|^2+\lambda \beta^T\Omega\beta,\]
 
 where $\bf B$ is the design matrix with $jth$ column $(B_j(x_1),\ldots,B_j(x_n))^T$. In practice we can fit 
 smoothing splines using the function `smooth.spline`. The penalty term is specified by setting the effective degrees of freedom $\nu$ or by selecting $\lambda$ using cross-validation (see Section \@ref(choice-of-penalty-parameter)).
@@ -360,9 +358,15 @@ for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
 We fit smoothing splines to our simulation example.
 
 ```{r}
-fit.smsp.df10 <- smooth.spline(x, y, df = 10) # smoothing spline with 10 effective degrees of freedom
-fit.smsp.df30 <- smooth.spline(x, y, df = 30) # smoothing spline with 30 effective degrees of freedom
-fit.smsp.cv <- smooth.spline(x, y) # smoothing spline with effective degrees of freedom estimated by cv
+# smoothing spline with 10 effective degrees of freedom
+fit.smsp.df10 <- smooth.spline(x, y, df = 10) 
+
+# smoothing spline with 30 effective degrees of freedom
+fit.smsp.df30 <- smooth.spline(x, y, df = 30) 
+
+# smoothing spline with effective degrees of freedom estimated by cv
+fit.smsp.cv <- smooth.spline(x, y) 
+
 plot(x, y)
 lines(x, fx, lwd = 2)
 lines(x, fit.smsp.df10$y, lty = 2, col = "blue",lwd=3)
@@ -396,9 +400,9 @@ knitr::include_graphics("lasso_geometry.JPG")
 
 Similar to Ridge regression the Lasso can be formulated as a penalisation problem
 
-\begin{align*}
-\hat{\beta}^{\rm Lasso}_{\lambda}&=\text{arg}\min\limits_{\beta}\;\rm{RSS}(\beta)+\lambda\|\beta\|_1.
-\end{align*}
+\[
+\hat{\beta}^{\rm Lasso}_{\lambda}=\text{arg}\min\limits_{\beta}\;\textrm{RSS}(\beta)+\lambda\|\beta\|_1.
+\]
 
 To fit the Lasso we use `glmnet` (with $\alpha=1$).
 
@@ -437,18 +441,18 @@ In general there is no closed-form solution for the Lasso. The optimization has 
 An exception is the case with an orthonormal design matrix $\bf X$, i.e. $\bf X^T\bf X=\bf I$. Under this assumption we have
 
 \begin{align*}
-\rm{RSS}(\beta)&=({\bf y}-{\bf X}\beta)^T({\bf y}-{\bf X}\beta)\\
-&={\bf y}{\bf y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
+\textrm{RSS}(\beta)&=(\textbf{y}-\textbf{X}\beta)^T(\textbf{y}-\textbf{X}\beta)\\
+&=\textbf{y}\textbf{y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
 \end{align*}
 
 and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems
 
-\[\rm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+0.5\beta_j^2+0.5\lambda |\beta_j|.\]
+\[\textrm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+0.5\beta_j^2+0.5\lambda |\beta_j|.\]
 
 In the exercises we will show that the solution is
 
 \begin{align*}
-\hat \beta_{\lambda,j}^{\rm Lasso}&=\rm{sign}(\hat\beta_j^{\rm OLS})\left(|\hat\beta_j^{\rm OLS}|-0.5\lambda\right)_{+}\\
+\hat{\beta}_{\lambda,j}^{\textrm{Lasso}}&=\textrm{sign}(\hat{\beta}_j^{\rm OLS})\left(|\hat{\beta}_j^{\rm OLS}|-0.5\lambda\right)_{+}\\
 &=\left\{\begin{array}{ll}
       \hat\beta^{\rm OLS}_j-0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j>0.5\lambda\\
       0 & {\rm if}\;|\hat\beta^{\rm OLS}_j|\leq 0.5\lambda\\
@@ -723,7 +727,8 @@ lambda.grid <- fit.ridge.cv$lambda
 fit.ridge.caret<-train(x=xtrain,
                        y=ytrain, 
                        method = "glmnet",
-                       tuneGrid = expand.grid(alpha = 0,lambda=lambda.grid),
+                       tuneGrid = expand.grid(alpha = 0,
+                                              lambda=lambda.grid),
                        trControl = tc
 ) 
 
@@ -741,7 +746,8 @@ lambda.grid <- fit.lasso.cv$lambda
 fit.lasso.caret<-train(x=xtrain,
                        y=ytrain, 
                        method = "glmnet",
-                       tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
+                       tuneGrid = expand.grid(alpha = 1,
+                                              lambda=lambda.grid),
                        trControl = tc
 ) 
 
@@ -750,9 +756,11 @@ plot(fit.lasso.caret)
 # Best lambda
 fit.lasso.caret$bestTune$lambda
 # Model coefficients
-coef(fit.lasso.caret$finalModel,fit.lasso.caret$bestTune$lambda)%>%head
+coef(fit.lasso.caret$finalModel,
+     fit.lasso.caret$bestTune$lambda)%>%head
 # Make predictions
-fit.lasso.caret %>% predict(xtest,s=fit.ridge.cv$lambda.1se)%>%head
+fit.lasso.caret%>%predict(xtest,
+                          s=fit.ridge.cv$lambda.1se)%>%head
 
 ## Compare Ridge and Lasso
 models <- list(ridge= fit.ridge.caret,ridge = fit.lasso.caret)

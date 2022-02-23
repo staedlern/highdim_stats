@@ -16,21 +16,21 @@ Our high-dimensional considerations so far focused on the linear regression mode
 
 We start with standard logistic regression where the response $Y$ takes values $0$ and $1$, and the aim is to do prediction based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success (i.e., $Y=1$) $$p(x;\beta)=P(Y=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
 
-\[{\rm logit}(x;\beta)=\log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
+\[\text{logit}(x;\beta)=\log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
 
 In logistic regression we estimate the regression parameter $\beta$ by maximizing the log-likelihood
 
 \begin{align*}
-\ell(\beta|{\bf y,X})&=\sum_{i=1}^{n}(1-y_i)\log(1-p(x_i;\beta))+y_i\log p(x_i;\beta)\\
+\ell(\beta|\textbf{y},\textbf{X})&=\sum_{i=1}^{n}(1-y_i)\log(1-p(x_i;\beta))+y_i\log p(x_i;\beta)\\
 &=\sum_{i=1}^{n}y_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
 \end{align*}
 
 Given an estimate $\hat \beta$ (from training data), prediction based on new input data $X_{\rm new}$ can be obtained via the predicted probability of success $p(X_{\rm new};\hat \beta)$, e.g. the class labels corresponding to the maximum probability
 
 \begin{align*}
-  \hat{Y}\equiv\hat{G}(X_{\rm new})\equiv\left\{
+  \hat{Y}\equiv\hat{G}(X_{\textrm{new}})\equiv\left\{
     \begin{array}{ll}
-      1, & \mbox{if $p(X_{\rm new};\hat\beta)>0.5$}.\\
+      1, & \mbox{if $p(X_{\textrm{new}};\hat\beta)>0.5$}.\\
       0, & \mbox{otherwise}.
     \end{array}
   \right.
@@ -187,7 +187,8 @@ We run 10-fold cross-validation and show the misclassification error.
 set.seed(118)
 # run cv.glmnet
 nfolds <- 10 # number of cross-validation folds.
-cv.glmnet <- cv.glmnet(xtrain,ytrain,family = "binomial",type.measure = "class",
+cv.glmnet <- cv.glmnet(xtrain,ytrain,
+                       family = "binomial",type.measure = "class",
                        alpha = alpha,nfolds = nfolds)
 plot(cv.glmnet)
 ```
@@ -204,7 +205,8 @@ We extract the coefficients and plot them as a barplot.
 
 ```{r}
 beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.min)
-df <- data.frame(Gene=paste0("G",1:(length(beta.glmnet)-1)),Beta=as.numeric(beta.glmnet)[-1])
+df <- data.frame(Gene=paste0("G",1:(length(beta.glmnet)-1)),
+                 Beta=as.numeric(beta.glmnet)[-1])
 df%>%
   arrange(desc(abs(Beta)))%>%
   slice(1:200)%>%

@@ -26,11 +26,11 @@ The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X
 
 How do we fit the linear model to a set of training data (i.e. how do we obtain the estimator $\hat \beta$)? We typically use *ordinary least squares* (OLS) where we pick the coefficient $\beta$ to minimize the residual sum of squares
 
-\begin{align*}
+\begin{eqnarray*}
 \rm{RSS}(\beta)&=\sum_{i=1}^{N}(y_i-x_i^T\beta)^2\\
-&=(\bf y - \bf X \beta)^T (\bf y - \bf X \beta)\\
-&=\|\bf y - \bf X \beta\|^2_2.
-\end{align*}
+&=(\textbf{y} - \textbf{X} \beta)^T (\textbf{y} - \textbf{X} \beta)\\
+&=\|\textbf{y} - \textbf{X} \beta\|^2_2.
+\end{eqnarray*}
 
 If the matrix $\bf X^T \bf X$ is nonsingular, then the solution is given by 
 
@@ -41,7 +41,7 @@ Thus, the prediction at the new input point $X_{\rm new}$ is
 \begin{align*}
 \hat{Y}&=\hat{f}(X_{\rm new})\\
 &=X_{\rm new}^T\hat\beta\\
-&=X_{\rm new}^T(\bf X^T \bf X)^{-1}\bf X^T \bf y.\\
+&=X_{\rm new}^T(\textbf{X}^T \textbf{X})^{-1}\textbf{X}^T \textbf{y}.
 \end{align*}
 
 Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $N$ data points $(y_i,x_{i1},\ldots,x_{ip})$ randomly spread around a $p$-dimensional hyperplane in a $p+1$-dimensional space; the random spread only occurs parallel to the y-axis. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ is a single point in the $N$-dimensional space ${\bf R}^N$; the fitted $\hat {\bf y}$ is the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^N$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
