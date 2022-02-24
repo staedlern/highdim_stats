@@ -12,7 +12,7 @@ In this chapter we will review multiple linear regression and in particular the 
 ## Notation
 
 We will typically denote the covariates by the symbol $X$. If $X$ is a vector, its components can be accessed
-by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence the $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,N$ would be represented by the $N\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
+by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence the $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $N$ input p-vectors $x_i$, $i=1,\ldots,n$ would be represented by the $n\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
 
 ## Ordinary Least Squares
 
@@ -44,15 +44,15 @@ Thus, the prediction at the new input point $X_{\rm new}$ is
 &=X_{\rm new}^T(\textbf{X}^T \textbf{X})^{-1}\textbf{X}^T \textbf{y}.
 \end{align*}
 
-Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $N$ data points $(y_i,x_{i1},\ldots,x_{ip})$ randomly spread around a $p$-dimensional hyperplane in a $p+1$-dimensional space; the random spread only occurs parallel to the y-axis. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ is a single point in the $N$-dimensional space ${\bf R}^N$; the fitted $\hat {\bf y}$ is the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^N$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
+Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $n$ data points $(y_i,x_{i1},\ldots,x_{ip})$ randomly spread around a $p$-dimensional hyperplane in a $p+1$-dimensional space; the random spread only occurs parallel to the y-axis and the hyperplane is defined via $\hat \beta$. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ is a single point in the $n$-dimensional space ${\bf R}^n$; the fitted $\hat {\bf y}$ is the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^n$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
 
 
-```{r olsgeom2,echo=FALSE,out.width="80%",fig.cap="N data points spreading around the p-dimensional OLS hyperplane."}
+```{r olsgeom2,echo=FALSE,out.width="80%",fig.cap="n data points spreading around the p-dimensional OLS hyperplane."}
 knitr::include_graphics("ols_geom2.JPG")
 ```
 
 
-```{r olsgeom1,echo=FALSE,out.width="80%",fig.cap="OLS fit as the orthogonal projection **y** onto subspace spanned by covariates."}
+```{r olsgeom1,echo=FALSE,out.width="80%",fig.cap="OLS fit $\\hat{\\textbf{y}}$ as the orthogonal projection of $\\textbf{y}$ onto subspace spanned by covariates."}
 knitr::include_graphics("ols_geom1.JPG")
 ```
 
@@ -93,9 +93,9 @@ fit8 <- lm(y~X1+X2+X3+X4+X5+X6+X7+X8,data=dtrain)
 fit15 <- lm(y~.,data=dtrain) #all 15 covariates
 ```
 
-The next plot shows the data points together with the fitted values (red crosses).
+The next plot shows the data points (black circles) together with the fitted values (red crosses).
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap="Observed and fitted values for models with increasing $p$."}
 library(ggpubr)
 t.d <-data.frame(x=xtrain[,1],y=ytrain)
 t.d$yhat1 <- predict(fit1)
@@ -131,7 +131,7 @@ kable(t.d,digits = 2,booktabs=TRUE,caption="R2 for models with increasing p.")
 
 The following figure shows the regression coefficients for the different models. The larger the $p$, the bigger the discrepancy to the true coefficients.
 
-```{r echo=FALSE}
+```{r echo=FALSE, fig.cap="Regression coefficients for models with increasing $p$."}
 t.d <- data.frame(matrix(NA,nrow=16,ncol=4))
 t.d[1:2,1] <- coef(fit1)
 t.d[1:5,2] <- coef(fit4)
@@ -152,10 +152,11 @@ t.d.l <- pivot_longer(t.d%>%
 t.d.l$value[is.na(t.d.l$value)] <- 0
 t.d.l%>%
   ggplot(.,aes(x=beta,y=value,fill=model,color=model))+
-  geom_bar(position = position_dodge(),stat="identity")+
+  geom_bar(width=0.5,position = position_dodge(width = 0.8),stat="identity")+
   theme_bw()+
   theme(text =element_text(size=15),axis.text.x = element_text(angle = 45, hjust = 1),
         legend.position = "top")+
+  scale_fill_grey(aesthetics = c("fill","color"))+
   xlab("")+ylab("beta")
 ```
 
@@ -184,7 +185,7 @@ x <- model.matrix(fit15)
 det(t(x)%*%x)
 ```
 
-In this simulation exercise we illustrated the problem of overfitting. We have seen that the models with large $p$ fit the data very well, but the estimated coefficients are far off from the truth. In practice we do not know the truth. How do we know when a model is overfitting and how do we decide what a "good" model is? Shortly we will introduce the *Generalization Error* which will shed light on this question.
+In this simulation exercise we illustrated the problem of overfitting. We have seen that the models with large $p$ fit the data very well, but the estimated coefficients are far off from the truth. In practice we do not know the truth. How do we know when a model is overfitting and how do we decide what a "good" model is? Shortly we will introduce the [Generalization Error] which will shed light on this question.
 
 <!-- In particular, if $p>n$ then it is possible to form a linear combination of the covariates that perfectly explains the response, including the noise. Further, we noted that large estimates of regression coefficients are an indication of overfitting.  -->
 
@@ -194,7 +195,7 @@ We end this section with the helpful **_10:1 rule:_**
 
 ## Generalization Error
 
-The ultimative goal of a good model is to make good predictions for the future. That is we need to assess how the fitted model generalizes beyond the "observed" data. Conceptually, given new input data $x_{\rm new}$, the model provides a prediction $\hat{Y}=\hat{f}(x_{\rm new})$. The *Generalization Error* is the expected discrepancy between the prediction $\hat{Y}$ and the actual outcome $Y_{\rm new}$
+The ultimative goal of a good model is to make good predictions for the future. That is we need to assess how the fitted model generalizes beyond the "observed" data. Conceptually, given new input data $x_{\rm new}$, the model provides a prediction $\hat{Y}=\hat{f}(x_{\rm new})$. The *Generalization Error* is the expected discrepancy between the prediction $\hat{Y}=\hat{f}(x_{\rm new})$ and the actual outcome $Y_{\rm new}$
 
 $${\rm Err}(x_{\rm new})=E[(Y_{\rm new}-\hat{f}(x_{\rm new}))^2].$$
 One can show that this error can be decomposed into three terms
@@ -206,7 +207,7 @@ One can show that this error can be decomposed into three terms
 where the first term is the irreducible error (or "noise"), the second term describes the systematic bias from the truth and the third term is the variance of the predictive model. For linear regression the expected variance can be approximated by $\sigma^2_{\epsilon} \frac{p}{N}$. Complex models (with large number of covariates) have typically a small bias but a large variance. Therefore the equation above is referred to as the bias-variance dilemma as it describes the conflict in trying simultaneously minimize both sources of error, bias and variance.  
 <!-- the =(E[\hat{f}(x_{\rm new})]-f(x_{\rm new})\right)$ and ${\bf Var}(\hat{f}(x_{\rm new}))=E\left[(E[\hat{f}(x_{\rm new})]-\hat{f}(x_{\rm new}))^2\right]$. The first term represent the *irreducible error* (or noise), the second term is the  -->
 
-How do we calculate the Generalization Error in practice? The most simple approach is to separate your data into a training and testing set (see Figure \@ref(fig:traintest). The model is fitted (or "trained") on the training data and the Generalization Error is calculated on the test data and quantified using the root-mean-square error (RMSE)
+How do we calculate the Generalization Error in practice? The most simple approach is to separate the data into a training and testing set (see Figure \@ref(fig:traintest)). The model is fitted (or "trained") on the training data and the Generalization Error is calculated on the test data and quantified using the root-mean-square error (RMSE)
 
 $$ {\rm RMSE}= \sqrt{\frac{\sum_{i=1}^{n_{\rm test}}(y_{\rm test,i}-\hat y_{i})^2}{n_{\rm test}}}.$$  
 
