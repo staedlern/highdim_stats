@@ -277,7 +277,8 @@ rmse <- data.frame(
 )
 colnames(rmse) <- paste0("p=",c(1,4,8,15))
 rownames(rmse) <- "RMSE"
-kable(rmse,digits=2,booktabs=TRUE,caption="RMSE for models with increasing p.")
+kable(rmse,digits=2,booktabs=TRUE,
+      caption="RMSE for models with increasing p.")
 ```
 
 The models with $p=1$ and $4$ achieve a good error close to the "irreducible" $\sigma_{\epsilon}$. On the other hand the predictions obtained with $p=8$ and $15$ are very poor (RMSEs are 6 to 8-fold larger).

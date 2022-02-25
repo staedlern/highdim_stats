@@ -116,13 +116,15 @@ fit.fw <- stepAIC(fit0,
 We can summarize the stepwise process.
 
 ```{r}
-kable(as.data.frame(fit.fw$anova),digits=3,booktabs=TRUE,caption="Inclusion of covariates in forward stepwise regression.")
+kable(as.data.frame(fit.fw$anova),digits=3,booktabs=TRUE
+      ,caption="Inclusion of covariates in forward stepwise regression.")
 ```
 
 Finally we can retrieve the regression coefficients of the optimal model.
 
 ```{r}
-kable(broom::tidy(fit.fw),digits=3,booktabs=TRUE,caption="Regression coefficients of the optimal model.")
+kable(broom::tidy(fit.fw),digits=3,booktabs=TRUE,
+      caption="Regression coefficients of the optimal model.")
 ```
 
 ## Ridge Regression
