@@ -47,7 +47,7 @@ Thus, the prediction at the new input point $X_{\rm new}$ is
 Figures \@ref(fig:olsgeom2) and \@ref(fig:olsgeom1) show two geometric representations of the OLS estimator. In Figure \@ref(fig:olsgeom2) the $n$ data points $(y_i,x_{i1},\ldots,x_{ip})$ randomly spread around a $p$-dimensional hyperplane in a $p+1$-dimensional space; the random spread only occurs parallel to the y-axis and the hyperplane is defined via $\hat \beta$. Figure \@ref(fig:olsgeom1) shows a different representation where the vector $\bf y$ is a single point in the $n$-dimensional space ${\bf R}^n$; the fitted $\hat {\bf y}$ is the orthogonal projection onto the $p$-dimensional subspace of ${\bf R}^n$ spanned by the vectors ${\bf x}_1,\ldots,{\bf x}_p$.
 
 
-```{r olsgeom2,echo=FALSE,out.width="80%",fig.cap="n data points spreading around the p-dimensional OLS hyperplane."}
+```{r olsgeom2,echo=FALSE,out.width="80%",fig.cap="Data points spreading around the p-dimensional OLS hyperplane."}
 knitr::include_graphics("ols_geom2.JPG")
 ```
 
@@ -211,7 +211,7 @@ How do we calculate the Generalization Error in practice? The most simple approa
 
 $$ {\rm RMSE}= \sqrt{\frac{\sum_{i=1}^{n_{\rm test}}(y_{\rm test,i}-\hat y_{i})^2}{n_{\rm test}}}.$$  
 
-```{r traintest,echo=FALSE,out.width="80%",fig.cap="Training and Test data"}
+```{r traintest,echo=FALSE,out.width="80%",fig.cap="Splitting the data into training set and test sets."}
 knitr::include_graphics("traintest.JPG")
 ```
 

@@ -60,9 +60,9 @@ set, and a sample of 302 controls. The variables are:
 <!-- data source: https://web.stanford.edu/~hastie/ElemStatLearn/ -->
 <!-- dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1) -->
 
-```{r sahd, fig.cap="Pairs plot of variables in the South African Heart Disease Data. Red points indicate cases and blue points indicate controls.",fig.height=10,fig.width=10}
+```{r sahd, fig.cap="Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).",fig.height=10,fig.width=10}
 dat <- readRDS(file="data/sahd.rds")
-pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"))
+pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"),pch=ifelse(dat$chd==1,1,2))
 ```
 
 We first fit a logistic regression model using the function `glm`.

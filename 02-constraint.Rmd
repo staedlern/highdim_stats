@@ -142,7 +142,7 @@ parameter constraint, centered around zero with radius $c > 0$. The Ridge estima
 is the point where the smallest level set hits the constraint. Exactly at that point the $\rm{RSS}(\beta)$ is
 minimized over those $\beta$’s that "live" inside the constraint.
 
-```{r ridgegeom,echo=FALSE,out.width="70%",fig.cap="Geometry of Ridge Regression."}
+```{r ridgegeom,echo=FALSE,out.width="70%",fig.cap="Geometry of Ridge regression."}
 knitr::include_graphics("ridge_geometry.JPG")
 ```
 
@@ -162,7 +162,7 @@ Note that for $\lambda>0$ the matrix $\textbf{X}^T \textbf{X}+\lambda \textbf{I}
 
 Ridge regression is implemented in the package `glmnet`. We use `alpha=0` and can call 
 
-```{r, fig.cap="Trace plot for Ridge regression."}
+```{r}
 fit.ridge.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=0) 
 plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
 ```
@@ -178,7 +178,7 @@ cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0)
 
 The next plot shows the cross-validation error with upper and lower standard deviations as a function of the lambda values (note the log scale for the lambdas).  
 
-```{r, fig.cap="Cross-validation plot for Ridge regression."}
+```{r}
 plot(cv.ridge.glmnet)
 ```
 
@@ -242,7 +242,7 @@ Ridge regression and high-dimensionality play a role in many subfields of statis
 
 Sometimes it is extremely unlikely that the true function $f(X)$ is actually linear in $X$. Consider the following example.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.cap="Non-linear (sinusoidal) relationship between Y and X."}
 # define a non-linear function
 n <- 101
 x <- seq(0, 1, length.out = n)
@@ -322,7 +322,7 @@ coef(fit.csp)
 ```
 The cubic spline with $p=10$ degrees of freedom fits the data well as shown in the next plot (in dashed violet). 
 
-```{r, fig.cap="Cubic spline approximation."}
+```{r}
 plot(x, y)
 lines(x, fx, lwd = 2)
 lines(x, predict(fit.csp), lty = 2, col = "violet",lwd=3)
@@ -358,7 +358,7 @@ for (j in 2:ncol(spl)) lines(spl[,j]~x, lwd=2, col=j)
 
 We fit smoothing splines to our simulation example.
 
-```{r, fig.cap="Cubic and smoothing splines."}
+```{r}
 # smoothing spline with 10 effective degrees of freedom
 fit.smsp.df10 <- smooth.spline(x, y, df = 10) 
 
@@ -418,13 +418,13 @@ fit.lasso.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=1)
 
 The following figure shows the Lasso solution for a grid of $\lambda$ values. We note that the Lasso shrinks some coefficients to exactly zero.
 
-```{r, fig.cap="Trace plot for Lasso regression."}
+```{r}
 plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
 ```
 
 We choose the optimal tuning parameter $\lambda_{\rm opt}$ by cross-validation.
 
-```{r warning=FALSE, fig.cap="Cross-validation plot for Lasso regression."}
+```{r warning=FALSE}
 cv.lasso.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=1) 
 plot(cv.lasso.glmnet)
 cv.lasso.glmnet$lambda.min
@@ -470,7 +470,7 @@ In the exercises we will show that the solution is
 
 That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next figure, is referred to as *soft-thresholding*.
 
-```{r, echo=FALSE, fig.cap="Soft-thresholding."}
+```{r, echo=FALSE, fig.cap="Soft-thresholding function."}
 softthreshold <- function(x,lambda=1){
   sign(x)*pmax(abs(x)-0.5*lambda,0)
 }
@@ -562,7 +562,6 @@ The selection process is depicted in the following table.
 
 ```{r}
 kable(as.data.frame(fit.fw$anova),digits=2,
-      caption="Inclusion of covariates in forward stepwise regression.",
       booktabs=TRUE)
 ```
 
@@ -570,7 +569,6 @@ The regression coefficients and the corresponding statistics of the AIC-optimal 
 
 ```{r}
 kable(broom::tidy(fit.fw),digits=2,
-      caption="Regression coefficients of optimal model.",
       booktabs=TRUE)
 ```
 
@@ -610,13 +608,12 @@ res.rmse <- data.frame(
   method=c("full","forward","ridge","lasso"),
   rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
 kable(res.rmse,digits = 2,
-      booktabs=TRUE,
-      caption="RMSE for different models.")
+      booktabs=TRUE)
 ```
 
 The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
 
-```{r, echo=FALSE,fig.cap="Regression coefficients for different models."}
+```{r, echo=FALSE}
 beta.fw <- coef(fit.fw)
 beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
 beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
@@ -630,6 +627,7 @@ res.coef.l%>%
   dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
   ggplot(.,aes(x=coef,y=value,fill=method))+
   geom_bar(width=0.5,position = position_dodge(width = 0.8),stat="identity")+
+  theme_bw()+
   theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
   scale_fill_grey(aesthetics = c("fill","color"))+
   xlab("")+ylab("beta")
