@@ -1,6 +1,6 @@
 --- 
 title: |
-  ![](logo2.jpg){width=6in}   
+  ![](logo2.jpg){width=5.5in}   
   Prediction and Feature Assessment
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
