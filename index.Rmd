@@ -1,5 +1,7 @@
 --- 
-title: "Analysis of High-Dimensional Data: Prediction and Feature Assessment"
+title: |
+  ![](logo.jpg){width=5in}   
+  Prediction and Feature Assessment
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
