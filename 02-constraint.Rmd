@@ -195,6 +195,42 @@ Another choice is `lambda.1se` which denotes the largest $\lambda$ within 1 stan
 cv.ridge.glmnet$lambda.1se
 ```
 
+### Shrinkage property
+
+The OLS estimator becomes unstable (high variance) in presence of collinearity. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
+
+This can be best understood by rotating the data using a principle component analysis (see Figure \@ref(fig:principlecomponent)). In particular, we consider the singular value decomposition
+
+$$\textbf{X}=\textbf{U}\textbf{D}\textbf{V}^T,$$
+
+where the columns of $\textbf{U}$ form an orthonormal basis of the column space of $\textbf{X}$, $\textbf{D}$ is a diagonal matrix with entries $d_1\geq d_2\geq\ldots\geq d_p \geq 0$ called the singular values, and the columns of $\textbf{V}$ represent the principle component directions. For OLS the vector of fitted values ${\bf \hat y}^{\rm OLS}$ is the orthogonal projection of ${\bf y}$ onto the column space of $\bf X$. Therefore, in terms of rotated data we have
+
+\[\hat{\textbf{y}}^{\rm OLS}=\sum_{j=1}^{p}\textbf{u}_j \textbf{u}_j^T \textbf{y}.\]
+
+Similarly, we can represent the fitted values from Ridge regression as
+
+\[\hat{\textbf{y}}^{\rm Ridge}=\sum_{j=1}^{p}\textbf{u}_j \frac{d_j^2}{d_j^2+\lambda}\textbf{u}_j^T\textbf{y}.\]
+
+This shows that the level of shrinkage $\frac{d_j^2}{d_j^2+\lambda}$ is largest in the direction of the last principle component, which in return is the direction where the data exhibits smallest variance.
+
+
+```{r principlecomponent, echo=FALSE,fig.height=5, fig.width=10, fig.cap="Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis."}
+library(MASS)
+set.seed(1315)
+n <- 50
+x <- mvrnorm(n=50,mu=c(0,0),Sigma=cbind(c(1,0.8),c(0.8,1)))
+colnames(x) <- c("X1","X2")
+fit.pc <- prcomp(x)
+par(mfrow=c(1,2))
+plot(x,xlim=c(-2,2),ylim=c(-2,2))
+plot(fit.pc$x,xlim=c(-2,2),ylim=c(-2,2))
+```
+
+```{r include=FALSE, eval=FALSE}
+fn <- function(x){x/(1+x))}
+curve(fn,xlim=c(0,20),ylim=c(0,1),xlab="d",ylab="d^2/(1+d^2)",lwd=2,cex.axis=1.5)
+```
+
 ### Effective degrees of freedom
 
 Although Ridge regression involves all $p$ covariates the *effective degrees of freedom* are smaller than $p$ as we have imposed constraints through the penalty. In the book @elements it is shown that the effective degrees of freedom for Ridge regression, $\nu^{\rm ridge}_{\lambda}$, are given by
@@ -209,24 +245,6 @@ fit.svd <- svd(xtrain) #fit.svd$d
 # ridge degree of freedom for lambdaopt
 df_lambdaopt <- sum(fit.svd$d^2/(fit.svd$d^2+cv.ridge.glmnet$lambda.min))
 df_lambdaopt
-```
-
-### Shrinkage property
-
-The OLS estimator becomes unstable (high variance) in presence of collinearity. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
-
-For OLS the vector of fitted values ${\bf \hat y}^{\rm OLS}$ is the orthogonal projection of ${\bf y}$ onto the column space of $\bf X$. In terms of normalized principle components we have
-
-\[\hat{\textbf{y}}^{\rm OLS}=\sum_{j=1}^{p}\textbf{u}_j \textbf{u}_j^T \textbf{y}.\]
-
-Similarly, we can represent the fitted values from Ridge regression as
-
-\[\hat{\textbf{y}}^{\rm Ridge}=\sum_{j=1}^{p}\textbf{u}_j \frac{d_j^2}{d_j^2+\lambda}\textbf{u}_j^T\textbf{y}.\]
-
-This shows that the level of shrinkage $\frac{d_j^2}{d_j^2+\lambda}$ is largest in the direction of the last principle component, which in return is the direction in the column space of $\bf X$ with largest variance (see Figure \@ref(fig:principlecomponent)).
-
-```{r principlecomponent,echo=FALSE,out.width="80%",fig.cap="Principle components of 2-dimensional input data."}
-knitr::include_graphics("principlecomponents.JPG")
 ```
 
 ### Bayesian interpretation
@@ -450,7 +468,7 @@ An exception is the case with an orthonormal design matrix $\bf X$, i.e. $\bf X^
 
 \begin{align*}
 \textrm{RSS}(\beta)&=(\textbf{y}-\textbf{X}\beta)^T(\textbf{y}-\textbf{X}\beta)\\
-&=\textbf{y}\textbf{y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
+&=\textbf{y}^T\textbf{y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
 \end{align*}
 
 and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems

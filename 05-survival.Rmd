@@ -101,7 +101,7 @@ We can use the `summary` function to obtain more specific information on estimat
 summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
 ```
 
-We are interested to find the genes which are most predictive for survival. We assume proportionality of hazards and use `glmnet` to perform L1-penalized Cox regression. (Note that we only consider $p=500$ genes with largest variance.)
+We are interested to find the genes which are most predictive for survival. We assume proportionality of hazards and use `glmnet` to perform Elastic net regularized Cox regression. (Note that we only consider $p=500$ genes with largest variance.)
 
 ```{r}
 set.seed(1)
