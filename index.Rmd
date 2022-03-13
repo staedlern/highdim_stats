@@ -11,7 +11,8 @@ bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
 github-repo: staedlern/highdim_stats
-description: "Script for the course on Analysis of High-Dimensional Data of the CAS in Advanced Statistical Data Science (CAS ASDS)"
+description: "Script for Analysis of High-Dimensional Data"
+cover-image: logo2.jpg
 ---
 
 # Introduction
