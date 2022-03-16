@@ -1181,6 +1181,10 @@ models <- list(full=fit.full.caret,
 summary(resamples(models),metric = "Accuracy")
 ```
 
+## Lymphoma data set and pre-validation
+
+To be added.
+
 ## [Difficult] Survival analysis based on simulated data
 
 In this exercise we simulated high-dimensional survival data and explore regularized cox regression.
