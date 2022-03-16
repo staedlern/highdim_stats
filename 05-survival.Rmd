@@ -55,7 +55,7 @@ p2 <- p1+
 ggarrange(p1,p2)
 ```
 
-The distribution on the left is right skewed. However, after a log transformation the distribution is near-to-symmetric. What makes this endpoint so special? Why can't we just use a (regularized) linear regression to predict the (log) survival time based on the gene expression features? Such an approach would be shortsighted the reason being that we so far did not take into account the event status. The following graph shows survival times along side with the event status for a few patients. For patients with an event (blue triangles) the survival time corresponds with the time-to-event. However, for censored patients (red dots) the actual time-to-event is not observed and will be larger than the survival time.
+The distribution on the left is right skewed. However, after a log transformation the distribution is near-to-symmetric. What makes this endpoint so special? Why can't we just use (regularized) linear regression to predict the (log) survival time based on the gene expression features? Such an approach would be shortsighted the reason being that we so far did not take into account the event status. The following graph shows survival times along side with the event status for a few patients. For patients with an event (blue triangles) the survival time corresponds with the time-to-event. However, for censored patients (red dots) the actual time-to-event is not observed and will be larger than the survival time.
 
 ```{r echo=FALSE}
 dd <- data.frame(y)%>%
@@ -83,7 +83,7 @@ In survival analysis we denote the time-to-event with $T$. As illustrated above 
 
 Therefore we observe the survival time $Y$ (which equals the event time or the censoring time whichever occurs earlier) and the event status $D$ ($D=1$ in case of event, $D=0$ in case of censoring). 
 
-A fundamental quantities in survival analysis is the survival function
+A fundamental quantity in survival analysis is the survival function
 
 \[S(t)=P(T>t)=1-F(t)\]
 
@@ -105,7 +105,10 @@ summary(survfit(Surv(time, status) ~ 1, data = dat), times = 10)
 
 Now, how do we study the relationship between covariates and survival time? The solution is Cox regression! We introduce the hazard function defined as
 
-\[h(t)=\lim_{dt\rightarrow 0}\frac{P(t\leq T < t+dt|T\geq t)}{dt}=-S'(t)/S(t).\]
+\begin{eqnarray*}
+h(t)&=&\lim_{dt\rightarrow 0}\frac{P(t\leq T < t+dt|T\geq t)}{dt}\\
+&=&-S'(t)/S(t).
+\end{eqnarray*}
 
 The Cox proportional hazards model then assumes a semi-parametric form for the hazard
 
