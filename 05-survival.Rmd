@@ -55,7 +55,7 @@ p2 <- p1+
 ggarrange(p1,p2)
 ```
 
-The distribution on the left is right skewed. However, after a log transformation the distribution is near-to-symmetric. What makes this endpoint so special? Why can't we just use (regularized) linear regression to predict the (log) survival time based on the gene expression features? Such an approach would be shortsighted the reason being that we so far did not take into account the event status. The following graph shows survival times along side with the event status for a few patients. For patients with an event (blue triangles) the survival time corresponds with the time-to-event. However, for censored patients (red dots) the actual time-to-event is not observed and will be larger than the survival time.
+The distribution on the left is right skewed. However, after a log transformation the distribution looks near-to-symmetric. What makes this endpoint so special? Why can't we just use (regularized) linear regression to predict the (log) survival time based on the gene expression features? Such an approach would be shortsighted the reason being that we so far did not take into account the event status. The following graph shows survival times along side with the event status for a few patients. For patients with an event (blue triangles) the survival time equals the time-to-event. However, for censored patients (red dots) the actual time-to-event is not observed and will be larger than the survival time.
 
 ```{r echo=FALSE}
 dd <- data.frame(y)%>%
@@ -132,7 +132,7 @@ ggforest(fit)
 
 ## Regularized Cox Regression
 
-The lymphoma data consists of $p=$ `r ncol(x)` predictors. A truly high-dimensional example! Similar as for linear regression and logistic regression we can build upon the Cox regression model and use subset selection or regularization. The R package `glmnet` implements elastic net penalized cox regression. For illustration we restrict ourselves to the top genes (highest variance) and as a preprocessing step we scale the feature matrix. 
+The lymphoma data consists of $p=$ `r ncol(x)` predictors. A truly high-dimensional example! Similar as for linear - and logistic regression we can build upon the Cox regression model and use subset selection or regularization. The R package `glmnet` implements elastic net penalized cox regression. For illustration we restrict ourselves to the top genes (highest variance) and we scale the features as part of the data preprocessing. 
 
 ```{r, include=FALSE}
 # read gene expression matrix
@@ -180,14 +180,15 @@ We invoke `glmnet` with argument `family="cox"` and set the mixing parameter to 
 
 ```{r}
 set.seed(1)
-fit.coxnet <- glmnet(xtrain, ytrain, family = "cox",alpha=0.95)
+ytrain.surv <- Surv(ytrain[,"time"],ytrain[,"status"])
+fit.coxnet <- glmnet(xtrain, ytrain.surv, family = "cox",alpha=0.95)
 plot(fit.coxnet,xvar="lambda")
 ```
 
-We tune the amount of penalization by using cross-validation and Harrel's concordance index as a goodness of fit measure.
+We tune the amount of penalization by using cross-validation and take Harrel's concordance index as a goodness of fit measure.
 
 ```{r}
-cv.coxnet <- cv.glmnet(xtrain,ytrain,
+cv.coxnet <- cv.glmnet(xtrain,ytrain.surv,
                        family="cox",
                        type.measure="C",
                        nfolds = 5,
@@ -195,11 +196,11 @@ cv.coxnet <- cv.glmnet(xtrain,ytrain,
 plot(cv.coxnet)
 ```
 
-The C-index ranges from 0.5 to 1. A value of 0.5 indicates that the model is no better at predicting an outcome than random chance. The tuning parameter which maximizes the C-index is $\lambda_{\rm{opt}}=$ `r round(cv.coxnet$lambda.min,3)`. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).
+The C-index ranges from 0.5 to 1. A value of 0.5 indicates that the model is no better at predicting an outcome than random chance. The largest tuning parameter within 1se of the maximum C-index is $\lambda_{\rm{opt}}=$ `r round(cv.coxnet$lambda.1se,3)`. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).
 
 ```{r, echo=FALSE}
 dbeta <- data.frame(NULL)
-dbeta <- data.frame(betahat=as.numeric(coef(fit.coxnet,s=cv.coxnet$lambda.min)))
+dbeta <- data.frame(betahat=as.numeric(coef(fit.coxnet,s=cv.coxnet$lambda.1se)))
 dbeta$betaname <- colnames(x)
 dbeta%>%
   dplyr::filter(betahat!=0)%>%
@@ -213,14 +214,14 @@ dbeta%>%
 
 We use the obtained model to make predictions on the test data. In particular we compute the linear predictor 
 
-$$\hat{f}(X_{\textrm{new}})=X_{\textrm{new}}^T\hat{\beta}_{\lambda_{\rm min}}.$$
+$$\hat{f}(X_{\textrm{new}})=X_{\textrm{new}}^T\hat{\beta}_{\lambda_{\rm opt}}.$$
 We can now classify patients into good and poor prognosis based on thresholding the linear predictor at zero.
 
 ```{r}
 # linear predictor
 lp <- predict(fit.coxnet,
               newx=xtest,
-              s=cv.coxnet$lambda.min,
+              s=cv.coxnet$lambda.1se,
               type="link")
 dat.test <- data.frame(ytest)
 dat.test$prognosis <- ifelse(lp>0,"poor","good")
@@ -229,7 +230,7 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE)
 ```
 
-The survival curves are reasonably well separated, which suggests we have derived a gene signature which at least deserves further investigation.
+The survival curves are reasonably well separated, which suggests we have derived a gene signature which deserves further investigation.
 
 ## Brier Score
 
@@ -240,7 +241,7 @@ We have seen how to evaluate the generalization error in the linear regression a
 where $\Delta_{\textrm{new}}(t)={\bf 1}(T_{\textrm{new}}\geq t)$ is the true status of a new test subject and
 $\hat{S}(t|X_{\rm new})$ is the predicted survival probability. Calculation of the Brier score is complicated by the fact that we do not always observe the event time $T$ due to censoring. The R package `pec` estimates the Brier score using a technique called *Inverse Probability of Censoring Weighting (IPCW)*. 
 
-For illustration we use forward selection on the training data to obtain a prediction model (we choose `steps=5` to reduce CPU time).
+We use forward selection on the training data to obtain a prediction model.
 
 ```{r}
 dtrain <- data.frame(cbind(ytrain,xtrain))
@@ -253,41 +254,178 @@ up <- as.formula(paste("~",
 fit.fw <- stepAIC(fit.lo,
                   scope=list(lower=fit.lo,
                              upper=up),
-                  direction="forward",
-                  steps=5,
+                  direction="both",
                   trace=FALSE)
-
 ```
 
 The following table summarizes the variables added in each step of the forward selection approach.
 ```{r}
 kable(as.data.frame(fit.fw$anova),digits=3,booktabs=TRUE)
 ```
+We further run a Cox regression model based on the predictors selected by `glmnet`.
 
-The next figure shows the estimated hazard ratios and confidence intervals. This type of plot is often referred to as forest plot.
-
-```{r, warning=FALSE}
-survminer::ggforest(fit.fw)
+```{r}
+beta.1se <- coef(fit.coxnet,s=cv.coxnet$lambda.1se)
+vars.1se <- rownames(beta.1se)[as.numeric(beta.1se)!=0]
+fm.1se <- as.formula(paste0("Surv(time,status)~",
+                            paste0(vars.1se,collapse="+")))
+fit.1se <- coxph(fm.1se,data=dtrain,x=TRUE,y=TRUE)
 ```
 
-Finally we use the `pec` package to calculate the Brier score on the training and test data.
+
+Finally we use the `pec` package to calculate Brier scores for both models on the training and test data.
+
+```{r include=FALSE, eval=FALSE}
+# example comparing predicted survival
+dtr <- data.frame(cbind(ytrain,xtrain))
+xtr <- xtrain[,c("V3421","V4352")]
+ytr <- Surv(dtr$time,dtr$status)
+dte <- data.frame(cbind(ytest,xtest))
+xte <- xtest[,c("V3421","V4352")]
+fit.cox <- coxph(Surv(time,status)~V3421+V4352,data=dtr,ties="breslow",x=TRUE) #glment uses breslow
+fit.glmnet <- glmnet(x=xtr,y=ytr,
+                     family="cox",
+                     lambda=0,
+                     standardize = FALSE,
+                     thres = 1E-10)
+## compare coefficients
+coef(fit.cox)
+coef(fit.glmnet)
+
+## compare calculation of survival probabilities
+s.cox <- predictSurvProb(fit.cox,newdata=dte[1:5,],time=c(5,10))
+sfit.coxa <- survfit(fit.cox,newdata=dte[1:5,])
+sfit.coxb <- survfit(fit.cox,newdata=dte[1:5,],ctype=2)
+s.coxa <- summary(sfit.coxa,time=c(5,10))$surv
+s.coxb <- summary(sfit.coxb,time=c(5,10))$surv
+sfit.glmnet <- survival::survfit(fit.glmnet,x=xtr,y=ytr,newx=xte[1:5,])
+s.glmnet <- summary(
+  sfit.glmnet,
+  time=c(5,10)
+  )$surv
+head(s.cox)
+head(t(s.coxa))
+head(t(s.coxb))
+head(t(s.glmnet))
+predictSurvProb.coxnet <- function(object,newdata,times,x,y,...){
+  sfit <- survival::survfit(object,x=x,y=y,newx=newdata)
+  p <- t(summary(sfit,time=times)$surv)
+  p
+}
+predictSurvProb(fit.glmnet,x=xtr,y=ytr,newdata=xte[1:5,],time=c(5,10))
+```
+
+```{r include=FALSE, eval=FALSE}
+# own calculation of brier score: https://www.jesseislam.com/post/brier-score/
+brierscore <- function(object,time,event){
+  
+  # test data
+  dd <- data.frame(time=time,event=event)
+  
+  # times at which to calculate brier score
+  times <- sort(unique(time))
+  
+  # predictions
+  if(!any(class(object)%in%"survfitcox")){
+    predsurv <- matrix(summary(object,times=times,extend=TRUE)$surv,ncol=length(event),nrow=length(times))
+  }else{
+    predsurv <- summary(object,times=times,extend=TRUE)$surv
+  }
+  
+  # ipcw
+  fitCens <- prodlim::prodlim(Hist(time, event) ~ 1, dd,reverse = TRUE)
+  IPCW.subject.times <- prodlim::predictSurvIndividual(fitCens, lag = 1)
+  
+  # brierscore
+  Score <- matrix(NA, nrow(predsurv), ncol(predsurv))
+  matrixIPCW <- matrix(NA, nrow(predsurv), ncol(predsurv))
+  
+  for (i in 1:length(times)) {
+    
+    CensBefore <- dd$event == 0 & dd$time < times[i]
+    y <- drop(t(dd$time > times[i]))
+    Score[i, ] <- (y - predsurv[i, ])^2
+    matrixIPCW[i, y == 0] <- IPCW.subject.times[y == 0] # G(t-|X) filled in corresponding positions
+    fixedTimeIPCW <- predict(fitCens, newdata = dd, times = times[i], level.chaos = 1, mode = "matrix", type = "surv", lag = 1)
+    matrixIPCW[i, y == 1] <- fixedTimeIPCW 
+    Score[i, CensBefore] <- 0
+  }
+  Err <- Score / matrixIPCW
+  Err <- apply(Err, 1, mean)
+  
+  return(data.frame(times=times,brierscore=Err))
+}
+
+# test 1
+data.table::setorder(dtrain, time, -status) # very important
+data.table::setorder(dtest, time, -status) # very important
+fit.fw <- coxph(formula = Surv(time, status) ~ V4131 , data = dtrain, x = TRUE)
+ss.ref <- survfit(Surv(time,status)~1,data=dtrain)
+ss.fw <- survfit(fit.fw,newdata=dtest)
+ss.coxnet <- survival::survfit(fit.coxnet,s=cv.coxnet$lambda.min,
+                               x=xtrain,y=Surv(dtrain$time,dtrain$status),
+                               newx=xtest)
+bs.ref <- brierscore(ss.ref,dtest$time,dtest$status)
+bs.fw <- brierscore(ss.fw,dtest$time,dtest$status)
+bs.coxnet <- brierscore(ss.coxnet,dtrain$time,dtrain$status)
+plot(bs.ref$times,bs.ref$brierscore,type="l")
+lines(bs.fw$times,bs.fw$brierscore,col="red")
+lines(bs.coxnet$times,bs.coxnet$brierscore,col="blue")
+
+# test 2
+set.seed(18)
+astrain <- riskRegression::simActiveSurveillance(278)
+data.table::setorder(astrain, time, -event) # very important
+astest <- riskRegression::simActiveSurveillance(208)
+data.table::setorder(astest, time, -event) # very important
+coxfit <- coxph(Surv(time, event != 0) ~ ., data = astrain, x = TRUE)
+ss <- survfit(coxfit,newdata=astest)
+ss.ref <- survfit(Surv(time, event != 0) ~ 1,data=astrain)
+bs <- brierscore(ss,astest$time,astest$event!=0)
+bs.ref <- brierscore(ss.ref,astest$time,astest$event!=0)
+max(fit.pec.test$AppErr$cox)
+max(bs$brierscore)
+
+# test 3
+set.seed(1)
+learndat <- SimSurv(50)
+data.table::setorder(learndat, time, -status)
+testdat <- SimSurv(30)
+data.table::setorder(testdat, time, -status)
+f1 <- coxph(Surv(time,status)~X1+X2,data=learndat,x=TRUE)
+pf <- pec(list(f1),formula=Surv(time,status)~1,data=testdat,exact=TRUE)
+plot(pf)
+max(pf$AppErr$Reference)
+max(pf$AppErr$coxph)
+
+ss <- survfit(f1,newdata=testdat)
+ss.ref <- survfit(Surv(time, status) ~ 1,data=learndat)
+bs <- brierscore(ss,testdat$time,testdat$status)
+bs.ref <- brierscore(ss.ref,learndat$time,learndat$status)
+max(bs.ref$brierscore)
+max(bs$brierscore)
+```
+
 
 ```{r message=FALSE}
 library(pec)
 fit.pec.train <- pec::pec(
-  object=list("cox.fw"=fit.fw), 
+  object=list("cox.fw"=fit.fw,
+              "cox.1se"=fit.1se), 
   data = dtrain, 
   formula = Surv(time, status) ~ 1, 
   splitMethod = "none")
 
 
 fit.pec.test <- pec::pec(
-  object=list("cox.fw"=fit.fw), 
+  object=list("cox.fw"=fit.fw,
+              "cox.1se"=fit.1se), 
   data = dtest, 
   formula = Surv(time, status) ~ 1, 
   splitMethod = "none")
 
 ```
+
 The following figure shows the Brier scores evaluated on training and test data.
 ```{r}
 par(mfrow=c(1,2))
@@ -295,14 +433,14 @@ plot(fit.pec.train,main="training data")
 plot(fit.pec.test,main="test data")
 ```
 
-The plot on the right shows the Brier score on the test data and indicates that the selected model performs slightly better than the reference model (no covariates).
+The plot on the right shows the Brier score on the test data and indicates that the glmnet selected model performs slightly better than the reference model (no covariates, Kaplan-Meier estimate only).
 
 The `pec` package can also be used to benchmark different prediction models. We illustrate this based on random forest and forward selection. In this illustration we do not split the data into training and test. Instead we use cross-validation to compare the two prediction approaches. 
 
 We start by writing a small wrapper function to use forward selection in `pec`. (A detailed description on the `pec` package and on how to set up wrapper functions is provided [here](https://pubmed.ncbi.nlm.nih.gov/25317082/).)
 
 ```{r}
-selectCoxfw <- function(formula,data,steps=5,direction="both")
+selectCoxfw <- function(formula,data,steps=100,direction="both")
 {
   require(prodlim)
   fmlo <- reformulate("1",formula[[2]])
@@ -334,7 +472,7 @@ predictSurvProb.selectCoxfw <- function(object,newdata,times,...){
 }
 ```
 
-We run forward selection with maximum 5 steps.
+We run forward selection.
 
 ```{r}
 dat <- data.frame(cbind(y,x))
@@ -342,7 +480,7 @@ fm <- as.formula(paste("Surv(time, status) ~ ",
                        paste(colnames(dat[,-(1:2)]), 
                              collapse="+")))
 fit.coxfw <- selectCoxfw(fm,data=dat,
-                         direction="forward",steps=5)
+                         direction="forward")
 ```
 
 We fit a random forest using `cforest` from the `party` package.
@@ -352,9 +490,9 @@ fit.cforest <- pec::pecCforest(fm, data =dat,
                                control = party::cforest_classical(ntree = 100))
 ```
 
-We can obtain a measure of variable importance using the function `varimp`.
+We random forest we can obtain a measure of variable importance using the function `varimp`.
 
-```{r echo=FALSE, warnings=FALSE, message=FALSE, fig.height=8}
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=8}
 vp <- party::varimp(fit.cforest$forest)
 dvp <- data.frame(VARNAME=names(vp),VARIMP=vp)
 vplot <- dvp%>%
@@ -381,4 +519,4 @@ pec.cv <- pec::pec(
 plot(pec.cv)
 ```
 
-We conclude that forward selection and random forest slightly outperform the reference model (no covariates included).
+We conclude that forward selection and random forest do not outperform the reference model.

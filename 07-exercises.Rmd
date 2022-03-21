@@ -1181,11 +1181,181 @@ models <- list(full=fit.full.caret,
 summary(resamples(models),metric = "Accuracy")
 ```
 
-## Lymphoma data set and pre-validation
+## Survival analysis and the Lymphoma data
 
-To be added.
+In this exercise we explore the Lymphoma data set to predict survival based on gene expression data.
 
-## [Difficult] Survival analysis based on simulated data
+1. Load the Lymphoma data and make a histogram of the survival times.
+
+2. Plot the estimated survival curve using `survfit` (Kaplan-Meier method).
+
+3. Fit a Cox regression model with the first three genes as predictors. Use the function `coxph`.
+
+4. Build a predictive model using `glmnet` (data pre-processing: use the top 100 genes and scale the resulting predictor matrix). Which genes are selected? What is the C-index for the optimal tuning parameter?
+
+5. Use the predictive model and classify patients into "good" and "poor" prognostic groups by thresholding the linear predictor at zero. Calculate the Kaplan-Meier curves for the two groups. What is your conclusion? Do you have any concerns?
+
+6. The linear predictor scores computed in 5. are biased as they are evaluated on the same data for which they were computed. We now use a variant of cross-validation, known as *pre-validation*, in order to obtain a fair evaluation of the model. 
+
+Calculate a pre-validated data set using the code below and calculate the Kaplan-Meier curves for patients with good and poor prognosis.
+
+
+```{r eval=FALSE}
+# split data into K=5 folds
+n.fold <- 5
+foldid <- sample(1:n.fold, size = nrow(x), replace = TRUE)
+
+# pre-validation
+dat.preval <- data.frame(y) 
+dat.preval$lp <- NA
+
+for (i in 1:n.fold){
+  
+  # train model on samples not in the kth fold
+  omitk <- which(foldid==i)
+  fitk <- cv.glmnet(x[-omitk,],y.surv[-omitk,],
+                    family="cox",
+                    type.measure="C",
+                    nfolds = 5,
+                    alpha=1)
+  
+  # calculated linear predictor on samples in the kth fold
+  lp <- predict(fitk,
+                newx=x[omitk,],
+                s=cv.coxnet$lambda.min,
+                type="link")
+  dat.preval$lp[omitk] <- lp
+}
+```
+
+
+
+Solution to the exercise.
+
+We load the data set.
+
+```{r}
+# read gene expression matrix
+x <- read.table("data/lymphx.txt")%>%
+  as.matrix
+
+# read survival data
+y <- read.table("data/lymphtime.txt",header = TRUE)%>%
+  as.matrix
+```
+
+Plot the distribution of the survival times.
+```{r echo=FALSE,fig.height=3, warning=FALSE, message=FALSE}
+dd <- data.frame(y)
+p1 <- dd%>%
+  ggplot(.,aes(x=time))+
+  geom_histogram(alpha=0.8)+
+  theme_bw()
+p2 <- p1+
+  scale_x_continuous(trans='log2')
+ggarrange(p1,p2)
+```
+
+Plot of the Kaplan-Meier estimates.
+```{r}
+dat <- data.frame(y)
+fit.surv <- survfit(Surv(time, status) ~ 1, 
+                    data = dat)
+ggsurvplot(fit.surv,conf.int=FALSE)
+```
+
+Fit a Cox regression model.
+```{r}
+dat <- data.frame(cbind(y,x[,1:3]))
+fit <- coxph(Surv(time,status)~.,data=dat)
+summary(fit)
+```
+
+Build a predictive model using `glmnet`. Data pre-processing.
+
+```{r}
+# filter for top genes (highest variance) and scale the input matrix
+topvar.genes <- order(apply(x,2,var),decreasing=TRUE)[1:100]
+x <- scale(x[,topvar.genes])
+```
+
+Run `glmnet` using `family="cox"`.
+```{r}
+set.seed(1)
+y.surv <- Surv(y[,"time"],y[,"status"])
+fit.coxnet <- glmnet(x, y.surv, family = "cox")
+plot(fit.coxnet,xvar="lambda")
+```
+
+Calculate the cross-validated C-index.
+```{r}
+cv.coxnet <- cv.glmnet(x,y.surv,
+                       family="cox",
+                       type.measure="C",
+                       nfolds = 5)
+plot(cv.coxnet)
+```
+
+Classify patients into groups with good and poor prognosis (based on thresholding the linear predictor at zero).
+
+```{r}
+# linear predictor
+lp <- predict(fit.coxnet,
+              newx=x,
+              s=cv.coxnet$lambda.1se,
+              type="link")
+dat <- data.frame(y)
+dat$prognosis <- ifelse(lp>0,"poor","good")
+fit.surv <- survfit(Surv(time, status) ~ prognosis, 
+                    data = dat)
+ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
+```
+
+The curves are very well separated. However, these linear predictor scores are biased: we are evaluating their performance on the same data for which they were computed.
+
+In order to obtain a fair evaluation of the model we calculate a pre-validated data set.
+
+```{r}
+set.seed(150381)
+
+# split data into K=5 folds
+n.fold <- 5
+foldid <- sample(1:n.fold, size = nrow(x), replace = TRUE)
+
+# pre-validation
+dat.preval <- data.frame(y) 
+dat.preval$lp <- NA
+
+for (i in 1:n.fold){
+  
+  # train model on samples not in the kth fold
+  omitk <- which(foldid==i)
+  fitk <- cv.glmnet(x[-omitk,],y.surv[-omitk,],
+                    family="cox",
+                    type.measure="C",
+                    nfolds = 5,
+                    alpha=1)
+  
+  # calculated linear predictor on samples in the kth fold
+  lp <- predict(fitk,
+                newx=x[omitk,],
+                s=cv.coxnet$lambda.min,
+                type="link")
+  dat.preval$lp[omitk] <- lp
+}
+```
+
+Plot the Kaplan-Meier curves for the good and poor prognosic groups based on the pre-validated data.
+
+```{r}
+dat.preval$prognosis <- ifelse(dat.preval$lp>0,"poor","good")
+fit.surv <- survfit(Surv(time, status) ~ prognosis, 
+                    data = dat.preval)
+ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
+```
+
+
+## Survival analysis based on simulated data (difficult)
 
 In this exercise we simulated high-dimensional survival data and explore regularized cox regression.
 
