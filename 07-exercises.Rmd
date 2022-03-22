@@ -21,7 +21,7 @@ library(rpart.plot)
 ## Prostate cancer data and linear regression
 
 We explore the prostate cancer data set described in the book @elements. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
-The aim is to investigate the relationship between the level of prostate-specific antigen (`lpsa`) and several clinical covariates. The covariates are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test set.
+The aim is to investigate the relationship between the level of prostate-specific antigen (`lpsa`) and several clinical covariates. The covariates are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test sets.
 
 1. Read the prostate cancer data set and make a histogram for the response variable `lpsa`.
 2. Create a scatterplot matrix for all variables in the data set. Use `pairs` or `ggpairs`.
@@ -29,23 +29,23 @@ The aim is to investigate the relationship between the level of prostate-specifi
 4. Run a univariate regression model with `lcavol` as covariate. Study the `summary` output. 
 
    - How do you interpret the regression coefficients for `lcavol`?
-   - What is the meaning of the  *Multiple R-squared*? 
-   - What is the *Residual standard error*?
+   - What is the meaning of the  *multiple R-squared*? 
+   - What is the *residual standard error*?
    - Generate a scatter plot of `lcavol` against `lpsa` and add the regression line with confidence band (use `geom_smooth`, `method="lm"`). 
    - Draw the Tukey Anscombe plot and the QQ plot (check `?plot.lm`). What are these two plots telling us?
    
 5. Run a multiple regression model using all covariates. Study the `summary` output. 
 
    - What does change in the interpretation of the coefficient for `lcavol`? 
-   - What do you conclude from the *Multiple R-squared*?
-   - Create the Tukey Anscombe plot and a QQ plot.
+   - What do you conclude from the *multiple R-squared*?
+   - Create a Tukey Anscombe plot and a QQ plot.
    
 6. Run a multiple regression model including all covariates but `lacvol`. Proceed as in 5. 
 7. Calculate the RSS for all 3 models. Write down your observation.
 8. Compare all 3 models using the `anova` function. What do you conclude?
 
 
-Solution to the exercise:
+Solution to the exercise.
 
 Read the data set.
 ```{r}
@@ -136,15 +136,15 @@ In the previous section we developed 3 models to predict `lpsa`. In this section
 
 1. Calculated the RMSE on the training data. Which model will perform best on future data?
 2. Use the test data and make scatter plots of the observed against predicted outcomes. Use `ggplot` to create one plot per model and add the regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph. This plot is also called "calibration plot". The model is "well" calibrated if the regression line agrees with the "y=x" line.
-3. Repeat the plots in 2. but now focus on `predicted minus observed` vs `predicted`.
-4. Generate boxplots of `predicted minus observed` for the 3 models. What do you conclude?
+3. Repeat the plots in 2. but now focus on `predicted - observed` vs `predicted`.
+4. Generate boxplots of `predicted - observed` for the 3 models. What do you conclude?
 5. Calculate the generalization error, i.e., the RMSE on the test data.
 
 
 Solution to the exercise.
 
-We calculate the RMSEs on the training data. RMSE on training tells you how good the model "fits" the data. Unfortunately, we
-cannot make any conclusion about the generalizability of the models.
+We calculate the RMSEs on the training data. RMSE on training tells you how good the model "fits" the data. We
+cannot make any conclusion about the generalizability of the models based on RMSEs on training data.
 
 ```{r}
 RMSE(dtrain$lpsa,predict(fit1,newdata=dtrain))
@@ -216,8 +216,8 @@ y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
 dtest <- data.frame(x,y)
 ```
 
-1. Can you describe the lines of code of simulated data in words?
-2. Fit and explore the following 3 models on the training data: a) univariate regression model with only X1, b) multiple regression model with X1-X4 as covariates and c) multiple regression model including all covariates. 
+1. Can you describe the model behind the lines of code?
+2. Use the training data to fit and explore the following 3 models: a) univariate regression model with covariate X1, b) multiple regression model with X1-X4 as covariates and c) multiple regression model including all covariates. 
 3. Repeat the calculations from exercise 2. What do you conclude?
 
 Solution to the exercise.
@@ -263,7 +263,7 @@ dd%>%
   facet_wrap(~model)
 ```
 
-Boxplots of predicted vs observed. 
+Boxplots of `predicted - observed`. 
 
 ```{r}
 dd%>%
@@ -281,14 +281,14 @@ RMSE(dtest$y,predict(fit3,newdata=dtest))
 ```
 
 
-## Calculus, optimization and the least squares estimator
+## Calculus, optimization and OLS
 
-1. Consider the function $f(x)=2x^2 + x -5$. Use R to make a plot of the function.
+1. Consider the function $f(x)=2x^2 + x -5$. Draw a plot of the function.
 2. Use `optimize` to find the minimum of $f(x)$.
 3. Obtain the minimum of $f(x)$ by taking the derivative and setting equal to zero.
 4. Show that $\|a\|^2_2=a^Ta$.
 5. Use the result in 4. and show that $\bf RSS(\beta)=\bf y^Ty-2 y X \beta +\beta^T X^T X \beta$. 
-6. Invoke the result obtained in 4. and show that the derivative of $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$ Hint: review the "Identities" section of [Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
+6. Invoke the result obtained in 4. and show that $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$ Hint: review the "Identities" section of [Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
 7. Do you understand the derivation of the least squares estimator?
 
 
@@ -311,11 +311,13 @@ optimize(myf,interval=c(-5,5))
 ## Prostate cancer data and regularization
 
 1. Read the prostate cancer data set.
-2. Run OLS, Best Subset selection (use the `leaps` package), Ridge regression and Lasso regression. 
+2. Run OLS, Best Subset selection (use the `leaps` package), Ridge regression (`glmnet` with `alpha=0`) and Lasso regression (`glmnet` with `alpha=1`). 
 3. Print the coefficients as a table.
-4. Calculate for each method the Test error and compare the results with Table 3.3. in @elements. 
+4. Calculate for each method the test error and compare the results with Table 3.3. in @elements. 
 
-The solution to this exercise. Read the data set and create training and test data.
+The solution to this exercise. 
+
+Read the data set and create training and test data.
 
 ```{r}
 dat <- read.csv("data/prostate.csv")
@@ -375,7 +377,7 @@ coef.lasso <- coef(fit.lasso,s=fit.ridge.cv$lambda.min)
 terr.lasso <- mean((as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))-ytest)^2)
 ```
 
-The next two figures show BIC and CV Error for the Best Subset selection approach
+The next two figures show BIC and CV error for the Best Subset selection approach
 (tuning parameter are the different subset sizes).
 
 ```{r}
@@ -383,7 +385,7 @@ plot(ss.summary$bic)
 plot(subset.caret)
 ```
 
-The next two figures show the CV Error for Ridge and Lasso regression.
+The next two figures show the CV error for Ridge and Lasso regression.
 
 ```{r}
 par(mfrow=c(1,2))
@@ -413,6 +415,70 @@ kable(res,digits = 3,booktabs=TRUE)
 
 ```
 
+## Closed form solution for Ridge regression
+
+1. Show that the Ridge optimization problem has the closed form solution 
+
+\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
+\end{align*}
+
+Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|_2^2$, set equal to zero and solve for $\beta$. 
+
+2. Use the code below to generate simulated data. Use the formula from the script to calculate the
+Ridge coefficients for $\lambda=35$. Compare the coefficients with those obtained using `glmnet`. Hint:
+Read the following [blog](https://stats.stackexchange.com/questions/129179/why-is-glmnet-ridge-regression-giving-me-a-different-answer-than-manual-calculat) on how to scale the $\lambda$.
+
+```{r}
+set.seed(1)
+
+# simulate data
+n <- 20
+p <- 15
+x <-  matrix(rnorm(n * p), n, p)
+y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(n)
+```
+
+Solution to the exercise.
+
+```{r ridgeclosedform,echo=FALSE,out.width="100%"}
+knitr::include_graphics("ridge_closedform.jpg")
+```
+
+
+We obtain the Ridge coefficients using `glmnet`.
+
+```{r}
+my.lambda <- 35
+fit.ridge <- glmnet(x,y,alpha=0,lambda=my.lambda,
+                    intercept=FALSE,standardize = FALSE,thresh = 1e-20,exact=TRUE)
+coef.ridge <- as.vector(coef(fit.ridge))[-1]
+head(coef.ridge)
+```
+
+Next we calculate the coefficients based on the formula from the script. Note that we need to re-scale the lambda.
+
+```{r}
+sd_y <- sqrt(var(y)*(n-1)/n)[1,1]
+my.lambda2 <- n*my.lambda/sd_y
+coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
+head(coef.ridge2)[,1]
+```
+
+## Bayesian interpretation of Ridge regression (difficult)
+
+1. Write down the log-likelihood of the linear regression model. Note: 
+$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
+$n\times p$ design matrix.
+2. Find the expression for the maximum likelihood estimator.
+3. Assuming a prior distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
+
+The solution to this exercise.
+
+```{r ridgemap,echo=FALSE,out.width="100%"}
+knitr::include_graphics("ridge_map.jpg")
+```
+
 ## Elastic net mixing parameter and cross-validation
 
 1. Load the `hdi` package and read the riboflavin data set (`?riboflavin`).
@@ -420,7 +486,9 @@ kable(res,digits = 3,booktabs=TRUE)
 3. Run the Elastic net with mixing parameters $\alpha=0.25, 0.5, 0.75$ and $1$ and compare the cross-validation curves. Hint: use the `foldid` argument in `glmnet`. 
 4. Show the selected genes for the best performing model.
 
-The Solution to this exercise. We first load the data and check the data structure.
+The solution to this exercise. 
+
+We first load the data and check the data structure.
 
 ```{r}
 library(hdi)
@@ -474,77 +542,17 @@ rownames(b)[b!=0]
 ## lambda such that the cv-error is within 1 standard error of the minimum
 ```
 
-## Closed form solution for Ridge regression
+## Ridge and Lasso for the orthonormal design (difficult)
 
-1. Show that the Ridge optimization problem has the closed form solution 
+1. Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
 
-\begin{align*}
-\hat{\beta}^{\rm Ridge}_{\lambda}&=(\bf X^T \bf X+\lambda \bf I)^{-1}\bf X^T \bf y.
-\end{align*}
-
-Hint: calculate the gradient of the loss function $\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|_2^2$, set equal to zero and solve for $\beta$. 
-
-2. Use the code below to generate simulated data. Use the formula for the script to calculate the
-Ridge coefficients for $\lambda=35$. Compare the coefficients with those obtained using `glmnet`. Hint:
-Read the following [blog](https://stats.stackexchange.com/questions/129179/why-is-glmnet-ridge-regression-giving-me-a-different-answer-than-manual-calculat) on how to scale the $\lambda$.
-
-```{r}
-set.seed(1)
-
-# simulate data
-n <- 20
-p <- 15
-x <-  matrix(rnorm(n * p), n, p)
-y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(n)
-```
-
-Solution to the exercise.
-
-```{r ridgeclosedform,echo=FALSE,out.width="100%"}
-knitr::include_graphics("ridge_closedform.jpg")
-```
-
-
-We obtain the Ridge coefficients using `glmnet`.
-
-```{r}
-my.lambda <- 35
-fit.ridge <- glmnet(x,y,alpha=0,lambda=my.lambda,
-                    intercept=FALSE,standardize = FALSE,thresh = 1e-20,exact=TRUE)
-coef.ridge <- as.vector(coef(fit.ridge))[-1]
-head(coef.ridge)
-```
-
-Next we calculate the coefficients based on the formula from the script. Note that we need to re-scale the lambda.
-
-```{r}
-sd_y <- sqrt(var(y)*(n-1)/n)[1,1]
-my.lambda2 <- n*my.lambda/sd_y
-coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
-head(coef.ridge2)[,1]
-```
-
-## [Difficult] Ridge and Lasso for the orthonormal design
-
-Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
+The solution to this exercise.
 
 ```{r lassoorthonormal,echo=FALSE,out.width="100%"}
 knitr::include_graphics("lasso_orthonormal.jpg")
 ```
 
-## [Difficult] Bayesian interpretation of Ridge regression
-
-1. Write down the log-likelihood of the linear regression model. Note: 
-$Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
-$n\times p$ design matrix.
-2. Find the expression for the maximum likelihood estimator.
-3. Assuming a prior distribution $\beta_1,\ldots,\beta_p$ iid $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and show that the maximum a posteriori estimator (MAP) coincides with the Ridge estimator.
-
-```{r ridgemap,echo=FALSE,out.width="100%"}
-knitr::include_graphics("ridge_map.jpg")
-```
-
-## [Difficult] P-values for high-dimensional regression
+## P-values for high-dimensional regression (difficult)
 
 The Lasso does not provide p-values for the regression coefficients. In this exercise we use the riboflavin data set to explore a neat approach to obtain p-values. The research paper which proposed the method is available [here](https://arxiv.org/pdf/0811.2177.pdf).
 
@@ -556,7 +564,9 @@ The Lasso does not provide p-values for the regression coefficients. In this exe
 6. For each gene calculate the 10th percentile of the p-values ("p-value aggregation").
 7. Use the function `hdi` with `method="multi.split"` to calculate p-values.
 
-Solution to the exercise. Start by splitting the data set into two halves.
+Solution to the exercise. 
+
+Start by splitting the data set into two halves.
 
 ```{r}
 library(multcomp)
@@ -649,9 +659,9 @@ pval.agg <- sort(apply(pvals_ms,1,quantile,probs=0.1),decreasing=FALSE)
 head(pval.agg)
 ```
 
-The multi-splitting approach is implemented in the function `hdi` function. (Note the function uses clever way to aggregate the p-values.)
+The multi-splitting approach is implemented in the function `hdi` function. (Note that the `hdi` function uses a clever way to aggregate the p-values.)
 
-```{r eval=FALSE, include=FALSE}
+```{r eval=FALSE, include=TRUE}
 library(hdi)
 x <- riboflavin[,-1]
 y <- riboflavin[,1]
@@ -663,9 +673,9 @@ head(sort(fit.multi$pval.corr,decreasing = FALSE))
 
 ## Logistic regression and splines
 
-We explore the logistic regression based on the South African heart disease data. Proceed as follows:
+We explore logistic regression based on the South African heart disease data. Proceed as follows:
 
-1. Fit a univariate logistic regression model with *age* as the covariate. Calculate the odds-ratio and elaborate on the interpretation. 
+1. Fit a univariate logistic regression model with `age` as the covariate. Calculate the odds-ratio and elaborate on the interpretation. 
 2. Predict the probability of heart disease at age 65.   
 3. Fit a logistic regression model including all covariates. Run stepwise backward selection. Which variables are excluded? What is the AIC value of the final model?
 4. Fit a logistic regression model using four natural cubic spline bases for each term in the model. Run backward selection and summarise the final model. Plot the natural cubic spline functions for the age term (use `termplot`). What does the plot tell you?
@@ -760,7 +770,9 @@ In this exercise we explore decision trees based on the South African heart dise
 7. Fit a random forest using `randomForest`. Plot the fitted object. What is this plot telling us? Calculate the variable importance. Which are the most important variables?
 8. Run AdaBoost using `gbm`. What is the prediction for a patient with covariates sbp=100, tobacco=0, ldl=5, famhist="Present", obesity=25, alcohol=10 and age=50. Compute the variable importance.
 
-The solution to this exercise. First we read the data and grow the tree.
+The solution to this exercise. 
+
+First we read the data and grow the tree.
 
 ```{r warning=FALSE}
 # load packages
@@ -779,8 +791,8 @@ We re-grow the tree using different control parameters.
 # cp: improvement in each split needs to be > cp
 # minsplit: minimal number of samples in a node inorder to do a split
 fit.tree2 <- rpart(chd~.,data=sahd,method="class",
-                  control = rpart.control(cp = 0,minsplit=10)
-                  
+                   control = rpart.control(cp = 0,minsplit=10)
+                   
 )
 rpart.plot(fit.tree2,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 ```
@@ -818,7 +830,7 @@ table(Actual=sahd$chd,Fitted=predict(fit.prune,type="class"))
 mean(sahd$chd!=predict(fit.prune,type="class"))
 ```
 
-We sample with replacement.
+We sample with replacement (bootstrap sample).
 
 ```{r}
 set.seed(1)
@@ -843,7 +855,7 @@ fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
 plot(fit.rf)
 varImpPlot(fit.rf,type=1)
 ```
-We run AdaBoost using `gbm` and specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`.
+We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`.
 
 ```{r}
 fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
@@ -890,7 +902,9 @@ Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regressi
 
 6. Plot the coefficients of the different models.
 
-The solution to this exercise. We prepare the data set.
+The solution to this exercise. 
+
+We prepare the data set.
 
  <!-- https://github.com/empathy87/The-Elements-of-Statistical-Learning-Python-Notebooks/blob/master/examples/Phoneme%20Recognition.ipynb -->
  <!-- https://waxworksmath.com/Authors/G_M/Hastie/Code/Chapter5/dup_fig_5_5.R -->
@@ -998,7 +1012,7 @@ abline(h=0)
 
 In this exercise we explore the sonar data set from the *mlbench* package. We use the *caret* package for classification. 
 
-1. Load the Sonar data set and read the help page. 
+1. Load the sonar data set and read the help page. 
 
 2. Split the data into a training and test set.
 
@@ -1006,10 +1020,12 @@ In this exercise we explore the sonar data set from the *mlbench* package. We us
 
 4. Apply elastic-net regularized logistic regression. Show the trace plot and the cross-validation curve. Calculate the prediction error.
 
-5. Run the AdaBoost method. Obtain the variable importance scores and calculate the prediction error. (Hint: use the function `gbm` with argument `distribution` set to "adaboost").
+5. Run the AdaBoost method. Obtain the variable importance scores and calculate the prediction error. (Hint: use the function `gbm` with argument `distribution="adaboost"`).
 
 
-The solution to this exercise. We explore the Sonar data set from the `mlbench` package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into training and test data.
+The solution to this exercise. 
+
+We explore the sonar data set from the *mlbench* package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into training and test data.
 
 ```{r}
 sonar <- readRDS(file="data/sonar.rds")
@@ -1050,7 +1066,7 @@ fit.full.caret <- train(Class ~.,
                         trControl = tc)
 ```
 
-Next we use Forward selection using `stepAIC` from the MASS package.
+Next we use forward selection using `stepAIC` from the MASS package.
 
 ```{r, warning=FALSE}
 up <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
@@ -1119,14 +1135,14 @@ coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
 ```
 
 
-Next we investigate AdaBoost. We can use the `gbm` function
+Next we investigate AdaBoost. We can use the `gbm` function.
 
 ```{r eval=FALSE}
 dtrain$Class <-  factor(ifelse(dtrain$Class=="M",0,1))
 fit.boost <-gbm(Class~.,data=dtrain) 
 ```
 
-or the `caret` package. We first specify the tuning parameter grid.
+Alternatively, we can use the *caret* package. We first specify the tuning parameter grid.
 
 ```{r}
 gbmGrid <-  expand.grid(
@@ -1155,7 +1171,7 @@ and plot the cross-validation accuracy.
 ggplot(fit.boost.caret)
 ```
 
-Finally we can obtain the variable importance.
+Finally we obtain the variable importance.
 
 ```{r}
 gbmImp <- varImp(fit.boost.caret, scale = FALSE)
@@ -1195,9 +1211,7 @@ In this exercise we explore the Lymphoma data set to predict survival based on g
 
 5. Use the predictive model and classify patients into "good" and "poor" prognostic groups by thresholding the linear predictor at zero. Calculate the Kaplan-Meier curves for the two groups. What is your conclusion? Do you have any concerns?
 
-6. The linear predictor scores computed in 5. are biased as they are evaluated on the same data for which they were computed. We now use a variant of cross-validation, known as *pre-validation*, in order to obtain a fair evaluation of the model. 
-
-Calculate a pre-validated data set using the code below and calculate the Kaplan-Meier curves for patients with good and poor prognosis.
+6. The linear predictor scores computed in 5. are biased as they are evaluated on the same data for which they were computed. We now use a variant of cross-validation, known as *pre-validation*, in order to obtain a fair evaluation of the model. Calculate a pre-validated data set using the code below and calculate the Kaplan-Meier curves for patients with good and poor prognosis.
 
 
 ```{r eval=FALSE}
@@ -1357,7 +1371,7 @@ ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 
 ## Survival analysis based on simulated data (difficult)
 
-In this exercise we simulated high-dimensional survival data and explore regularized cox regression.
+In this exercise we simulate high-dimensional survival data and explore regularized cox regression.
 
 1. Simulate high-dimensional survival data from the cox proportional hazards model with $n=50$ and $p=100$ covariates. Assume that only the first two covariates are active, i.e. have non-zero regression coefficient. Create training and test data.
 
@@ -1369,7 +1383,9 @@ In this exercise we simulated high-dimensional survival data and explore regular
 
 5. Use the `pec` package to obtain the Brier score on training and test data for the two cox regression models.
 
-Solution to the exercise. We start by simulating training and test data.
+Solution to the exercise. 
+
+We start by simulating training and test data.
 
 ```{r message=FALSE}
 ## load packages
