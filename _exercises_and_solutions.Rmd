@@ -1,4 +1,13 @@
-# (APPENDIX) Appendix {-} 
+---
+title: "Exercises and Solutions - Analysis of High-Dimensional Data"
+author: "Nicolas Städler"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warnings=FALSE,fig.align='center')
+```
 
 # Exercises
 
@@ -15,6 +24,8 @@ library(splines)
 library(randomForest)
 library(rpart)
 library(rpart.plot)
+library(ggpubr)
+library(survminer)
 ```
 
 
@@ -1499,3 +1510,8 @@ plot(fit.pec.test,main="test")
 
 ```
 
+<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
+
+<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
+
+<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "pdf_document") -->
