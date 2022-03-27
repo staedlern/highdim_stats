@@ -6,5 +6,5 @@ relative_links:
 include:
   - README.md
  
-title: []
+title: Analysis of High-Dimensional Data
 theme: jekyll-theme-tactile
