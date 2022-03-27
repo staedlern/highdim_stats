@@ -1,5 +1,3 @@
-title: Analysis of High-Dimensional Data
-logo: 
 plugins:
   - jekyll-relative-links
 relative_links:
