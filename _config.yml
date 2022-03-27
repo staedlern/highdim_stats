@@ -4,5 +4,5 @@ relative_links:
   enabled: true
   collections: true
 include:
- - README.md
- - exercises_and_solutions.md
+  - README.md
+  - exercises_and_solutions.md
