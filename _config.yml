@@ -3,3 +3,5 @@ plugins:
 relative_links:
   enabled: true
   collections: true
+include:
+ - exercises_and_solutions.md
