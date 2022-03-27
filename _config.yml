@@ -8,6 +8,6 @@ include:
 
 
 logo: logo2.jpg
-description: 
+description: [] 
 title: Analysis of High-Dimensional Data
 theme: jekyll-theme-minimal
