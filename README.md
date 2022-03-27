@@ -1,5 +1,6 @@
 
-# Analysis of High-dimensional Data
+# Analysis of High-Dimensional Data
+
 <img align="right" src="logo2.jpg" width="30%" height="30%"> 
 
 This is the webpage for the course
