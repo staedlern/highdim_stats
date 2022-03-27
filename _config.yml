@@ -6,4 +6,6 @@ relative_links:
 include:
   - README.md
 
+
+logo: logo2.jpg
 theme: jekyll-theme-minimal
