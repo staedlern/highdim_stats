@@ -3,12 +3,40 @@ Exercises and Solutions - Analysis of High-Dimensional Data
 Nicolas Städler
 2022-03-27
 
-# Exercises
+-   [1 Prostate cancer data and linear
+    regression](#prostate-cancer-data-and-linear-regression)
+-   [2 Validation of a prognostic
+    model](#validation-of-a-prognostic-model)
+-   [3 Simulated data and linear
+    regression](#simulated-data-and-linear-regression)
+-   [4 Calculus, optimization and OLS](#calculus-optimization-and-ols)
+-   [5 Prostate cancer data and
+    regularization](#prostate-cancer-data-and-regularization)
+-   [6 Closed form solution for Ridge
+    regression](#closed-form-solution-for-ridge-regression)
+-   [7 Bayesian interpretation of Ridge regression
+    (difficult)](#bayesian-interpretation-of-ridge-regression-difficult)
+-   [8 Elastic net mixing parameter and
+    cross-validation](#elastic-net-mixing-parameter-and-cross-validation)
+-   [9 Ridge and Lasso for the orthonormal design
+    (difficult)](#ridge-and-lasso-for-the-orthonormal-design-difficult)
+-   [10 P-values for high-dimensional regression
+    (difficult)](#p-values-for-high-dimensional-regression-difficult)
+-   [11 Logistic regression and
+    splines](#logistic-regression-and-splines)
+-   [12 Decision trees, Random Forest and
+    AdaBoost](#decision-trees-random-forest-and-adaboost)
+-   [13 Phoneme Recognition](#phoneme-recognition)
+-   [14 Classification and the sonar data
+    set](#classification-and-the-sonar-data-set)
+-   [15 Survival analysis and the Lymphoma
+    data](#survival-analysis-and-the-lymphoma-data)
+-   [16 Survival analysis based on simulated data
+    (difficult)](#survival-analysis-based-on-simulated-data-difficult)
 
-## Prostate cancer data and linear regression
+# 1 Prostate cancer data and linear regression
 
-We explore the prostate cancer data set described in the book @elements.
-The data is available at
+We explore the prostate cancer data set. The data is available at
 [github](https://github.com/staedlern/highdim_stats/tree/main/data). The
 aim is to investigate the relationship between the level of
 prostate-specific antigen (`lpsa`) and several clinical covariates. The
@@ -326,7 +354,7 @@ anova(fit1,fit2,fit3)
     ## Signif. codes:  
     ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-## Validation of a prognostic model
+# 2 Validation of a prognostic model
 
 In the previous section we developed 3 models to predict `lpsa`. In this
 section we explore the generalizability of the models.
@@ -439,7 +467,7 @@ RMSE(dtest$lpsa,predict(fit3,newdata=dtest))
 
     ## [1] 0.8685875
 
-## Simulated data and linear regression
+# 3 Simulated data and linear regression
 
 In this exercise we explore linear regression using the following
 simulated data set.
@@ -568,7 +596,7 @@ RMSE(dtest$y,predict(fit3,newdata=dtest))
 
     ## [1] 5.063148
 
-## Calculus, optimization and OLS
+# 4 Calculus, optimization and OLS
 
 1.  Consider the function *f*(*x*) = 2*x*<sup>2</sup> + *x* − 5. Draw a
     plot of the function.
@@ -607,7 +635,7 @@ optimize(myf,interval=c(-5,5))
     ## $objective
     ## [1] -5.125
 
-## Prostate cancer data and regularization
+# 5 Prostate cancer data and regularization
 
 1.  Read the prostate cancer data set.
 2.  Run OLS, Best Subset selection (use the `leaps` package), Ridge
@@ -742,7 +770,7 @@ kable(res,digits = 3,booktabs=TRUE)
 |------:|------:|------:|------:|------:|
 | 0.521 | 0.492 | 0.517 | 0.508 | 0.454 |
 
-## Closed form solution for Ridge regression
+# 6 Closed form solution for Ridge regression
 
 1.  Show that the Ridge optimization problem has the closed form
     solution
@@ -798,7 +826,7 @@ head(coef.ridge2)[,1]
     ## [1]  0.27031012 -0.24528806  0.19469189
     ## [4] -0.21696366  0.05244081 -0.02429057
 
-## Bayesian interpretation of Ridge regression (difficult)
+# 7 Bayesian interpretation of Ridge regression (difficult)
 
 1.  Write down the log-likelihood of the linear regression model. Note:
     *Y*<sub>*i*</sub> = *X*<sub>*i*</sub><sup>*T*</sup>*β* + *ϵ*<sub>*i*</sub>,
@@ -815,7 +843,7 @@ The solution to this exercise.
 
 <img src="ridge_map.jpg" width="100%" style="display: block; margin: auto;" />
 
-## Elastic net mixing parameter and cross-validation
+# 8 Elastic net mixing parameter and cross-validation
 
 1.  Load the `hdi` package and read the riboflavin data set
     (`?riboflavin`).
@@ -831,11 +859,6 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
-```
-
-    ## Loading required package: scalreg
-
-``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -916,7 +939,7 @@ rownames(b)[b!=0]
 ## lambda such that the cv-error is within 1 standard error of the minimum
 ```
 
-## Ridge and Lasso for the orthonormal design (difficult)
+# 9 Ridge and Lasso for the orthonormal design (difficult)
 
 1.  Calculate the Ridge and the Lasso solution for the special case of
     an orthonormal design matrix.
@@ -925,7 +948,7 @@ The solution to this exercise.
 
 <img src="lasso_orthonormal.jpg" width="100%" style="display: block; margin: auto;" />
 
-## P-values for high-dimensional regression (difficult)
+# 10 P-values for high-dimensional regression (difficult)
 
 The Lasso does not provide p-values for the regression coefficients. In
 this exercise we use the riboflavin data set to explore a neat approach
@@ -952,29 +975,6 @@ Start by splitting the data set into two halves.
 
 ``` r
 library(multcomp)
-```
-
-    ## Loading required package: mvtnorm
-
-    ## Loading required package: survival
-
-    ## 
-    ## Attaching package: 'survival'
-
-    ## The following object is masked from 'package:caret':
-    ## 
-    ##     cluster
-
-    ## Loading required package: TH.data
-
-    ## 
-    ## Attaching package: 'TH.data'
-
-    ## The following object is masked from 'package:MASS':
-    ## 
-    ##     geyser
-
-``` r
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
 ```
@@ -1105,7 +1105,7 @@ fit.multi <- hdi(x, y, method = "multi-split", B = 100)
 head(sort(fit.multi$pval.corr,decreasing = FALSE))
 ```
 
-## Logistic regression and splines
+# 11 Logistic regression and splines
 
 We explore logistic regression based on the South African heart disease
 data. Proceed as follows:
@@ -1271,7 +1271,7 @@ The plot shows how the log-odds change with age (keeping the other
 variables fixed). We observe a slight deviation from linearity, i.e. the
 log-odds increase more strongly for age &lt;35 than for age &gt;35.
 
-## Decision trees, Random Forest and AdaBoost
+# 12 Decision trees, Random Forest and AdaBoost
 
 In this exercise we explore decision trees based on the South African
 heart disease data.
@@ -1443,7 +1443,7 @@ predict(fit.boost,
 
     ## [1] 1
 
-## Phoneme Recognition
+# 13 Phoneme Recognition
 
 In this exercise we investigate prediction of phonemes based on
 digitized speech data.
@@ -1620,7 +1620,7 @@ abline(h=0)
 
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-75-1.png" style="display: block; margin: auto;" />
 
-## Classification and the sonar data set
+# 14 Classification and the sonar data set
 
 In this exercise we explore the sonar data set from the *mlbench*
 package. We use the *caret* package for classification.
@@ -1874,7 +1874,7 @@ models <- list(full=fit.full.caret,
 summary(resamples(models),metric = "Accuracy")
 ```
 
-## Survival analysis and the Lymphoma data
+# 15 Survival analysis and the Lymphoma data
 
 In this exercise we explore the Lymphoma data set to predict survival
 based on gene expression data.
@@ -2086,7 +2086,7 @@ ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-101-1.png" style="display: block; margin: auto;" />
 
-## Survival analysis based on simulated data (difficult)
+# 16 Survival analysis based on simulated data (difficult)
 
 In this exercise we simulate high-dimensional survival data and explore
 regularized cox regression.

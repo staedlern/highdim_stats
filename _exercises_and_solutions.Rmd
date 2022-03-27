@@ -4,6 +4,15 @@ author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 output:
   html_document:
+    number_sections: yes
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    number_sections: yes
+    toc: true
+    toc_depth: 2
+  github_document:
+    number_sections: yes
     toc: true
     toc_depth: 2
 ---
@@ -11,8 +20,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,warnings=FALSE,fig.align='center')
 ```
-
-# Exercises
 
 ```{r, include=FALSE, warning=FALSE}
 library(knitr)
@@ -31,10 +38,9 @@ library(ggpubr)
 library(survminer)
 ```
 
+# Prostate cancer data and linear regression
 
-## Prostate cancer data and linear regression
-
-We explore the prostate cancer data set described in the book @elements. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
+We explore the prostate cancer data set. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
 The aim is to investigate the relationship between the level of prostate-specific antigen (`lpsa`) and several clinical covariates. The covariates are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test sets.
 
 1. Read the prostate cancer data set and make a histogram for the response variable `lpsa`.
@@ -144,7 +150,7 @@ Compare the 3 models using the `anova` function.
 anova(fit1,fit2,fit3)
 ```
 
-## Validation of a prognostic model
+# Validation of a prognostic model
 
 In the previous section we developed 3 models to predict `lpsa`. In this section we explore the generalizability of the models.
 
@@ -212,7 +218,7 @@ RMSE(dtest$lpsa,predict(fit2,newdata=dtest))
 RMSE(dtest$lpsa,predict(fit3,newdata=dtest))
 ```
 
-## Simulated data and linear regression
+# Simulated data and linear regression
 
 In this exercise we explore linear regression using the following simulated data set.
 
@@ -295,7 +301,7 @@ RMSE(dtest$y,predict(fit3,newdata=dtest))
 ```
 
 
-## Calculus, optimization and OLS
+# Calculus, optimization and OLS
 
 1. Consider the function $f(x)=2x^2 + x -5$. Draw a plot of the function.
 2. Use `optimize` to find the minimum of $f(x)$.
@@ -322,7 +328,7 @@ curve(myf,from=-1,to=1)
 optimize(myf,interval=c(-5,5))
 ```
 
-## Prostate cancer data and regularization
+# Prostate cancer data and regularization
 
 1. Read the prostate cancer data set.
 2. Run OLS, Best Subset selection (use the `leaps` package), Ridge regression (`glmnet` with `alpha=0`) and Lasso regression (`glmnet` with `alpha=1`). 
@@ -429,7 +435,7 @@ kable(res,digits = 3,booktabs=TRUE)
 
 ```
 
-## Closed form solution for Ridge regression
+# Closed form solution for Ridge regression
 
 1. Show that the Ridge optimization problem has the closed form solution 
 
@@ -479,7 +485,7 @@ coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
 head(coef.ridge2)[,1]
 ```
 
-## Bayesian interpretation of Ridge regression (difficult)
+# Bayesian interpretation of Ridge regression (difficult)
 
 1. Write down the log-likelihood of the linear regression model. Note: 
 $Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$ iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed
@@ -493,7 +499,7 @@ The solution to this exercise.
 knitr::include_graphics("ridge_map.jpg")
 ```
 
-## Elastic net mixing parameter and cross-validation
+# Elastic net mixing parameter and cross-validation
 
 1. Load the `hdi` package and read the riboflavin data set (`?riboflavin`).
 2. Run the Lasso and generate the trace plot.
@@ -556,7 +562,7 @@ rownames(b)[b!=0]
 ## lambda such that the cv-error is within 1 standard error of the minimum
 ```
 
-## Ridge and Lasso for the orthonormal design (difficult)
+# Ridge and Lasso for the orthonormal design (difficult)
 
 1. Calculate the Ridge and the Lasso solution for the special case of an orthonormal design matrix.
 
@@ -566,7 +572,7 @@ The solution to this exercise.
 knitr::include_graphics("lasso_orthonormal.jpg")
 ```
 
-## P-values for high-dimensional regression (difficult)
+# P-values for high-dimensional regression (difficult)
 
 The Lasso does not provide p-values for the regression coefficients. In this exercise we use the riboflavin data set to explore a neat approach to obtain p-values. The research paper which proposed the method is available [here](https://arxiv.org/pdf/0811.2177.pdf).
 
@@ -685,7 +691,7 @@ fit.multi <- hdi(x, y, method = "multi-split", B = 100)
 head(sort(fit.multi$pval.corr,decreasing = FALSE))
 ```
 
-## Logistic regression and splines
+# Logistic regression and splines
 
 We explore logistic regression based on the South African heart disease data. Proceed as follows:
 
@@ -771,7 +777,7 @@ termplot(fit.bw,se=TRUE,rug=TRUE,term=6)
 
 The plot shows how the log-odds change with age (keeping the other variables fixed). We observe a slight deviation from linearity, i.e. the log-odds increase more strongly for age <35 than for age >35.
 
-## Decision trees, Random Forest and AdaBoost
+# Decision trees, Random Forest and AdaBoost
 
 In this exercise we explore decision trees based on the South African heart disease data.
 
@@ -881,7 +887,7 @@ predict(fit.boost,
 ```
 
 
-## Phoneme Recognition
+# Phoneme Recognition
 
 In this exercise we investigate prediction of phonemes based on digitized speech data.
 
@@ -1022,7 +1028,7 @@ abline(h=0)
 
 ```
 
-## Classification and the sonar data set
+# Classification and the sonar data set
 
 In this exercise we explore the sonar data set from the *mlbench* package. We use the *caret* package for classification. 
 
@@ -1211,7 +1217,7 @@ models <- list(full=fit.full.caret,
 summary(resamples(models),metric = "Accuracy")
 ```
 
-## Survival analysis and the Lymphoma data
+# Survival analysis and the Lymphoma data
 
 In this exercise we explore the Lymphoma data set to predict survival based on gene expression data.
 
@@ -1383,7 +1389,7 @@ ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
 
-## Survival analysis based on simulated data (difficult)
+# Survival analysis based on simulated data (difficult)
 
 In this exercise we simulate high-dimensional survival data and explore regularized cox regression.
 
