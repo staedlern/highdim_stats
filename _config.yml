@@ -1,5 +1,5 @@
-title: Minimal theme
-logo: /assets/img/logo.png
+title: Analysis of High-Dimensional Data
+logo: logo2.jpg
 plugins:
   - jekyll-relative-links
 relative_links:
