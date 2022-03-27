@@ -9,4 +9,4 @@ include:
   - README.md
   - _exercises_and_solutions.md
 
-theme: jekyll-theme-cayman
+theme: jekyll-theme-minimal
