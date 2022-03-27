@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2022-03-23
+2022-03-27
 
 # Exercises
 
@@ -114,11 +114,15 @@ summary(fit1)
     ## -1.6802 -0.4240  0.1684  0.5392  1.9070 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.47837    0.10116  24.499  < 2e-16 ***
-    ## lcavol       0.83993    0.09664   8.692 1.73e-12 ***
+    ##             Estimate Std. Error t value Pr(>|t|)
+    ## (Intercept)  2.47837    0.10116  24.499  < 2e-16
+    ## lcavol       0.83993    0.09664   8.692 1.73e-12
+    ##                
+    ## (Intercept) ***
+    ## lcavol      ***
     ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  
+    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.8277 on 65 degrees of freedom
     ## Multiple R-squared:  0.5375, Adjusted R-squared:  0.5304 
@@ -180,18 +184,29 @@ summary(fit2)
     ## -1.64870 -0.34147 -0.05424  0.44941  1.48675 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.46493    0.08931  27.598  < 2e-16 ***
-    ## lcavol       0.67953    0.12663   5.366 1.47e-06 ***
-    ## lweight      0.26305    0.09563   2.751  0.00792 ** 
-    ## age         -0.14146    0.10134  -1.396  0.16806    
-    ## lbph         0.21015    0.10222   2.056  0.04431 *  
-    ## svi          0.30520    0.12360   2.469  0.01651 *  
-    ## lcp         -0.28849    0.15453  -1.867  0.06697 .  
-    ## gleason     -0.02131    0.14525  -0.147  0.88389    
-    ## pgg45        0.26696    0.15361   1.738  0.08755 .  
+    ##             Estimate Std. Error t value Pr(>|t|)
+    ## (Intercept)  2.46493    0.08931  27.598  < 2e-16
+    ## lcavol       0.67953    0.12663   5.366 1.47e-06
+    ## lweight      0.26305    0.09563   2.751  0.00792
+    ## age         -0.14146    0.10134  -1.396  0.16806
+    ## lbph         0.21015    0.10222   2.056  0.04431
+    ## svi          0.30520    0.12360   2.469  0.01651
+    ## lcp         -0.28849    0.15453  -1.867  0.06697
+    ## gleason     -0.02131    0.14525  -0.147  0.88389
+    ## pgg45        0.26696    0.15361   1.738  0.08755
+    ##                
+    ## (Intercept) ***
+    ## lcavol      ***
+    ## lweight     ** 
+    ## age            
+    ## lbph        *  
+    ## svi         *  
+    ## lcp         .  
+    ## gleason        
+    ## pgg45       .  
     ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  
+    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.7123 on 58 degrees of freedom
     ## Multiple R-squared:  0.6944, Adjusted R-squared:  0.6522 
@@ -226,18 +241,29 @@ summary(fit2)
     ## -1.64870 -0.34147 -0.05424  0.44941  1.48675 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.46493    0.08931  27.598  < 2e-16 ***
-    ## lcavol       0.67953    0.12663   5.366 1.47e-06 ***
-    ## lweight      0.26305    0.09563   2.751  0.00792 ** 
-    ## age         -0.14146    0.10134  -1.396  0.16806    
-    ## lbph         0.21015    0.10222   2.056  0.04431 *  
-    ## svi          0.30520    0.12360   2.469  0.01651 *  
-    ## lcp         -0.28849    0.15453  -1.867  0.06697 .  
-    ## gleason     -0.02131    0.14525  -0.147  0.88389    
-    ## pgg45        0.26696    0.15361   1.738  0.08755 .  
+    ##             Estimate Std. Error t value Pr(>|t|)
+    ## (Intercept)  2.46493    0.08931  27.598  < 2e-16
+    ## lcavol       0.67953    0.12663   5.366 1.47e-06
+    ## lweight      0.26305    0.09563   2.751  0.00792
+    ## age         -0.14146    0.10134  -1.396  0.16806
+    ## lbph         0.21015    0.10222   2.056  0.04431
+    ## svi          0.30520    0.12360   2.469  0.01651
+    ## lcp         -0.28849    0.15453  -1.867  0.06697
+    ## gleason     -0.02131    0.14525  -0.147  0.88389
+    ## pgg45        0.26696    0.15361   1.738  0.08755
+    ##                
+    ## (Intercept) ***
+    ## lcavol      ***
+    ## lweight     ** 
+    ## age            
+    ## lbph        *  
+    ## svi         *  
+    ## lcp         .  
+    ## gleason        
+    ## pgg45       .  
     ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  
+    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.7123 on 58 degrees of freedom
     ## Multiple R-squared:  0.6944, Adjusted R-squared:  0.6522 
@@ -288,12 +314,17 @@ anova(fit1,fit2,fit3)
     ##     pgg45
     ## Model 3: lpsa ~ (lcavol + lweight + age + lbph + svi + lcp + gleason + 
     ##     pgg45) - lcavol
-    ##   Res.Df    RSS Df Sum of Sq       F    Pr(>F)    
-    ## 1     65 44.529                                   
-    ## 2     58 29.426  7    15.102  4.2524 0.0007548 ***
-    ## 3     59 44.037 -1   -14.610 28.7971 1.469e-06 ***
+    ##   Res.Df    RSS Df Sum of Sq       F    Pr(>F)
+    ## 1     65 44.529                               
+    ## 2     58 29.426  7    15.102  4.2524 0.0007548
+    ## 3     59 44.037 -1   -14.610 28.7971 1.469e-06
+    ##      
+    ## 1    
+    ## 2 ***
+    ## 3 ***
     ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  
+    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ## Validation of a prognostic model
 
@@ -751,7 +782,8 @@ coef.ridge <- as.vector(coef(fit.ridge))[-1]
 head(coef.ridge)
 ```
 
-    ## [1]  0.27330465 -0.24799766  0.19686435 -0.21942808  0.05302251 -0.02458886
+    ## [1]  0.27330465 -0.24799766  0.19686435
+    ## [4] -0.21942808  0.05302251 -0.02458886
 
 Next we calculate the coefficients based on the formula from the script.
 Note that we need to re-scale the lambda.
@@ -763,7 +795,8 @@ coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
 head(coef.ridge2)[,1]
 ```
 
-    ## [1]  0.27031012 -0.24528806  0.19469189 -0.21696366  0.05244081 -0.02429057
+    ## [1]  0.27031012 -0.24528806  0.19469189
+    ## [4] -0.21696366  0.05244081 -0.02429057
 
 ## Bayesian interpretation of Ridge regression (difficult)
 
@@ -798,6 +831,11 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
+```
+
+    ## Loading required package: scalreg
+
+``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -861,11 +899,16 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PKSA_at"    
-    ##  [7] "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"     "XKDS_at"     "XTRA_at"     "YBFI_at"    
-    ## [13] "YCDH_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"     "YCLF_at"     "YDDH_at"    
-    ## [19] "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"  
-    ## [25] "YKBA_at"     "YOAB_at"     "YQJU_at"     "YRVJ_at"     "YTGB_at"     "YURQ_at"    
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"    
+    ##  [4] "GAPB_at"     "LYSC_at"     "PKSA_at"    
+    ##  [7] "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"    
+    ## [10] "XKDS_at"     "XTRA_at"     "YBFI_at"    
+    ## [13] "YCDH_at"     "YCGO_at"     "YCKE_at"    
+    ## [16] "YCLB_at"     "YCLF_at"     "YDDH_at"    
+    ## [19] "YDDK_at"     "YEBC_at"     "YEZB_at"    
+    ## [22] "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"  
+    ## [25] "YKBA_at"     "YOAB_at"     "YQJU_at"    
+    ## [28] "YRVJ_at"     "YTGB_at"     "YURQ_at"    
     ## [31] "YXLD_at"     "YXLE_at"     "YYDA_at"
 
 ``` r
@@ -909,6 +952,29 @@ Start by splitting the data set into two halves.
 
 ``` r
 library(multcomp)
+```
+
+    ## Loading required package: mvtnorm
+
+    ## Loading required package: survival
+
+    ## 
+    ## Attaching package: 'survival'
+
+    ## The following object is masked from 'package:caret':
+    ## 
+    ##     cluster
+
+    ## Loading required package: TH.data
+
+    ## 
+    ## Attaching package: 'TH.data'
+
+    ## The following object is masked from 'package:MASS':
+    ## 
+    ##     geyser
+
+``` r
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
 ```
@@ -956,10 +1022,12 @@ pvals <- summary(fit.glht, test = adjusted("bonferroni"))$test$pvalues
 pvals
 ```
 
-    ## (Intercept)     LYTR_at     XHLA_at     YCKE_at     YDDM_at     YHCL_at     YJCI_at 
-    ##   1.0000000   1.0000000   0.1561028   1.0000000   1.0000000   1.0000000   1.0000000 
-    ##     YOAE_at     YXLD_at     YXLG_at 
-    ##   1.0000000   1.0000000   1.0000000
+    ## (Intercept)     LYTR_at     XHLA_at     YCKE_at 
+    ##   1.0000000   1.0000000   0.1561028   1.0000000 
+    ##     YDDM_at     YHCL_at     YJCI_at     YOAE_at 
+    ##   1.0000000   1.0000000   1.0000000   1.0000000 
+    ##     YXLD_at     YXLG_at 
+    ##   1.0000000   1.0000000
 
 Write a function in order to re-run the previous steps many times.
 
@@ -1018,8 +1086,10 @@ pval.agg <- sort(apply(pvals_ms,1,quantile,probs=0.1),decreasing=FALSE)
 head(pval.agg)
 ```
 
-    ##    YXLD_at    YCKE_at    YOAB_at    XHLA_at    LYSC_at    AADK_at 
-    ## 0.02471826 0.25095686 0.36085847 0.69123631 0.98907351 1.00000000
+    ##    YXLD_at    YCKE_at    YOAB_at    XHLA_at 
+    ## 0.02471826 0.25095686 0.36085847 0.69123631 
+    ##    LYSC_at    AADK_at 
+    ## 0.98907351 1.00000000
 
 The multi-splitting approach is implemented in the function `hdi`
 function. (Note that the `hdi` function uses a clever way to aggregate
@@ -1072,11 +1142,15 @@ summary(fit)
     ## -1.4321  -0.9215  -0.5392   1.0952   2.2433  
     ## 
     ## Coefficients:
-    ##              Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept) -3.521710   0.416031  -8.465  < 2e-16 ***
-    ## age          0.064108   0.008532   7.513 5.76e-14 ***
+    ##              Estimate Std. Error z value
+    ## (Intercept) -3.521710   0.416031  -8.465
+    ## age          0.064108   0.008532   7.513
+    ##             Pr(>|z|)    
+    ## (Intercept)  < 2e-16 ***
+    ## age         5.76e-14 ***
     ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  
+    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
@@ -2158,4 +2232,4 @@ plot(fit.pec.test,main="test")
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
-<!-- rmarkdown::render("tests/examples/ecfc_intro.R",output_format = "pdf_document",params=list(interactfl=FALSE)) -->
+<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "pdf_document") -->

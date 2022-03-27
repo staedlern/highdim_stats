@@ -2,7 +2,10 @@
 title: "Exercises and Solutions - Analysis of High-Dimensional Data"
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
