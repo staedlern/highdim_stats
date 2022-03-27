@@ -1,3 +1,5 @@
+title: Minimal theme
+logo: /assets/img/logo.png
 plugins:
   - jekyll-relative-links
 relative_links:
@@ -7,4 +9,4 @@ include:
   - README.md
   - _exercises_and_solutions.md
 
-theme: jekyll-theme-tactile
+theme: jekyll-theme-minimal
