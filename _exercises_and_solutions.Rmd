@@ -139,7 +139,7 @@ sum(residuals(fit1)^2)
 sum(residuals(fit2)^2)
 ```
 
-Compare the 3 models using the `anova` function.
+Compare the 2 models using the `anova` function.
 
 ```{r}
 anova(fit1,fit2)
@@ -148,7 +148,7 @@ anova(fit1,fit2)
 
 In the previous section we developed 2 models to predict `y`. In this section we explore the generalizability of these models.
 
-1. Calculated the RMSE on the training data. Which model will perform best on future data?
+1. Calculate the RMSEs on the training data. Which model will perform best on future data?
 2. Use the test data and make scatter plots of the observed against predicted outcomes. Use `ggplot` to create one plot per model and add the regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph. This plot is also called "calibration plot". The model is "well" calibrated if the regression line agrees with the "y=x" line.
 3. Generate boxplots of `predicted - observed` for the 2 models. What do you conclude?
 4. Calculate the generalization error, i.e., the RMSE on the test data.
@@ -156,14 +156,14 @@ In the previous section we developed 2 models to predict `y`. In this section we
 
 Solution to the exercise.
 
-We calculate the RMSEs on the training data. RMSE on training tells you how good the model "fits" the data. We
+We calculate the RMSEs on the training data. RMSE on training data tells you how good the model "fits" the data. We
 cannot make any conclusion about the generalizability of the models based on RMSEs on training data.
 
 ```{r}
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
-We draw calibration plots for the 2 models. Model 2 does not calibrate well.
+We draw calibration plots for the 2 models. Model 1 calibrates slightly better.
 
 ```{r  fig.width=8,fig.height=4}
 dd <- data.frame(pred=c(predict(fit1,newdata=data_test),

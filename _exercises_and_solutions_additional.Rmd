@@ -1,5 +1,5 @@
 ---
-title: "Additional exercises and Solutions - Analysis of High-Dimensional Data"
+title: "Additional Exercises and Solutions - Analysis of High-Dimensional Data"
 author: "Nicolas Städler"
 date: "`r Sys.Date()`"
 output:

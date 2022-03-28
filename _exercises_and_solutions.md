@@ -202,7 +202,7 @@ sum(residuals(fit2)^2)
 
     ## [1] 451511.1
 
-Compare the 3 models using the `anova` function.
+Compare the 2 models using the `anova` function.
 
 ``` r
 anova(fit1,fit2)
@@ -232,7 +232,7 @@ anova(fit1,fit2)
 In the previous section we developed 2 models to predict `y`. In this
 section we explore the generalizability of these models.
 
-1.  Calculated the RMSE on the training data. Which model will perform
+1.  Calculate the RMSEs on the training data. Which model will perform
     best on future data?
 2.  Use the test data and make scatter plots of the observed against
     predicted outcomes. Use `ggplot` to create one plot per model and
@@ -246,9 +246,10 @@ section we explore the generalizability of these models.
 
 Solution to the exercise.
 
-We calculate the RMSEs on the training data. RMSE on training tells you
-how good the model “fits” the data. We cannot make any conclusion about
-the generalizability of the models based on RMSEs on training data.
+We calculate the RMSEs on the training data. RMSE on training data tells
+you how good the model “fits” the data. We cannot make any conclusion
+about the generalizability of the models based on RMSEs on training
+data.
 
 ``` r
 RMSE(data_train$y,predict(fit1,newdata=data_train))
@@ -262,8 +263,8 @@ RMSE(data_train$y,predict(fit2,newdata=data_train))
 
     ## [1] 45.19996
 
-We draw calibration plots for the 2 models. Model 2 does not calibrate
-well.
+We draw calibration plots for the 2 models. Model 1 calibrates slightly
+better.
 
 ``` r
 dd <- data.frame(pred=c(predict(fit1,newdata=data_test),
@@ -668,12 +669,10 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PKSA_at"    
-    ##  [7] "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"     "XKDS_at"     "XTRA_at"     "YBFI_at"    
-    ## [13] "YCDH_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"     "YCLF_at"     "YDDH_at"    
-    ## [19] "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"  
-    ## [25] "YKBA_at"     "YOAB_at"     "YQJU_at"     "YRVJ_at"     "YTGB_at"     "YURQ_at"    
-    ## [31] "YXLD_at"     "YXLE_at"     "YYDA_at"
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"    
+    ## [10] "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCDH_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"     "YCLF_at"     "YDDH_at"    
+    ## [19] "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YKBA_at"     "YOAB_at"     "YQJU_at"    
+    ## [28] "YRVJ_at"     "YTGB_at"     "YURQ_at"     "YXLD_at"     "YXLE_at"     "YYDA_at"
 
 ``` r
 ## By default, the selected variables are based on the largest value of
