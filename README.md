@@ -1,4 +1,6 @@
-<img align="right" src="logo2.jpg" width="15%" height="15%"> 
+# Analysis of High-Dimensional Data
+
+<img align="right" src="logo2.jpg" width="20%" height="20%"> 
 
 This is the webpage for the course
 on Analysis of High-Dimensional Data of the CAS in Advanced Statistical Data Science ([CAS ASDS](https://www.unibe.ch/weiterbildungsangebote/cas_advanced_statistical_data_science/index_ger.html)) held at the University of Bern. The following resources are available:
