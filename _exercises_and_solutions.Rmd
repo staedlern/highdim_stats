@@ -36,6 +36,7 @@ library(rpart)
 library(rpart.plot)
 library(ggpubr)
 library(survminer)
+library(survival)
 ```
 
 # Diabetes data and linear regression
