@@ -38,70 +38,76 @@ library(ggpubr)
 library(survminer)
 ```
 
-# Prostate cancer data and linear regression
+# Diabetes data and linear regression
 
-We explore the prostate cancer data set. The data is available at [github](https://github.com/staedlern/highdim_stats/tree/main/data). 
-The aim is to investigate the relationship between the level of prostate-specific antigen (`lpsa`) and several clinical covariates. The covariates are log cancer volume (`lcavol`), log prostate weight (`lweight`), `age`, log of the amount of benign prostatic hyperplasia (`lbph`), seminal vesical invasion (`svi`), log of capsular penetration (`lcp`), Gleason score (`gleason`), and the percent of Gleason scores 4 or 5 (`pgg45`). Further there is a variable `train` indicating training and test sets.
+The data that we consider consist of 442 diabetes patients, with the response of interest being a quantitative
+measure of disease progression one year after baseline. There are ten baseline
+variables — age, sex, body-mass index, average blood pressure, and six blood
+serum measurements — plus quadratic terms, giving a total of $p=64$ features. 
 
-1. Read the prostate cancer data set and make a histogram for the response variable `lpsa`.
-2. Create a scatterplot matrix for all variables in the data set. Use `pairs` or `ggpairs`.
-3. Standardize the predictors to have unit variance and divide the data into training and test sets (see variable `train`). How many test and training samples do you count?
-4. Run a univariate regression model with `lcavol` as covariate. Study the `summary` output. 
+1. Read the diabetes data set and make a histogram for the response variable `y`. Describe the distribution of the variable.
+2. Create a scatterplot matrix for the 5 first variables in the data set. Use `pairs` or `ggpairs`.
+3. Randomly assign patients to training and test data (use `sample`). 
+4. Run a univariate regression model with `bmi` as covariate. Study the `summary` output. 
 
-   - How do you interpret the regression coefficients for `lcavol`?
+   - How do you interpret the regression coefficients for `bmi`?
    - What is the meaning of the  *multiple R-squared*? 
    - What is the *residual standard error*?
-   - Generate a scatter plot of `lcavol` against `lpsa` and add the regression line with confidence band (use `geom_smooth`, `method="lm"`). 
+   - Generate a scatter plot of `y` against `bmi` and add the regression line with confidence band (use `geom_smooth`, `method="lm"`). 
    - Draw the Tukey Anscombe plot and the QQ plot (check `?plot.lm`). What are these two plots telling us?
    
 5. Run a multiple regression model using all covariates. Study the `summary` output. 
 
-   - What does change in the interpretation of the coefficient for `lcavol`? 
+   - What does change in the interpretation of the coefficient for `bmi`? 
    - What do you conclude from the *multiple R-squared*?
    - Create a Tukey Anscombe plot and a QQ plot.
    
-6. Run a multiple regression model including all covariates but `lacvol`. Proceed as in 5. 
-7. Calculate the RSS for all 3 models. Write down your observation.
-8. Compare all 3 models using the `anova` function. What do you conclude?
+6. Calculate the RSS for both models. Write down your observation.
+7. Compare the two models using the `anova` function. What do you conclude?
 
 
 Solution to the exercise.
 
 Read the data set.
+
 ```{r}
-dat <- read.csv("data/prostate.csv")
+diabetes <- readRDS(file="data/diabetes.rds")
+data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(data) <- gsub(":",".",colnames(data))
 ```
 
-Generate a histogram of `lpsa`.
+Generate a histogram of `y`.
 ```{r}
-hist(dat$lpsa)
+hist(data$y)
 ```
 
-Scatterplot matrix of the prostate cancer data.
+The distribution is right-skewed. Scatterplot matrix of the diabetes data.
 
 ```{r}
-pairs(dat[,-10])
+pairs(data[,1:5])
 ```
 
-Standardize the predictors and create training and test data.
+Create training and test data.
 ```{r}
-dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
-dtrain <- dat[dat$train,-10]
-dtest <- dat[!dat$train,-10]
-nrow(dtrain)
-nrow(dtest)
+train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
+data_train <- data[train_ind,]
+xtrain <- as.matrix(data_train[,-1])
+ytrain <- data_train[,1]
+data_test <- data[-train_ind,]
+xtest <- as.matrix(data_test[,-1])
+ytest <- data_test[,1]
 ```
 Fit a univariate regression model.
 ```{r}
-fit1 <- lm(lpsa~lcavol,data=dtrain)
+fit1 <- lm(y~bmi,data=data_train)
 summary(fit1)
 ```
 
 Scatter plot with regression line.
 
 ```{r}
-dtrain%>%
-  ggplot(data=.,aes(x=lcavol,y=lpsa))+
+data_train%>%
+  ggplot(data=.,aes(x=bmi,y=y))+
   geom_point()+
   geom_smooth(method="lm")
 ```
@@ -112,7 +118,7 @@ The Tukey Anscombe plot. The residuals scatter around the 0 line and do not show
 plot(fit1,which=1) # Tukey Anscombe plot
 ```
 
-The QQ plot. This plot is used to check the normality assumption of the residuals. The residuals show slight tendency to be left-tailed (see also the histogram).
+The QQ plot. This plot is used to check the normality assumption of the residuals. The residuals show slight tendency to be right-skewed (see also the histogram).
 ```{r}
 plot(fit1,which=2) # Tukey Anscombe plot
 hist(residuals(fit1))
@@ -120,45 +126,31 @@ hist(residuals(fit1))
 
 We run the multiple regression model with all covariates. We print the `summary` and create TA and QQ plots.
 ```{r}
-fit2 <- lm(lpsa~.,data=dtrain)
-summary(fit2)
+fit2 <- lm(y~.,data=data_train)
+#summary(fit2)
 plot(fit2,which=1)
 plot(fit2,which=2)
 ```
-
-
-We run the multiple regression model without covariate `lcavol`. We print the `summary` and create TA and QQ plots.
-```{r}
-fit3 <- lm(lpsa~.-lcavol,data=dtrain)
-summary(fit2)
-plot(fit3,which=1)
-plot(fit3,which=2)
-```
-
-
 Calculate the RSS. 
 
 ```{r}
 sum(residuals(fit1)^2)
 sum(residuals(fit2)^2)
-sum(residuals(fit3)^2)
 ```
 
 Compare the 3 models using the `anova` function.
 
 ```{r}
-anova(fit1,fit2,fit3)
+anova(fit1,fit2)
 ```
+# Diabetes data and model validation
 
-# Validation of a prognostic model
-
-In the previous section we developed 3 models to predict `lpsa`. In this section we explore the generalizability of the models.
+In the previous section we developed 2 models to predict `y`. In this section we explore the generalizability of these models.
 
 1. Calculated the RMSE on the training data. Which model will perform best on future data?
 2. Use the test data and make scatter plots of the observed against predicted outcomes. Use `ggplot` to create one plot per model and add the regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph. This plot is also called "calibration plot". The model is "well" calibrated if the regression line agrees with the "y=x" line.
-3. Repeat the plots in 2. but now focus on `predicted - observed` vs `predicted`.
-4. Generate boxplots of `predicted - observed` for the 3 models. What do you conclude?
-5. Calculate the generalization error, i.e., the RMSE on the test data.
+3. Generate boxplots of `predicted - observed` for the 2 models. What do you conclude?
+4. Calculate the generalization error, i.e., the RMSE on the test data.
 
 
 Solution to the exercise.
@@ -167,36 +159,22 @@ We calculate the RMSEs on the training data. RMSE on training tells you how good
 cannot make any conclusion about the generalizability of the models based on RMSEs on training data.
 
 ```{r}
-RMSE(dtrain$lpsa,predict(fit1,newdata=dtrain))
-RMSE(dtrain$lpsa,predict(fit2,newdata=dtrain))
-RMSE(dtrain$lpsa,predict(fit3,newdata=dtrain))
+RMSE(data_train$y,predict(fit1,newdata=data_train))
+RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
-We draw calibration plots for the 3 models. Model 3 does not calibrate well.
+We draw calibration plots for the 2 models. Model 2 does not calibrate well.
 
-```{r  fig.width=12}
-dd <- data.frame(pred=c(predict(fit1,newdata=dtest),
-                        predict(fit2,newdata=dtest),
-                        predict(fit3,newdata=dtest)),
-                 obs = rep(dtest$lpsa,times=3),
-                 model=rep(c("mod1","mod2","mod3"),each=nrow(dtest))
+```{r  fig.width=8,fig.height=4}
+dd <- data.frame(pred=c(predict(fit1,newdata=data_test),
+                        predict(fit2,newdata=data_test)),
+                 obs = rep(data_test$y,times=2),
+                 model=rep(c("mod1","mod2"),each=nrow(data_test))
 )
 dd%>%
   ggplot(.,aes(x=pred,y=obs))+
   geom_point()+
   geom_smooth(se=FALSE,method="lm")+
   geom_abline(slope=1,intercept=0)+
-  theme_bw()+
-  facet_wrap(~model)
-```
-
-We draw Tukey-Anscombe plots.
-
-```{r  fig.width=12}
-dd%>%
-  ggplot(.,aes(x=pred,y=pred-obs))+
-  geom_point()+
-  geom_smooth(se=FALSE,method="lm")+
-  geom_abline(slope=0,intercept=0)+
   theme_bw()+
   facet_wrap(~model)
 ```
@@ -213,94 +191,9 @@ dd%>%
 Calculate RMSEs on test data.
 
 ```{r}
-RMSE(dtest$lpsa,predict(fit1,newdata=dtest))
-RMSE(dtest$lpsa,predict(fit2,newdata=dtest))
-RMSE(dtest$lpsa,predict(fit3,newdata=dtest))
+RMSE(data_test$y,predict(fit1,newdata=data_test))
+RMSE(data_test$y,predict(fit2,newdata=data_test))
 ```
-
-# Simulated data and linear regression
-
-In this exercise we explore linear regression using the following simulated data set.
-
-```{r}
-set.seed(1)
-
-# training data
-x <-  matrix(rnorm(20 * 15), 20, 15)
-y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
-dtrain <- data.frame(x,y)
-
-# test data
-x <-  matrix(rnorm(20 * 15), 20, 15)
-y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
-dtest <- data.frame(x,y)
-```
-
-1. Can you describe the model behind the lines of code?
-2. Use the training data to fit and explore the following 3 models: a) univariate regression model with covariate X1, b) multiple regression model with X1-X4 as covariates and c) multiple regression model including all covariates. 
-3. Repeat the calculations from exercise 2. What do you conclude?
-
-Solution to the exercise.
-
-Fit the 3 models.
-
-```{r}
-fit1 <- lm(y~X1,data=dtrain)
-fit2 <- lm(y~X1+X2+X3+X4,data=dtrain)
-fit3 <- lm(y~.,data=dtrain)
-```
-
-TA plots.
-
-```{r}
-plot(fit1,which=1)
-plot(fit2,which=1)
-plot(fit3,which=1)
-```
-
-RMSEs on training data.
-
-```{r}
-RMSE(dtrain$y,predict(fit1,newdata=dtrain))
-RMSE(dtrain$y,predict(fit2,newdata=dtrain))
-RMSE(dtrain$y,predict(fit3,newdata=dtrain))
-```
-Calibration plots for the 3 models. Only model 2 is well calibrated.
-
-```{r fig.width=12}
-dd <- data.frame(pred=c(predict(fit1,newdata=dtest),
-                        predict(fit2,newdata=dtest),
-                        predict(fit3,newdata=dtest)),
-                 obs = rep(dtest$y,times=3),
-                 model=rep(c("mod1","mod2","mod3"),each=nrow(dtest))
-)
-dd%>%
-  ggplot(.,aes(x=pred,y=obs))+
-  geom_point()+
-  geom_smooth(se=FALSE,method="lm")+
-  geom_abline(slope=1,intercept=0)+
-  theme_bw()+
-  facet_wrap(~model)
-```
-
-Boxplots of `predicted - observed`. 
-
-```{r}
-dd%>%
-  ggplot(.,aes(x=model,y=pred-obs))+
-  geom_boxplot()+
-  geom_point()
-```
-
-Calculate the RMSE on test data.
-
-```{r}
-RMSE(dtest$y,predict(fit1,newdata=dtest))
-RMSE(dtest$y,predict(fit2,newdata=dtest))
-RMSE(dtest$y,predict(fit3,newdata=dtest))
-```
-
-
 # Calculus, optimization and OLS
 
 1. Consider the function $f(x)=2x^2 + x -5$. Draw a plot of the function.
@@ -328,111 +221,126 @@ curve(myf,from=-1,to=1)
 optimize(myf,interval=c(-5,5))
 ```
 
-# Prostate cancer data and regularization
+# Diabetes data and regularization
+
+The task is to use the diabetes data to construct a model that predicts the response `y` (disease progression) based on covariates. The two hopes are, that the model would produce accurate baseline predictions of response for future patients, and also that the form of the model would suggest which covariates were important factors in disease progression.
 
 1. Read the prostate cancer data set.
-2. Run OLS, Best Subset selection (use the `leaps` package), Ridge regression (`glmnet` with `alpha=0`) and Lasso regression (`glmnet` with `alpha=1`). 
-3. Print the coefficients as a table.
-4. Calculate for each method the test error and compare the results with Table 3.3. in @elements. 
+2. Run forward stepwise regression. Which is the first variable included in the selection process? Print the coefficients of the AIC-optimal model as a table.
+3. Fit Ridge regression. Show the trace plot and the cross-validation plot.
+4. Run the Lasso approach and show the trace and the cross-validation plots.
+5. Calculate the root-mean-square errors (RMSE) for all 3 models on the test data and compare with the performance of the full model. Which model generalizes best?
+6. Plot the regression coefficients for all 3 models.
 
 The solution to this exercise. 
 
 Read the data set and create training and test data.
 
 ```{r}
-dat <- read.csv("data/prostate.csv")
-dat <- cbind(scale(dat[,-c(9:10)]),dat[,c(9,10)])
-dtrain <- dat[dat$train,-10]
-xtrain <- data.matrix(dtrain[,-9])
-ytrain <- dtrain$lpsa
-dtest <- dat[!dat$train,-10]
-xtest <- data.matrix(dtest[,-9])
-ytest <- dtest$lpsa
+diabetes <- readRDS(file="data/diabetes.rds")
+data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(data) <- gsub(":",".",colnames(data))
+train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
+data_train <- data[train_ind,]
+xtrain <- as.matrix(data_train[,-1])
+ytrain <- data_train[,1]
+data_test <- data[-train_ind,]
+xtest <- as.matrix(data_test[,-1])
+ytest <- data_test[,1]
 ```
 
-Perform OLS regression, Best Subset selection, Ridge regression and Lasso regression.
+We perform forward stepwise regression.
 
 ```{r}
-# OLS regression
-fit.lm <- lm(lpsa~.,data=dtrain)
-coef.lm <- coef(fit.lm)
-terr.lm <- mean((predict(fit.lm,newdata = dtest)-dtest$lpsa)^2)
-
-# best subset selection with leaps
-library(leaps)
-subset.leaps<-regsubsets(lpsa~.,data=dtrain,method="forward")
-ss.summary <- summary(subset.leaps)
-coef.ss.bic <- coef(subset.leaps, which.min(ss.summary$bic))
-fit.ss.bic <- lm(lpsa~.,data=dtrain[,c("lpsa",names(coef.ss.bic)[-1])])
-terr.ss.bic <- mean((predict(fit.ss.bic,newdata = dtest)-dtest$lpsa)^2)
-
-# best subset selection with caret package (10-fold cv)
-library(caret)
-set.seed(1) # set seed for reproducibility
-train.control <- trainControl(method = "cv", number = 10)# set up repeated k-fold 
-subset.caret <- train(lpsa ~., data = dtrain,
-                      method = "leapBackward", 
-                      tuneGrid = data.frame(nvmax = 1:8),
-                      trControl = train.control
+# Forward regression
+fit0 <- lm(y~1,data=data_train)
+up.model <- paste("~", 
+                  paste(
+                    colnames(data_train[,-1]),collapse=" + ")
+                  )
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,
+                             upper=up.model
+                             
+                  ),
+                  trace = FALSE
 )
-#subset.caret$results
-#summary(subset.caret$finalModel)
-coef.ss.cv <- coef(subset.caret$finalModel, subset.caret$bestTune$nvmax)
-fit.ss.cv <- lm(lpsa~.,data=dtrain[,c("lpsa",names(coef.ss.cv)[-1])])
-terr.ss.cv <- mean((predict(fit.ss.cv,newdata = dtest)-dtest$lpsa)^2)
+#summary(fit.fw)
+```
 
-# Ridge regression
-set.seed(1)
-library(glmnet)
+The selection process is depicted in the following table.
+
+```{r}
+kable(as.data.frame(fit.fw$anova),digits=2,
+      booktabs=TRUE)
+```
+
+The regression coefficients and the corresponding statistics of the AIC-optimal model are shown next.
+
+```{r}
+kable(broom::tidy(fit.fw),digits=2,
+      booktabs=TRUE)
+```
+
+We continue by fitting Ridge regression. We show the trace plot and the cross-validation plot.
+
+```{r}
+# Ridge
+set.seed(1515)
 fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
 fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
-coef.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.min)
-terr.ridge <- mean((as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))-ytest)^2)
+plot(fit.ridge,xvar="lambda")
+plot(fit.ridge.cv)
+```
 
-# Lasso regression
-set.seed(1)
+Finally, we run the Lasso approach and show the trace and the cross-validation plots.
+
+```{r, fit.cap="Trace and cross-validation lot."}
+# Lasso
+set.seed(1515)
 fit.lasso <- glmnet(xtrain,ytrain,alpha=1)
 fit.lasso.cv <- cv.glmnet(xtrain,ytrain,alpha=1)
-coef.lasso <- coef(fit.lasso,s=fit.ridge.cv$lambda.min)
-terr.lasso <- mean((as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))-ytest)^2)
+plot(fit.lasso,xvar="lambda")
+plot(fit.lasso.cv)#fit.lasso.cv$lambda.1se
 ```
 
-The next two figures show BIC and CV error for the Best Subset selection approach
-(tuning parameter are the different subset sizes).
+We calculate the root-mean-square errors (RMSE) on the test data and compare with the full model.
 
 ```{r}
-plot(ss.summary$bic)
-plot(subset.caret)
+# Full model
+fit.full <- lm(y~.,data=data_train)
+# RMSE
+pred.full <- predict(fit.full,newdata=data_test)
+pred.fw <- predict(fit.fw,newdata=data_test)
+pred.ridge <- as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))
+pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
+res.rmse <- data.frame(
+  method=c("full","forward","ridge","lasso"),
+  rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
+kable(res.rmse,digits = 2,
+      booktabs=TRUE)
 ```
 
-The next two figures show the CV error for Ridge and Lasso regression.
+The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
 
-```{r}
-par(mfrow=c(1,2))
-plot(fit.ridge.cv)
-plot(fit.lasso.cv)
-```
+```{r, echo=FALSE}
+beta.fw <- coef(fit.fw)
+beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
+beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
+res.coef <- data.frame(forward=0,ridge=as.numeric(beta.ridge),lasso=as.numeric(beta.lasso))
+rownames(res.coef) <- rownames(beta.ridge)
+res.coef[names(beta.fw),"forward"] <- beta.fw
+res.coef$coef <- rownames(res.coef)
+res.coef.l <- pivot_longer(res.coef,cols=c("forward","ridge","lasso"),names_to="method")
 
-Next we show the table of regression coefficients obtained using the different methods.
-
-```{r}
-res <- data.frame(OLS=coef.lm,SSBIC=0,SSCV=0,RIDGE=0,LASSO=0)
-res[names(coef.ss.bic),"SSBIC"] <- coef.ss.bic
-res[names(coef.ss.cv),"SSCV"] <- coef.ss.cv
-res[,"RIDGE"] <- as.numeric(coef.ridge)
-res[,"LASSO"] <- as.numeric(coef.lasso)
-kable(res,digits = 3,booktabs=TRUE)
-
-```
-
-Finally we show the test errors of the different methods.
-
-```{r}
-res <- data.frame(OLS=terr.lm,
-                  SSBIC=terr.ss.bic,SSCV=terr.ss.cv,
-                  RIDGE=terr.ridge,LASSO=terr.lasso)
-kable(res,digits = 3,booktabs=TRUE)
-
+res.coef.l%>%
+  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
+  ggplot(.,aes(x=coef,y=value,fill=method))+
+  geom_bar(width=0.5,position = position_dodge(width = 0.8),stat="identity")+
+  theme_bw()+
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  scale_fill_grey(aesthetics = c("fill","color"))+
+  xlab("")+ylab("beta")
 ```
 
 # Closed form solution for Ridge regression
@@ -570,125 +478,6 @@ The solution to this exercise.
 
 ```{r lassoorthonormal,echo=FALSE,out.width="100%"}
 knitr::include_graphics("lasso_orthonormal.jpg")
-```
-
-# P-values for high-dimensional regression (difficult)
-
-The Lasso does not provide p-values for the regression coefficients. In this exercise we use the riboflavin data set to explore a neat approach to obtain p-values. The research paper which proposed the method is available [here](https://arxiv.org/pdf/0811.2177.pdf).
-
-1. Split the riboflavin data set into two halves ("data splitting"). 
-2. On the first half: run `glmnet` and select the top genes ("screening").
-3. On the second half: take the selected top genes as covariates, run ordinary least squares and report the p-values ("p-value calculation").
-4. Write a function combining steps 1-3 and re-run these steps 100 times. 
-5. For a single gene, plot a histogram of the p-values. 
-6. For each gene calculate the 10th percentile of the p-values ("p-value aggregation").
-7. Use the function `hdi` with `method="multi.split"` to calculate p-values.
-
-Solution to the exercise. 
-
-Start by splitting the data set into two halves.
-
-```{r}
-library(multcomp)
-riboflavin <- readRDS(file="data/riboflavin.rds")
-str(riboflavin)
-
-x <- riboflavin$x
-colnames(x) <- make.names(colnames(x))
-y <- riboflavin$y
-
-# split data into two halves
-set.seed(1)
-n <- length(y)
-in_sample <- sample(seq(n),size=ceiling(n/2)) 
-x_in <- x[in_sample,]
-y_in <- y[in_sample]
-x_out <- x[-in_sample,]
-y_out <- y[-in_sample]
-```
-
-Perform variable screening based on the first half. 
-```{r}
-# screening
-fit.cv <- cv.glmnet(x_in, y_in) 
-bhat <- as.matrix(coef(fit.cv,s="lambda.min"))[-1,]
-hatact <- names(bhat[bhat!=0])
-```
-
-Next, calculated p-values based on the second half.
-
-```{r}
-# testing
-t.dat <- data.frame(cbind(x_out[,hatact,drop=FALSE]))
-t.dat$y <- y_out
-fit.lm <- lm(y~.,data=t.dat)
-fit.glht <- glht(fit.lm)
-pvals <- summary(fit.glht, test = adjusted("bonferroni"))$test$pvalues
-pvals
-```
-Write a function in order to re-run the previous steps many times.
-
-```{r}
-hdpvalue_singlesplit <- function(x,y){
-  
-  # splitting
-  n <- length(y)
-  in_sample <- sample(seq(n),size=ceiling(n/2)) 
-  x_in <- x[in_sample,]
-  y_in <- y[in_sample]
-  x_out <- x[-in_sample,]
-  y_out <- y[-in_sample]
-  
-  # screening
-  fit.cv <- cv.glmnet(scale(x_in), y_in,standardize=FALSE) 
-  bhat <- as.matrix(coef(fit.cv,s="lambda.1se"))[-1,]
-  bhato <- sort(abs(bhat[bhat!=0]),decreasing=TRUE)
-  if(length(bhato)<length(y_out)-1){
-    hatact <- names(bhato)
-  }else{
-    hatact <- names(bhato)[1:(length(y_out)-2)]
-  }
-
-  # testing
-  t.dat <- data.frame(cbind(x_out[,hatact[-1]]))
-  t.dat$y <- y_out
-  fit.lm <- lm(y~.,data=t.dat)
-  fit.glht <- glht(fit.lm)
-  pvals <- summary(glht(fit.lm), test = adjusted("bonferroni"))$test$pvalues[-1]
-  
-  
-  # output
-  pvalues <- rep(1,length=ncol(x))
-  names(pvalues) <- colnames(x)
-  pvalues[names(pvals)] <- pvals
-  
-  return(pvalues)
-}
-
-pvals_ms <- replicate(100,hdpvalue_singlesplit(x=x,y=y))
-```
-
-Histogram of the p-values of all splits for the gene *YXLD_at*.
-```{r}
-hist(pvals_ms["YXLD_at",],breaks=20)
-```
-
-Aggregate the p-values over the different splits.
-```{r}
-pval.agg <- sort(apply(pvals_ms,1,quantile,probs=0.1),decreasing=FALSE)
-head(pval.agg)
-```
-
-The multi-splitting approach is implemented in the function `hdi` function. (Note that the `hdi` function uses a clever way to aggregate the p-values.)
-
-```{r eval=FALSE, include=TRUE}
-library(hdi)
-x <- riboflavin[,-1]
-y <- riboflavin[,1]
-## Multi-split p-values
-set.seed(12)
-fit.multi <- hdi(x, y, method = "multi-split", B = 100)
-head(sort(fit.multi$pval.corr,decreasing = FALSE))
 ```
 
 # Logistic regression and splines
@@ -886,8 +675,7 @@ predict(fit.boost,
         type="response" )
 ```
 
-
-# Phoneme Recognition
+# Phoneme recognition
 
 In this exercise we investigate prediction of phonemes based on digitized speech data.
 
@@ -1026,195 +814,6 @@ lines(coef.lasso,col="green",lwd=2)
 lines(coef.smooth,col="red",lwd=2)
 abline(h=0)
 
-```
-
-# Classification and the sonar data set
-
-In this exercise we explore the sonar data set from the *mlbench* package. We use the *caret* package for classification. 
-
-1. Load the sonar data set and read the help page. 
-
-2. Split the data into a training and test set.
-
-3. Use logistic regression and apply forward selection. Show the estimated coefficients of the final model and calculate the prediction error.
-
-4. Apply elastic-net regularized logistic regression. Show the trace plot and the cross-validation curve. Calculate the prediction error.
-
-5. Run the AdaBoost method. Obtain the variable importance scores and calculate the prediction error. (Hint: use the function `gbm` with argument `distribution="adaboost"`).
-
-
-The solution to this exercise. 
-
-We explore the sonar data set from the *mlbench* package. The goal is to train a model to discriminate between rock "R" and metal "M" based on sonar signals bounced off a metal cylinder and those bounced off a roughly cylindrical rock. The $p=60$ covariates represent energies within particular frequency bands. We first load the data and split into training and test data.
-
-```{r}
-sonar <- readRDS(file="data/sonar.rds")
-
-set.seed(107)
-inTrain <- createDataPartition(
-  y = sonar$Class,
-  ## the outcome data are needed
-  p = .5,
-  ## The percentage of data in the
-  ## training set
-  list = FALSE
-)
-dtrain <- sonar[ inTrain,]
-xtrain <- as.matrix(dtrain[,-61])
-ytrain <- dtrain$Class
-dtest  <- sonar[-inTrain,]
-xtest <- as.matrix(dtest[,-61])
-ytest <- dtest$Class
-```
-
-In order to compare the performance of the different methods we setup `trainControl`. We use 10-fold cross-validation.
-
-```{r}
-tc <- trainControl(method = "cv", number = 10) # 10-fold CV, performance=accuracy
-```
-
-We first run logistic regression, once with only an intercept and once including all covariates. We
-note that `glm`  reports convergence problems when using all covariates. This indicates that the model is too complex to fit.
-
-```{r warning=FALSE}
-fit.lo <-  glm(Class~1,family=binomial,data=dtrain)
-fit.full <-  glm(Class~.,family=binomial,data=dtrain)
-fit.full.caret <- train(Class ~., 
-                        data = dtrain, 
-                        method = "glm", 
-                        family = "binomial",
-                        trControl = tc)
-```
-
-Next we use forward selection using `stepAIC` from the MASS package.
-
-```{r, warning=FALSE}
-up <- paste("~", paste(colnames(dtrain), collapse=" + ")) 
-fit.fw <- stepAIC(fit.lo,
-                  scope=up,
-                  direction = "forward", 
-                  steps=10,
-                  trace = FALSE)
-#summary(fit.fw)
-kable(broom::tidy(fit.fw),digits=2,booktabs=TRUE)
-```
-
-We can repeat the same analysis using the `train` function from the *caret* package. (Note that there is no tuning parameter involved for `glmStepAIC`.)
-
-```{r, warning=FALSE}
-fit.fw.caret <- train(x=xtrain,
-                      y=ytrain, 
-                      method = "glmStepAIC", 
-                      family = "binomial",
-                      direction ="forward",
-                      steps=10,
-                      trControl = tc,
-                      trace = FALSE
-)
-# accuracy
-kable(fit.fw.caret$results,digits=2,booktabs=TRUE)
-
-# summary of the model
-kable(broom::tidy(fit.fw.caret$finalModel),digits=2,booktabs=TRUE)
-```
-
-Next we employ L1-penalized logistic regression.
-
-```{r}
-fit.l1 <-glmnet(x=xtrain,y=ytrain,alpha=1,family="binomial") 
-plot(fit.l1,xvar="lambda",label=TRUE)
-cvfit <- cv.glmnet(x=xtrain, y=ytrain, 
-                   family = "binomial", 
-                   type.measure = "class",alpha=1)
-#cvfit$lambda.min
-plot(cvfit)
-```
-
-We repeat the same analysis using the caret package.
-
-```{r}
-lambda.grid <- fit.l1$lambda
-fit.l1.caret<-train(x=xtrain,
-                    y=ytrain,
-                    method = "glmnet",
-                    family="binomial",
-                    preProc = c("center","scale"),
-                    tuneGrid = expand.grid(alpha = 1,lambda=lambda.grid),
-                    trControl = tc
-) 
-
-ggplot(fit.l1.caret)
-```
-
-```{r eval=FALSE}
-fit.l1.caret
-# best lambda
-fit.l1.caret$bestTune$lambda
-# model coefficients
-coef(fit.l1.caret$finalModel,fit.l1.caret$bestTune$lambda)
-```
-
-
-Next we investigate AdaBoost. We can use the `gbm` function.
-
-```{r eval=FALSE}
-dtrain$Class <-  factor(ifelse(dtrain$Class=="M",0,1))
-fit.boost <-gbm(Class~.,data=dtrain) 
-```
-
-Alternatively, we can use the *caret* package. We first specify the tuning parameter grid.
-
-```{r}
-gbmGrid <-  expand.grid(
-  n.trees = seq(1,1000,by=20),
-  interaction.depth = c(1,3,6), 
-  shrinkage = 0.1,
-  n.minobsinnode = 10
-)
-```
-
-Next we train the model.
-```{r}
-fit.boost.caret<-train(
-  x=xtrain,
-  y=ytrain,
-  method = "gbm",
-  trControl = tc,
-  verbose = FALSE,
-  tuneGrid = gbmGrid
-) 
-```
-
-and plot the cross-validation accuracy.
-
-```{r}
-ggplot(fit.boost.caret)
-```
-
-Finally we obtain the variable importance.
-
-```{r}
-gbmImp <- varImp(fit.boost.caret, scale = FALSE)
-plot(gbmImp,top=20)
-```
-Next we make predictions and compare the misclassification errors on the test data.
-
-```{r results="hide"}
-# Make predictions
-confusionMatrix(data =fit.boost.caret %>% predict(xtest), ytest)
-confusionMatrix(data =fit.l1.caret %>% predict(xtest), ytest)
-confusionMatrix(data =fit.fw.caret %>% predict(xtest), ytest)
-confusionMatrix(data =fit.full.caret %>% predict(xtest), ytest)
-```
-
-With the *caret* package we can also compare the 3 models using the following commands.
-
-```{r results="hide"}
-models <- list(full=fit.full.caret,
-               fw=fit.fw.caret,
-               l1=fit.l1.caret,
-               boost=fit.boost.caret)
-summary(resamples(models),metric = "Accuracy")
 ```
 
 # Survival analysis and the Lymphoma data
@@ -1386,137 +985,6 @@ dat.preval$prognosis <- ifelse(dat.preval$lp>0,"poor","good")
 fit.surv <- survfit(Surv(time, status) ~ prognosis, 
                     data = dat.preval)
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
-```
-
-
-# Survival analysis based on simulated data (difficult)
-
-In this exercise we simulate high-dimensional survival data and explore regularized cox regression.
-
-1. Simulate high-dimensional survival data from the cox proportional hazards model with $n=50$ and $p=100$ covariates. Assume that only the first two covariates are active, i.e. have non-zero regression coefficient. Create training and test data.
-
-2. Based on training data fit a cox regression model including the first 20 covariates. Visualize the hazard-ratios using a forest plot.
-
-3. Based on training data run l1-penalized cox regression using `glmnet`. Show the trace plot and the cross-validated C-index.
-
-4. Based on training data fit a cox regression model including only the active covariates obtained from  the previous glmnet fit.
-
-5. Use the `pec` package to obtain the Brier score on training and test data for the two cox regression models.
-
-Solution to the exercise. 
-
-We start by simulating training and test data.
-
-```{r message=FALSE}
-## load packages
-library(survival)
-library(survminer)
-
-## dimensions
-p <- 100
-n <- 50
-
-## training data
-
-# design matrix
-t.dat <- data.frame(matrix(rnorm(n * p), nrow = n))
-fm <- as.formula(paste0("~0+",paste(paste0("X",1:p),collapse="+")))
-x_design <- model.matrix(fm,data=t.dat)
-beta <- c(2,0,0,0,2,rep(0,p-5))
-lh <- x_design%*%beta
-
-# survival and censoring time
-rate_base <- 1/5 # baseline hazard
-rate_cens <- 1/6 # censoring hazard
-hazard <- rate_base*exp(lh)
-survtime <- rexp(n,rate=hazard)
-censtime <- rexp(n,rate=rate_cens)
-status <- as.numeric(survtime<=censtime)
-time <- survtime*status+censtime*(1-status)
-dtrain <- cbind(
-  data.frame(survtime,time,status)%>%
-    dplyr::mutate(status.cens=1-status),
-  t.dat)
-
-## test data
-
-# design matrix
-t.dat <- data.frame(matrix(rnorm(n * p), nrow = n))
-fm <- as.formula(paste0("~0+",paste(paste0("X",1:p),collapse="+")))
-x_design <- model.matrix(fm,data=t.dat)
-beta <- c(2,0,0,0,2,rep(0,p-5))
-lh <- x_design%*%beta
-
-# survival and censoring time
-rate_base <- 1/5 # baseline hazard
-rate_cens <- 1/6 # censoring hazard
-hazard <- rate_base*exp(lh)
-survtime <- rexp(n,rate=hazard)
-censtime <- rexp(n,rate=rate_cens)
-status <- as.numeric(survtime<=censtime)
-time <- survtime*status+censtime*(1-status)
-dtest <- cbind(
-  data.frame(survtime,time,status)%>%
-    dplyr::mutate(status.cens=1-status),
-  t.dat)
-```
-
-We perform cox regression and create a forest plot.
-
-```{r message=FALSE, warning=FALSE}
-fm1 <- as.formula(paste("Surv(time,status)~",paste(paste0("X",1:20),collapse="+")))
-fit1 <- coxph(fm1,data=dtrain,x=TRUE)
-survminer::ggforest(fit1)
-```
-
-We perform l1-regularized cox regression and generate the trace plot.
-
-```{r}
-xtrain <- as.matrix(dtrain[,-c(1:4)])
-ytrain <- with(dtrain,Surv(time,status))
-fit.coxnet <- glmnet(xtrain, ytrain, family = "cox",alpha=0.95)
-plot(fit.coxnet,xvar="lambda",label=TRUE)
-```
-
-We perform cross-validation and plot the C-index.
-
-```{r}
-cv.coxnet <- cv.glmnet(xtrain, ytrain,
-                       family="cox",
-                       type.measure="C",
-                       alpha=0.95)
-plot(cv.coxnet)
-```
-
-We perform cox regression based on only the active covariates.
-
-```{r}
-act <- which(as.numeric(coef(fit.coxnet,s=cv.coxnet$lambda.min))!=0)
-fm2 <- as.formula(paste("Surv(time,status)~",paste(paste0("X",act),collapse="+")))
-fit2 <- coxph(fm2,data=dtrain,x=TRUE)
-```
-
-Finally, we calculate the Brier score on training and test data.
-
-```{r message=FALSE, eval=FALSE}
-library(pec)
-fit.pec.train <- pec::pec(
-  object=list("mod1"=fit1,"mod2"=fit2), 
-  data = dtrain, 
-  formula = Surv(time, status) ~ 1, 
-  splitMethod = "none")
-
-
-fit.pec.test <- pec::pec(
-  object=list("mod1"=fit1,"mod2"=fit2), 
-  data = dtest, 
-  formula = Surv(time, status) ~ 1, 
-  splitMethod = "none")
-
-par(mfrow=c(1,2))
-plot(fit.pec.train,main="train")
-plot(fit.pec.test,main="test")
-
 ```
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
