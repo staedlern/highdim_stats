@@ -62,7 +62,9 @@ set, and a sample of 302 controls. The variables are:
 
 ```{r sahd, fig.cap="Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).",fig.height=10,fig.width=10}
 dat <- readRDS(file="data/sahd.rds")
-pairs(data.matrix(dat[,-1]),col=ifelse(dat$chd==1,"red","blue"),pch=ifelse(dat$chd==1,1,2))
+pairs(data.matrix(dat[,-1]),
+      col=ifelse(dat$chd==1,"red","blue"),
+      pch=ifelse(dat$chd==1,1,2))
 ```
 
 We first fit a logistic regression model using the function `glm`.

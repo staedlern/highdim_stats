@@ -626,7 +626,8 @@ pred.ridge <- as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))
 pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
 res.rmse <- data.frame(
   method=c("full","forward","ridge","lasso"),
-  rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
+  rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),
+         RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
 kable(res.rmse,digits = 2,
       booktabs=TRUE)
 ```

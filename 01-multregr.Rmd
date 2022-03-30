@@ -27,7 +27,7 @@ The term $\beta_0$ is the intercept. If we include the constant variable 1 in $X
 How do we fit the linear model to a set of training data (i.e. how do we obtain the estimator $\hat \beta$)? We typically use *ordinary least squares* (OLS) where we pick the coefficient $\beta$ to minimize the residual sum of squares
 
 \begin{eqnarray*}
-\rm{RSS}(\beta)&=&\sum_{i=1}^{n}(y_i-x_i^T\beta)^2\\
+\textrm{RSS}(\beta)&=&\sum_{i=1}^{n}(y_i-x_i^T\beta)^2\\
 &=&(\textbf{y} - \textbf{X} \beta)^T (\textbf{y} - \textbf{X} \beta)\\
 &=&\|\textbf{y} - \textbf{X} \beta\|^2_2.
 \end{eqnarray*}
