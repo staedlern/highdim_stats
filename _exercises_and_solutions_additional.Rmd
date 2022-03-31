@@ -833,8 +833,5 @@ plot(fit.pec.test,main="test")
 
 ```
 
-<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
+<!-- rmarkdown::render("_exercises_and_solutions_additional.Rmd",output_format = "html_document") -->
 
-<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
-
-<!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "pdf_document") -->
