@@ -344,6 +344,74 @@ res.coef.l%>%
   xlab("")+ylab("beta")
 ```
 
+# Diabetes data and the `caret` package
+
+In the previous exercise we build predictive models for the Diabetes data. The `caret` package (short for Classification And REgression Training) is a set of functions that attempt to streamline the process for creating predictive models. The aim of this exercise is to get familiar with the `caret` package by running the code below and by investigating the purpose of the functions `train`, `trainControl`. Use the following [link](https://topepo.github.io/caret/) to learn more about `caret`.
+
+```{r eval=FALSE}
+## Load package
+library(caret)
+
+## Read and prepare the data
+diabetes <- readRDS(file="data/diabetes.rds")
+data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(data) <- gsub(":",".",colnames(data))
+train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
+data_train <- data[train_ind,]
+xtrain <- as.matrix(data_train[,-1])
+ytrain <- data_train[,1]
+data_test <- data[-train_ind,]
+xtest <- as.matrix(data_test[,-1])
+ytest <- data_test[,1]
+
+## Setup trainControl: 10-fold cross-validation
+tc <- trainControl(method = "cv", number = 10)
+
+## Ridge
+lambda.grid <- fit.ridge.cv$lambda
+fit.ridge.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 0,
+                                              lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.ridge.caret)
+# Best lambda
+fit.ridge.caret$bestTune$lambda
+# Model coefficients
+coef(fit.ridge.caret$finalModel,fit.ridge.cv$lambda.1se)%>%head
+# Make predictions
+fit.ridge.caret %>% predict(xtest,s=fit.ridge.cv$lambda.1se)%>%head
+
+## Lasso
+lambda.grid <- fit.lasso.cv$lambda
+fit.lasso.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 1,
+                                              lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.lasso.caret)
+# Best lambda
+fit.lasso.caret$bestTune$lambda
+# Model coefficients
+coef(fit.lasso.caret$finalModel,
+     fit.lasso.caret$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso.caret%>%predict(xtest,
+                          s=fit.ridge.cv$lambda.1se)%>%head
+
+## Compare Ridge and Lasso
+models <- list(ridge=fit.ridge.caret,lasso=fit.lasso.caret)
+resamples(models) %>% summary( metric = "RMSE")
+```
+
 # Closed form solution for Ridge regression
 
 1. Show that the Ridge optimization problem has the closed form solution 
@@ -676,6 +744,10 @@ predict(fit.boost,
         type="response" )
 ```
 
+# Classification and the `caret` package
+
+Follow the short [tutorial](https://cran.r-project.org/web/packages/caret/vignettes/caret.html) which guides you through a classifcation example using the `caret` package.
+
 # Phoneme recognition
 
 In this exercise we investigate prediction of phonemes based on digitized speech data.
@@ -705,9 +777,17 @@ dtest <- dtest[,-257]
 
 4. Run Lasso regression and evaluate the training and test misclassification errors.
 
-5. In the previous approaches we assumed logit-link $${\rm logit}(x;\beta)=\sum_{j=1}^{256} X_j\beta_j.$$ Next we assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. $$\beta(f)=\sum_{m=1}^{\nu} h_m(f)\theta_m,$$ 
+5. In the previous approaches we assumed logit-link 
+
+\begin{eqnarray*}
+\textrm{logit}(x;\beta)&=&\sum_{j=1}^{256} X_j\beta_j.
+\end{eqnarray*}
+Next we assume that the coefficients are a smooth function of the frequency $\beta(f)$, i.e. 
+\begin{eqnarray*}
+\beta(f)&=&\sum_{m=1}^{\nu} h_m(f)\theta_m,
+\end{eqnarray*}
 where $h_m$ are B-spline basis functions for a natural cubic spline with $\nu=12$ degrees of freedom (defined on the set of frequencies). 
-Consider filtered inputs $x^*={\bf H}^T x$ and fit $\theta$ by logistic regression on the $x^*$. Evaluate the training and test misclassification errors.  
+Consider filtered inputs $x^*=\textbf{H}^T x$ and fit $\theta$ by logistic regression on the $x^*$. Evaluate the training and test misclassification errors.  
 
 6. Plot the coefficients of the different models.
 
@@ -797,7 +877,8 @@ xstar <- xtrain%*%hmat
 fit.smooth <- glm(dtrain$y~.,data=data.frame(xstar),family="binomial")
 coef.smooth <- as.numeric(hmat%*%coef(fit.smooth)[-1])
 pred_train <- as.numeric((predict(fit.smooth,type="response")>0.5))
-pred_test <- as.numeric((predict(fit.smooth,type="response",newdata=data.frame(xtest%*%hmat))>0.5))
+pred_test <- as.numeric((predict(fit.smooth,type="response",
+                                 newdata=data.frame(xtest%*%hmat))>0.5))
 
 mean(pred_train!=ytrain)
 mean(pred_test!=ytest)
@@ -809,12 +890,12 @@ We plot the regression coefficients.
 plot( coef.glm[-1], 
       ylim=c(-0.4,+0.4), 
       type="l", 
+      lwd=2,
       xlab="Frequency", 
       ylab="Logistic Regression Coefficients" )
-lines(coef.lasso,col="green",lwd=2)
-lines(coef.smooth,col="red",lwd=2)
+lines(coef.lasso,col="green",lwd=3)
+lines(coef.smooth,col="red",lwd=3)
 abline(h=0)
-
 ```
 
 # Survival analysis and the Lymphoma data
