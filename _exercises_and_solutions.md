@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2022-03-28
+2022-04-03
 
 -   [1 Diabetes data and linear
     regression](#diabetes-data-and-linear-regression)
@@ -10,20 +10,24 @@ Nicolas Städler
 -   [3 Calculus, optimization and OLS](#calculus-optimization-and-ols)
 -   [4 Diabetes data and
     regularization](#diabetes-data-and-regularization)
--   [5 Closed form solution for Ridge
+-   [5 Diabetes data and the `caret`
+    package](#diabetes-data-and-the-caret-package)
+-   [6 Closed form solution for Ridge
     regression](#closed-form-solution-for-ridge-regression)
--   [6 Bayesian interpretation of Ridge regression
+-   [7 Bayesian interpretation of Ridge regression
     (difficult)](#bayesian-interpretation-of-ridge-regression-difficult)
--   [7 Elastic net mixing parameter and
+-   [8 Elastic net mixing parameter and
     cross-validation](#elastic-net-mixing-parameter-and-cross-validation)
--   [8 Ridge and Lasso for the orthonormal design
+-   [9 Ridge and Lasso for the orthonormal design
     (difficult)](#ridge-and-lasso-for-the-orthonormal-design-difficult)
--   [9 Logistic regression and
+-   [10 Logistic regression and
     splines](#logistic-regression-and-splines)
--   [10 Decision trees, Random Forest and
+-   [11 Decision trees, Random Forest and
     AdaBoost](#decision-trees-random-forest-and-adaboost)
--   [11 Phoneme recognition](#phoneme-recognition)
--   [12 Survival analysis and the Lymphoma
+-   [12 Classification and the `caret`
+    package](#classification-and-the-caret-package)
+-   [13 Phoneme recognition](#phoneme-recognition)
+-   [14 Survival analysis and the Lymphoma
     data](#survival-analysis-and-the-lymphoma-data)
 
 # 1 Diabetes data and linear regression
@@ -120,18 +124,18 @@ summary(fit1)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -140.073  -45.740   -6.876   44.226  157.124 
+    ## -157.081  -44.689   -7.777   47.348  157.389 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  151.671      4.239   35.78   <2e-16 ***
-    ## bmi          980.214     85.678   11.44   <2e-16 ***
+    ## (Intercept)  148.586      4.265   34.84   <2e-16 ***
+    ## bmi          889.321     88.755   10.02   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 62.9 on 219 degrees of freedom
-    ## Multiple R-squared:  0.3741, Adjusted R-squared:  0.3712 
-    ## F-statistic: 130.9 on 1 and 219 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 63.29 on 219 degrees of freedom
+    ## Multiple R-squared:  0.3143, Adjusted R-squared:  0.3112 
+    ## F-statistic: 100.4 on 1 and 219 DF,  p-value: < 2.2e-16
 
 Scatter plot with regression line.
 
@@ -194,13 +198,13 @@ Calculate the RSS.
 sum(residuals(fit1)^2)
 ```
 
-    ## [1] 866399.4
+    ## [1] 877313.9
 
 ``` r
 sum(residuals(fit2)^2)
 ```
 
-    ## [1] 451511.1
+    ## [1] 461076.7
 
 Compare the 2 models using the `anova` function.
 
@@ -222,8 +226,8 @@ anova(fit1,fit2)
     ##     tc.ltg + tc.glu + ldl.hdl + ldl.tch + ldl.ltg + ldl.glu + 
     ##     hdl.tch + hdl.ltg + hdl.glu + tch.ltg + tch.glu + ltg.glu
     ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
-    ## 1    219 866399                                  
-    ## 2    156 451511 63    414888 2.2753 2.065e-05 ***
+    ## 1    219 877314                                  
+    ## 2    156 461077 63    416237 2.2354 3.043e-05 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -255,13 +259,13 @@ data.
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 ```
 
-    ## [1] 62.61277
+    ## [1] 63.00592
 
 ``` r
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
 
-    ## [1] 45.19996
+    ## [1] 45.67625
 
 We draw calibration plots for the 2 models. Model 1 calibrates slightly
 better.
@@ -302,13 +306,13 @@ Calculate RMSEs on test data.
 RMSE(data_test$y,predict(fit1,newdata=data_test))
 ```
 
-    ## [1] 62.17128
+    ## [1] 62.06998
 
 ``` r
 RMSE(data_test$y,predict(fit2,newdata=data_test))
 ```
 
-    ## [1] 62.67202
+    ## [1] 83.72886
 
 # 3 Calculus, optimization and OLS
 
@@ -415,18 +419,18 @@ kable(as.data.frame(fit.fw$anova),digits=2,
 
 | Step       |  Df |  Deviance | Resid. Df | Resid. Dev |     AIC |
 |:-----------|----:|----------:|----------:|-----------:|--------:|
-|            |  NA |        NA |       220 |  1304692.8 | 1921.01 |
-| \+ ltg     |   1 | 412445.77 |       219 |   892247.1 | 1839.04 |
-| \+ bmi     |   1 | 184023.82 |       218 |   708223.2 | 1789.99 |
-| \+ age.glu |   1 |  41642.57 |       217 |   666580.7 | 1778.60 |
-| \+ map     |   1 |  24873.44 |       216 |   641707.2 | 1772.19 |
-| \+ tc      |   1 |  16926.33 |       215 |   624780.9 | 1768.29 |
-| \+ bmi.tch |   1 |  16379.47 |       214 |   608401.4 | 1764.41 |
-| \+ sex     |   1 |  11389.24 |       213 |   597012.2 | 1762.24 |
-| \+ ldl     |   1 |  18430.65 |       212 |   578581.6 | 1757.31 |
-| \+ bmi.map |   1 |  11593.20 |       211 |   566988.3 | 1754.83 |
-| \+ map.ldl |   1 |   9707.76 |       210 |   557280.6 | 1753.02 |
-| \+ age     |   1 |   5855.48 |       209 |   551425.1 | 1752.68 |
+|            |  NA |        NA |       220 |  1309200.0 | 1921.77 |
+| \+ bmi     |   1 | 508704.92 |       219 |   800495.1 | 1815.06 |
+| \+ ltg     |   1 | 105701.74 |       218 |   694793.3 | 1785.76 |
+| \+ map     |   1 |  26132.66 |       217 |   668660.7 | 1779.29 |
+| \+ tch.glu |   1 |  30848.75 |       216 |   637811.9 | 1770.85 |
+| \+ hdl     |   1 |  22386.66 |       215 |   615425.3 | 1764.95 |
+| \+ sex     |   1 |  17350.12 |       214 |   598075.1 | 1760.63 |
+| \+ age.sex |   1 |  16344.40 |       213 |   581730.7 | 1756.51 |
+| \+ bmi.glu |   1 |  16781.88 |       212 |   564948.9 | 1752.04 |
+| \+ age.map |   1 |   5609.11 |       211 |   559339.8 | 1751.83 |
+| \+ bmi.map |   1 |   5543.67 |       210 |   553796.1 | 1751.63 |
+| \+ map.hdl |   1 |   7203.31 |       209 |   546592.8 | 1750.74 |
 
 The regression coefficients and the corresponding statistics of the
 AIC-optimal model are shown next.
@@ -438,18 +442,18 @@ kable(broom::tidy(fit.fw),digits=2,
 
 | term        | estimate | std.error | statistic | p.value |
 |:------------|---------:|----------:|----------:|--------:|
-| (Intercept) |   150.45 |      3.49 |     43.15 |    0.00 |
-| ltg         |   924.12 |    113.19 |      8.16 |    0.00 |
-| bmi         |   533.01 |     90.92 |      5.86 |    0.00 |
-| age.glu     |   194.13 |     82.25 |      2.36 |    0.02 |
-| map         |   304.15 |     90.19 |      3.37 |    0.00 |
-| tc          |  -829.65 |    215.60 |     -3.85 |    0.00 |
-| bmi.tch     |   192.40 |     70.47 |      2.73 |    0.01 |
-| sex         |  -272.73 |     86.10 |     -3.17 |    0.00 |
-| ldl         |   571.62 |    197.75 |      2.89 |    0.00 |
-| bmi.map     |   209.60 |     80.87 |      2.59 |    0.01 |
-| map.ldl     |  -151.77 |     81.45 |     -1.86 |    0.06 |
-| age         |   127.04 |     85.28 |      1.49 |    0.14 |
+| (Intercept) |   153.70 |      3.49 |     44.05 |    0.00 |
+| bmi         |   599.38 |     91.01 |      6.59 |    0.00 |
+| ltg         |   373.64 |     92.49 |      4.04 |    0.00 |
+| map         |   334.66 |     85.00 |      3.94 |    0.00 |
+| tch.glu     |   147.37 |     79.03 |      1.86 |    0.06 |
+| hdl         |  -308.79 |     90.23 |     -3.42 |    0.00 |
+| sex         |  -208.06 |     83.43 |     -2.49 |    0.01 |
+| age.sex     |   171.77 |     74.00 |      2.32 |    0.02 |
+| bmi.glu     |   131.41 |     85.39 |      1.54 |    0.13 |
+| age.map     |    98.54 |     72.40 |      1.36 |    0.17 |
+| bmi.map     |   152.23 |     81.05 |      1.88 |    0.06 |
+| map.hdl     |   121.97 |     73.49 |      1.66 |    0.10 |
 
 We continue by fitting Ridge regression. We show the trace plot and the
 cross-validation plot.
@@ -509,17 +513,92 @@ kable(res.rmse,digits = 2,
 
 | method  |  rmse |
 |:--------|------:|
-| full    | 66.95 |
-| forward | 58.17 |
-| ridge   | 58.14 |
-| lasso   | 56.73 |
+| full    | 64.12 |
+| forward | 55.85 |
+| ridge   | 59.06 |
+| lasso   | 57.43 |
 
 The Lasso has the lowest generalization error (RMSE). We plot the
 regression coefficients for all 3 methods.
 
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-26-1.png" style="display: block; margin: auto;" />
 
-# 5 Closed form solution for Ridge regression
+# 5 Diabetes data and the `caret` package
+
+In the previous exercise we build predictive models for the Diabetes
+data. The `caret` package (short for Classification And REgression
+Training) is a set of functions that attempt to streamline the process
+for creating predictive models. The aim of this exercise is to get
+familiar with the `caret` package by running the code below and by
+investigating the purpose of the functions `train`, `trainControl`. Use
+the following [link](https://topepo.github.io/caret/) to learn more
+about `caret`.
+
+``` r
+## Load package
+library(caret)
+
+## Read and prepare the data
+diabetes <- readRDS(file="data/diabetes.rds")
+data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(data) <- gsub(":",".",colnames(data))
+train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
+data_train <- data[train_ind,]
+xtrain <- as.matrix(data_train[,-1])
+ytrain <- data_train[,1]
+data_test <- data[-train_ind,]
+xtest <- as.matrix(data_test[,-1])
+ytest <- data_test[,1]
+
+## Setup trainControl: 10-fold cross-validation
+tc <- trainControl(method = "cv", number = 10)
+
+## Ridge
+lambda.grid <- fit.ridge.cv$lambda
+fit.ridge.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 0,
+                                              lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.ridge.caret)
+# Best lambda
+fit.ridge.caret$bestTune$lambda
+# Model coefficients
+coef(fit.ridge.caret$finalModel,fit.ridge.cv$lambda.1se)%>%head
+# Make predictions
+fit.ridge.caret %>% predict(xtest,s=fit.ridge.cv$lambda.1se)%>%head
+
+## Lasso
+lambda.grid <- fit.lasso.cv$lambda
+fit.lasso.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 1,
+                                              lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.lasso.caret)
+# Best lambda
+fit.lasso.caret$bestTune$lambda
+# Model coefficients
+coef(fit.lasso.caret$finalModel,
+     fit.lasso.caret$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso.caret%>%predict(xtest,
+                          s=fit.ridge.cv$lambda.1se)%>%head
+
+## Compare Ridge and Lasso
+models <- list(ridge=fit.ridge.caret,lasso=fit.lasso.caret)
+resamples(models) %>% summary( metric = "RMSE")
+```
+
+# 6 Closed form solution for Ridge regression
 
 1.  Show that the Ridge optimization problem has the closed form
     solution
@@ -573,16 +652,16 @@ head(coef.ridge2)[,1]
 
     ## [1]  0.27031012 -0.24528806  0.19469189 -0.21696366  0.05244081 -0.02429057
 
-# 6 Bayesian interpretation of Ridge regression (difficult)
+# 7 Bayesian interpretation of Ridge regression (difficult)
 
 1.  Write down the log-likelihood of the linear regression model. Note:
     *Y*<sub>*i*</sub> = *X*<sub>*i*</sub><sup>*T*</sup>*β* + *ϵ*<sub>*i*</sub>,
     where *ϵ*<sub>1</sub>, …, *ϵ*<sub>*n*</sub> iid
-    *N*(0, *σ*<sup>2</sup>) and $\\bf{X}$ is a fixed *n* × *p* design
+    *N*(0,*σ*<sup>2</sup>) and $\\bf{X}$ is a fixed *n* × *p* design
     matrix.
 2.  Find the expression for the maximum likelihood estimator.
 3.  Assuming a prior distribution *β*<sub>1</sub>, …, *β*<sub>*p*</sub>
-    iid  ∼ *N*(0, *τ*<sup>2</sup>), derive the posterior distribution of
+    iid  ∼ *N*(0,*τ*<sup>2</sup>), derive the posterior distribution of
     *β* and show that the maximum a posteriori estimator (MAP) coincides
     with the Ridge estimator.
 
@@ -590,7 +669,7 @@ The solution to this exercise.
 
 <img src="ridge_map.jpg" width="100%" style="display: block; margin: auto;" />
 
-# 7 Elastic net mixing parameter and cross-validation
+# 8 Elastic net mixing parameter and cross-validation
 
 1.  Load the `hdi` package and read the riboflavin data set
     (`?riboflavin`).
@@ -606,6 +685,11 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
+```
+
+    ## Loading required package: scalreg
+
+``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -628,7 +712,7 @@ fit <- glmnet(x = x, y = y)
 plot(fit)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-31-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-32-1.png" style="display: block; margin: auto;" />
 
 We run 10-fold cross-validation for the different mixing parameters and
 plot the error curves.
@@ -659,7 +743,7 @@ lines(log(cv3$lambda) , cv3$cvm , pch = 19, col = "blue")
 lines(log(cv4$lambda) , cv4$cvm , pch = 19, col = "green")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-32-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-33-1.png" style="display: block; margin: auto;" />
 
 Finally, we print the gene names of the non-zero coefficients.
 
@@ -669,17 +753,20 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"    
-    ## [10] "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCDH_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"     "YCLF_at"     "YDDH_at"    
-    ## [19] "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YKBA_at"     "YOAB_at"     "YQJU_at"    
-    ## [28] "YRVJ_at"     "YTGB_at"     "YURQ_at"     "YXLD_at"     "YXLE_at"     "YYDA_at"
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"    
+    ##  [6] "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"     "XKDS_at"    
+    ## [11] "XTRA_at"     "YBFI_at"     "YCDH_at"     "YCGO_at"     "YCKE_at"    
+    ## [16] "YCLB_at"     "YCLF_at"     "YDDH_at"     "YDDK_at"     "YEBC_at"    
+    ## [21] "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YKBA_at"    
+    ## [26] "YOAB_at"     "YQJU_at"     "YRVJ_at"     "YTGB_at"     "YURQ_at"    
+    ## [31] "YXLD_at"     "YXLE_at"     "YYDA_at"
 
 ``` r
 ## By default, the selected variables are based on the largest value of
 ## lambda such that the cv-error is within 1 standard error of the minimum
 ```
 
-# 8 Ridge and Lasso for the orthonormal design (difficult)
+# 9 Ridge and Lasso for the orthonormal design (difficult)
 
 1.  Calculate the Ridge and the Lasso solution for the special case of
     an orthonormal design matrix.
@@ -688,7 +775,7 @@ The solution to this exercise.
 
 <img src="lasso_orthonormal.jpg" width="100%" style="display: block; margin: auto;" />
 
-# 9 Logistic regression and splines
+# 10 Logistic regression and splines
 
 We explore logistic regression based on the South African heart disease
 data. Proceed as follows:
@@ -828,15 +915,15 @@ The summary of the final model is provided next.
 kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2,booktabs=TRUE)
 ```
 
-|                     |  Df | Deviance |    AIC |   LRT | Pr(&gt;Chi) |
-|:--------------------|----:|---------:|-------:|------:|------------:|
-| <none>              |  NA |   458.09 | 502.09 |    NA |          NA |
-| ns(sbp, df = 4)     |   4 |   467.16 | 503.16 |  9.08 |        0.06 |
-| ns(tobacco, df = 4) |   4 |   470.48 | 506.48 | 12.39 |        0.01 |
-| ns(ldl, df = 4)     |   4 |   472.39 | 508.39 | 14.31 |        0.01 |
-| famhist             |   1 |   479.44 | 521.44 | 21.36 |        0.00 |
-| ns(obesity, df = 4) |   4 |   466.24 | 502.24 |  8.15 |        0.09 |
-| ns(age, df = 4)     |   4 |   481.86 | 517.86 | 23.77 |        0.00 |
+|                     |  Df | Deviance |    AIC |   LRT | Pr(\>Chi) |
+|:--------------------|----:|---------:|-------:|------:|----------:|
+| <none>              |  NA |   458.09 | 502.09 |    NA |        NA |
+| ns(sbp, df = 4)     |   4 |   467.16 | 503.16 |  9.08 |      0.06 |
+| ns(tobacco, df = 4) |   4 |   470.48 | 506.48 | 12.39 |      0.01 |
+| ns(ldl, df = 4)     |   4 |   472.39 | 508.39 | 14.31 |      0.01 |
+| famhist             |   1 |   479.44 | 521.44 | 21.36 |      0.00 |
+| ns(obesity, df = 4) |   4 |   466.24 | 502.24 |  8.15 |      0.09 |
+| ns(age, df = 4)     |   4 |   481.86 | 517.86 | 23.77 |      0.00 |
 
 We can plot the natural spline function for the first term as follows.
 
@@ -844,13 +931,13 @@ We can plot the natural spline function for the first term as follows.
 termplot(fit.bw,se=TRUE,rug=TRUE,term=6)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-43-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-44-1.png" style="display: block; margin: auto;" />
 
 The plot shows how the log-odds change with age (keeping the other
 variables fixed). We observe a slight deviation from linearity, i.e. the
-log-odds increase more strongly for age &lt;35 than for age &gt;35.
+log-odds increase more strongly for age \<35 than for age \>35.
 
-# 10 Decision trees, Random Forest and AdaBoost
+# 11 Decision trees, Random Forest and AdaBoost
 
 In this exercise we explore decision trees based on the South African
 heart disease data.
@@ -889,7 +976,7 @@ fit.tree <- rpart(chd~.,data=sahd,method="class")
 rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-44-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-45-1.png" style="display: block; margin: auto;" />
 
 We re-grow the tree using different control parameters.
 
@@ -904,7 +991,7 @@ fit.tree2 <- rpart(chd~.,data=sahd,method="class",
 rpart.plot(fit.tree2,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-45-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-46-1.png" style="display: block; margin: auto;" />
 
 We can get the tree size from the cptable (tree size=number of
 leaves=number splits+1).
@@ -922,7 +1009,7 @@ parameter *α*.
 plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-47-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-48-1.png" style="display: block; margin: auto;" />
 
 We prune the tree and visualize the result.
 
@@ -933,7 +1020,7 @@ fit.prune<- prune(fit.tree2,
 rpart.plot(fit.prune,extra=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-48-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-49-1.png" style="display: block; margin: auto;" />
 
 Finally, we compute the confusion matrix and the misclassification
 error.
@@ -984,13 +1071,13 @@ fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
 plot(fit.rf)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-52-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-53-1.png" style="display: block; margin: auto;" />
 
 ``` r
 varImpPlot(fit.rf,type=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-52-2.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-53-2.png" style="display: block; margin: auto;" />
 We run AdaBoost using `gbm` and by specifying
 `distribution = "adaboost"`. The `summary` provides a measure of
 variable importance. Prediction can be made using `predict`.
@@ -1000,7 +1087,7 @@ fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost 
 summary(fit.boost)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-53-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-54-1.png" style="display: block; margin: auto;" />
 
     ##             var    rel.inf
     ## tobacco tobacco 96.4821033
@@ -1022,7 +1109,14 @@ predict(fit.boost,
 
     ## [1] 1
 
-# 11 Phoneme recognition
+# 12 Classification and the `caret` package
+
+Follow the short
+[tutorial](https://cran.r-project.org/web/packages/caret/vignettes/caret.html)
+which guides you through a classifcation example using the `caret`
+package.
+
+# 13 Phoneme recognition
 
 In this exercise we investigate prediction of phonemes based on
 digitized speech data.
@@ -1057,15 +1151,14 @@ dtest <- dtest[,-257]
     misclassification errors.
 
 5.  In the previous approaches we assumed logit-link
-    $${\\rm logit}(x;\\beta)=\\sum\_{j=1}^{256} X\_j\\beta\_j.$$
-    Next we assume that the coefficients are a smooth function of the
-    frequency *β*(*f*), i.e. 
-    $$\\beta(f)=\\sum\_{m=1}^{\\nu} h\_m(f)\\theta\_m,$$
-    where *h*<sub>*m*</sub> are B-spline basis functions for a natural
-    cubic spline with *ν* = 12 degrees of freedom (defined on the set of
-    frequencies). Consider filtered inputs $x^\*={\\bf H}^T x$ and fit
-    *θ* by logistic regression on the *x*<sup>\*</sup>. Evaluate the
-    training and test misclassification errors.
+
+Next we assume that the coefficients are a smooth function of the
+frequency *β*(*f*), i.e.  where *h*<sub>*m*</sub> are B-spline basis
+functions for a natural cubic spline with *ν* = 12 degrees of freedom
+(defined on the set of frequencies). Consider filtered inputs
+*x*<sup>\*</sup> = **H**<sup>*T*</sup>*x* and fit *θ* by logistic
+regression on the *x*<sup>\*</sup>. Evaluate the training and test
+misclassification errors.
 
 6.  Plot the coefficients of the different models.
 
@@ -1112,7 +1205,7 @@ for(i in 1:5){
 }
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-56-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-57-1.png" style="display: block; margin: auto;" />
 
 We run logistic regression and calculate the train and test errors.
 
@@ -1144,7 +1237,7 @@ coef.lasso <- as.numeric(coefficients(fit.glmnet,s = cv.glmnet$lambda.1se))[-1]
 plot(cv.glmnet)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-59-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-60-1.png" style="display: block; margin: auto;" />
 
 ``` r
 pred_train <- c(predict(fit.glmnet,xtrain,s = cv.glmnet$lambda.1se,type = "class"))
@@ -1171,7 +1264,8 @@ xstar <- xtrain%*%hmat
 fit.smooth <- glm(dtrain$y~.,data=data.frame(xstar),family="binomial")
 coef.smooth <- as.numeric(hmat%*%coef(fit.smooth)[-1])
 pred_train <- as.numeric((predict(fit.smooth,type="response")>0.5))
-pred_test <- as.numeric((predict(fit.smooth,type="response",newdata=data.frame(xtest%*%hmat))>0.5))
+pred_test <- as.numeric((predict(fit.smooth,type="response",
+                                 newdata=data.frame(xtest%*%hmat))>0.5))
 
 mean(pred_train!=ytrain)
 ```
@@ -1190,16 +1284,17 @@ We plot the regression coefficients.
 plot( coef.glm[-1], 
       ylim=c(-0.4,+0.4), 
       type="l", 
+      lwd=2,
       xlab="Frequency", 
       ylab="Logistic Regression Coefficients" )
-lines(coef.lasso,col="green",lwd=2)
-lines(coef.smooth,col="red",lwd=2)
+lines(coef.lasso,col="green",lwd=3)
+lines(coef.smooth,col="red",lwd=3)
 abline(h=0)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-61-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-62-1.png" style="display: block; margin: auto;" />
 
-# 12 Survival analysis and the Lymphoma data
+# 14 Survival analysis and the Lymphoma data
 
 In this exercise we explore the Lymphoma data set to predict survival
 based on gene expression data.
@@ -1272,7 +1367,7 @@ y <- read.table("data/lymphtime.txt",header = TRUE)%>%
 ```
 
 Plot the distribution of the survival times.
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-64-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-65-1.png" style="display: block; margin: auto;" />
 
 Plot of the Kaplan-Meier estimates.
 
@@ -1283,7 +1378,7 @@ fit.surv <- survfit(Surv(time, status) ~ 1,
 ggsurvplot(fit.surv,conf.int=FALSE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-65-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-66-1.png" style="display: block; margin: auto;" />
 
 Fit a Cox regression model.
 
@@ -1330,7 +1425,7 @@ fit.coxnet <- glmnet(x, y.surv, family = "cox")
 plot(fit.coxnet,xvar="lambda")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-68-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-69-1.png" style="display: block; margin: auto;" />
 
 Calculate the cross-validated C-index.
 
@@ -1342,7 +1437,7 @@ cv.coxnet <- cv.glmnet(x,y.surv,
 plot(cv.coxnet)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-69-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-70-1.png" style="display: block; margin: auto;" />
 
 Classify patients into groups with good and poor prognosis (based on
 thresholding the linear predictor at zero).
@@ -1360,7 +1455,7 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-70-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-71-1.png" style="display: block; margin: auto;" />
 
 The curves are very well separated. However, these linear predictor
 scores are biased: we are evaluating their performance on the same data
@@ -1409,7 +1504,7 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-72-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-73-1.png" style="display: block; margin: auto;" />
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
