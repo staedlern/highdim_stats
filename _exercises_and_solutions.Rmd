@@ -12,6 +12,7 @@ output:
     toc: true
     toc_depth: 2
   github_document:
+    math_method: NULL
     number_sections: yes
     toc: true
     toc_depth: 2
@@ -201,7 +202,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
 2. Use `optimize` to find the minimum of $f(x)$.
 3. Obtain the minimum of $f(x)$ by taking the derivative and setting equal to zero.
 4. Show that $\|a\|^2_2=a^Ta$.
-5. Use the result in 4. and show that $\bf RSS(\beta)=\bf y^Ty-2 y X \beta +\beta^T X^T X \beta$. 
+5. Use the result in 4. and show that $\bf RSS(\beta)=\bf y^Ty-2 y^T X \beta +\beta^T X^T X \beta$. 
 6. Invoke the result obtained in 4. and show that $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$ Hint: review the "Identities" section of [Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
 7. Do you understand the derivation of the least squares estimator?
 

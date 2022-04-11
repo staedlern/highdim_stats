@@ -1,34 +1,34 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2022-04-03
+2022-04-11
 
 -   [1 Diabetes data and linear
-    regression](#diabetes-data-and-linear-regression)
+    regression](#1-diabetes-data-and-linear-regression)
 -   [2 Diabetes data and model
-    validation](#diabetes-data-and-model-validation)
--   [3 Calculus, optimization and OLS](#calculus-optimization-and-ols)
+    validation](#2-diabetes-data-and-model-validation)
+-   [3 Calculus, optimization and OLS](#3-calculus-optimization-and-ols)
 -   [4 Diabetes data and
-    regularization](#diabetes-data-and-regularization)
+    regularization](#4-diabetes-data-and-regularization)
 -   [5 Diabetes data and the `caret`
-    package](#diabetes-data-and-the-caret-package)
+    package](#5-diabetes-data-and-the-caret-package)
 -   [6 Closed form solution for Ridge
-    regression](#closed-form-solution-for-ridge-regression)
+    regression](#6-closed-form-solution-for-ridge-regression)
 -   [7 Bayesian interpretation of Ridge regression
-    (difficult)](#bayesian-interpretation-of-ridge-regression-difficult)
+    (difficult)](#7-bayesian-interpretation-of-ridge-regression-difficult)
 -   [8 Elastic net mixing parameter and
-    cross-validation](#elastic-net-mixing-parameter-and-cross-validation)
+    cross-validation](#8-elastic-net-mixing-parameter-and-cross-validation)
 -   [9 Ridge and Lasso for the orthonormal design
-    (difficult)](#ridge-and-lasso-for-the-orthonormal-design-difficult)
+    (difficult)](#9-ridge-and-lasso-for-the-orthonormal-design-difficult)
 -   [10 Logistic regression and
-    splines](#logistic-regression-and-splines)
+    splines](#10-logistic-regression-and-splines)
 -   [11 Decision trees, Random Forest and
-    AdaBoost](#decision-trees-random-forest-and-adaboost)
+    AdaBoost](#11-decision-trees-random-forest-and-adaboost)
 -   [12 Classification and the `caret`
-    package](#classification-and-the-caret-package)
--   [13 Phoneme recognition](#phoneme-recognition)
+    package](#12-classification-and-the-caret-package)
+-   [13 Phoneme recognition](#13-phoneme-recognition)
 -   [14 Survival analysis and the Lymphoma
-    data](#survival-analysis-and-the-lymphoma-data)
+    data](#14-survival-analysis-and-the-lymphoma-data)
 
 # 1 Diabetes data and linear regression
 
@@ -124,18 +124,18 @@ summary(fit1)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -157.081  -44.689   -7.777   47.348  157.389 
+    ## -140.073  -45.740   -6.876   44.226  157.124 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  148.586      4.265   34.84   <2e-16 ***
-    ## bmi          889.321     88.755   10.02   <2e-16 ***
+    ## (Intercept)  151.671      4.239   35.78   <2e-16 ***
+    ## bmi          980.214     85.678   11.44   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 63.29 on 219 degrees of freedom
-    ## Multiple R-squared:  0.3143, Adjusted R-squared:  0.3112 
-    ## F-statistic: 100.4 on 1 and 219 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 62.9 on 219 degrees of freedom
+    ## Multiple R-squared:  0.3741, Adjusted R-squared:  0.3712 
+    ## F-statistic: 130.9 on 1 and 219 DF,  p-value: < 2.2e-16
 
 Scatter plot with regression line.
 
@@ -198,13 +198,13 @@ Calculate the RSS.
 sum(residuals(fit1)^2)
 ```
 
-    ## [1] 877313.9
+    ## [1] 866399.4
 
 ``` r
 sum(residuals(fit2)^2)
 ```
 
-    ## [1] 461076.7
+    ## [1] 451511.1
 
 Compare the 2 models using the `anova` function.
 
@@ -226,8 +226,8 @@ anova(fit1,fit2)
     ##     tc.ltg + tc.glu + ldl.hdl + ldl.tch + ldl.ltg + ldl.glu + 
     ##     hdl.tch + hdl.ltg + hdl.glu + tch.ltg + tch.glu + ltg.glu
     ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
-    ## 1    219 877314                                  
-    ## 2    156 461077 63    416237 2.2354 3.043e-05 ***
+    ## 1    219 866399                                  
+    ## 2    156 451511 63    414888 2.2753 2.065e-05 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -259,13 +259,13 @@ data.
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 ```
 
-    ## [1] 63.00592
+    ## [1] 62.61277
 
 ``` r
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
 
-    ## [1] 45.67625
+    ## [1] 45.19996
 
 We draw calibration plots for the 2 models. Model 1 calibrates slightly
 better.
@@ -306,13 +306,13 @@ Calculate RMSEs on test data.
 RMSE(data_test$y,predict(fit1,newdata=data_test))
 ```
 
-    ## [1] 62.06998
+    ## [1] 62.17128
 
 ``` r
 RMSE(data_test$y,predict(fit2,newdata=data_test))
 ```
 
-    ## [1] 83.72886
+    ## [1] 62.67202
 
 # 3 Calculus, optimization and OLS
 
@@ -323,7 +323,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
     equal to zero.
 4.  Show that ∥*a*∥<sub>2</sub><sup>2</sup> = *a*<sup>*T*</sup>*a*.
 5.  Use the result in 4. and show that
-    $\\bf RSS(\\beta)=\\bf y^Ty-2 y X \\beta +\\beta^T X^T X \\beta$.
+    $\\bf RSS(\\beta)=\\bf y^Ty-2 y^T X \\beta +\\beta^T X^T X \\beta$.
 6.  Invoke the result obtained in 4. and show that
     $$\\frac{\\partial}{\\partial \\beta} \\bf RSS(\\beta)=\\bf -2X^Ty+2X^TX\\beta.$$
     Hint: review the “Identities” section of
@@ -419,18 +419,18 @@ kable(as.data.frame(fit.fw$anova),digits=2,
 
 | Step       |  Df |  Deviance | Resid. Df | Resid. Dev |     AIC |
 |:-----------|----:|----------:|----------:|-----------:|--------:|
-|            |  NA |        NA |       220 |  1309200.0 | 1921.77 |
-| \+ bmi     |   1 | 508704.92 |       219 |   800495.1 | 1815.06 |
-| \+ ltg     |   1 | 105701.74 |       218 |   694793.3 | 1785.76 |
-| \+ map     |   1 |  26132.66 |       217 |   668660.7 | 1779.29 |
-| \+ tch.glu |   1 |  30848.75 |       216 |   637811.9 | 1770.85 |
-| \+ hdl     |   1 |  22386.66 |       215 |   615425.3 | 1764.95 |
-| \+ sex     |   1 |  17350.12 |       214 |   598075.1 | 1760.63 |
-| \+ age.sex |   1 |  16344.40 |       213 |   581730.7 | 1756.51 |
-| \+ bmi.glu |   1 |  16781.88 |       212 |   564948.9 | 1752.04 |
-| \+ age.map |   1 |   5609.11 |       211 |   559339.8 | 1751.83 |
-| \+ bmi.map |   1 |   5543.67 |       210 |   553796.1 | 1751.63 |
-| \+ map.hdl |   1 |   7203.31 |       209 |   546592.8 | 1750.74 |
+|            |  NA |        NA |       220 |  1304692.8 | 1921.01 |
+| \+ ltg     |   1 | 412445.77 |       219 |   892247.1 | 1839.04 |
+| \+ bmi     |   1 | 184023.82 |       218 |   708223.2 | 1789.99 |
+| \+ age.glu |   1 |  41642.57 |       217 |   666580.7 | 1778.60 |
+| \+ map     |   1 |  24873.44 |       216 |   641707.2 | 1772.19 |
+| \+ tc      |   1 |  16926.33 |       215 |   624780.9 | 1768.29 |
+| \+ bmi.tch |   1 |  16379.47 |       214 |   608401.4 | 1764.41 |
+| \+ sex     |   1 |  11389.24 |       213 |   597012.2 | 1762.24 |
+| \+ ldl     |   1 |  18430.65 |       212 |   578581.6 | 1757.31 |
+| \+ bmi.map |   1 |  11593.20 |       211 |   566988.3 | 1754.83 |
+| \+ map.ldl |   1 |   9707.76 |       210 |   557280.6 | 1753.02 |
+| \+ age     |   1 |   5855.48 |       209 |   551425.1 | 1752.68 |
 
 The regression coefficients and the corresponding statistics of the
 AIC-optimal model are shown next.
@@ -442,18 +442,18 @@ kable(broom::tidy(fit.fw),digits=2,
 
 | term        | estimate | std.error | statistic | p.value |
 |:------------|---------:|----------:|----------:|--------:|
-| (Intercept) |   153.70 |      3.49 |     44.05 |    0.00 |
-| bmi         |   599.38 |     91.01 |      6.59 |    0.00 |
-| ltg         |   373.64 |     92.49 |      4.04 |    0.00 |
-| map         |   334.66 |     85.00 |      3.94 |    0.00 |
-| tch.glu     |   147.37 |     79.03 |      1.86 |    0.06 |
-| hdl         |  -308.79 |     90.23 |     -3.42 |    0.00 |
-| sex         |  -208.06 |     83.43 |     -2.49 |    0.01 |
-| age.sex     |   171.77 |     74.00 |      2.32 |    0.02 |
-| bmi.glu     |   131.41 |     85.39 |      1.54 |    0.13 |
-| age.map     |    98.54 |     72.40 |      1.36 |    0.17 |
-| bmi.map     |   152.23 |     81.05 |      1.88 |    0.06 |
-| map.hdl     |   121.97 |     73.49 |      1.66 |    0.10 |
+| (Intercept) |   150.45 |      3.49 |     43.15 |    0.00 |
+| ltg         |   924.12 |    113.19 |      8.16 |    0.00 |
+| bmi         |   533.01 |     90.92 |      5.86 |    0.00 |
+| age.glu     |   194.13 |     82.25 |      2.36 |    0.02 |
+| map         |   304.15 |     90.19 |      3.37 |    0.00 |
+| tc          |  -829.65 |    215.60 |     -3.85 |    0.00 |
+| bmi.tch     |   192.40 |     70.47 |      2.73 |    0.01 |
+| sex         |  -272.73 |     86.10 |     -3.17 |    0.00 |
+| ldl         |   571.62 |    197.75 |      2.89 |    0.00 |
+| bmi.map     |   209.60 |     80.87 |      2.59 |    0.01 |
+| map.ldl     |  -151.77 |     81.45 |     -1.86 |    0.06 |
+| age         |   127.04 |     85.28 |      1.49 |    0.14 |
 
 We continue by fitting Ridge regression. We show the trace plot and the
 cross-validation plot.
@@ -513,10 +513,10 @@ kable(res.rmse,digits = 2,
 
 | method  |  rmse |
 |:--------|------:|
-| full    | 64.12 |
-| forward | 55.85 |
-| ridge   | 59.06 |
-| lasso   | 57.43 |
+| full    | 66.95 |
+| forward | 58.17 |
+| ridge   | 58.14 |
+| lasso   | 56.73 |
 
 The Lasso has the lowest generalization error (RMSE). We plot the
 regression coefficients for all 3 methods.
@@ -685,11 +685,6 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
-```
-
-    ## Loading required package: scalreg
-
-``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -753,13 +748,11 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"    
-    ##  [6] "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"     "XKDS_at"    
-    ## [11] "XTRA_at"     "YBFI_at"     "YCDH_at"     "YCGO_at"     "YCKE_at"    
-    ## [16] "YCLB_at"     "YCLF_at"     "YDDH_at"     "YDDK_at"     "YEBC_at"    
-    ## [21] "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YKBA_at"    
-    ## [26] "YOAB_at"     "YQJU_at"     "YRVJ_at"     "YTGB_at"     "YURQ_at"    
-    ## [31] "YXLD_at"     "YXLE_at"     "YYDA_at"
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"  
+    ##  [9] "XHLB_at"     "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCDH_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"    
+    ## [17] "YCLF_at"     "YDDH_at"     "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"  
+    ## [25] "YKBA_at"     "YOAB_at"     "YQJU_at"     "YRVJ_at"     "YTGB_at"     "YURQ_at"     "YXLD_at"     "YXLE_at"    
+    ## [33] "YYDA_at"
 
 ``` r
 ## By default, the selected variables are based on the largest value of
@@ -916,7 +909,7 @@ kable(as.data.frame(drop1(fit.bw, test="Chisq" )),digits=2,booktabs=TRUE)
 ```
 
 |                     |  Df | Deviance |    AIC |   LRT | Pr(\>Chi) |
-|:--------------------|----:|---------:|-------:|------:|----------:|
+|---------------------|----:|---------:|-------:|------:|----------:|
 | <none>              |  NA |   458.09 | 502.09 |    NA |        NA |
 | ns(sbp, df = 4)     |   4 |   467.16 | 503.16 |  9.08 |      0.06 |
 | ns(tobacco, df = 4) |   4 |   470.48 | 506.48 | 12.39 |      0.01 |
