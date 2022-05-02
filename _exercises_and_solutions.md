@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2022-04-11
+2022-05-02
 
 -   [1 Diabetes data and linear
     regression](#1-diabetes-data-and-linear-regression)
@@ -29,6 +29,7 @@ Nicolas Städler
 -   [13 Phoneme recognition](#13-phoneme-recognition)
 -   [14 Survival analysis and the Lymphoma
     data](#14-survival-analysis-and-the-lymphoma-data)
+-   [15 Email Spam and Data Mining](#15-email-spam-and-data-mining)
 
 # 1 Diabetes data and linear regression
 
@@ -123,19 +124,19 @@ summary(fit1)
     ## lm(formula = y ~ bmi, data = data_train)
     ## 
     ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -140.073  -45.740   -6.876   44.226  157.124 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -162.10  -52.32   -7.63   51.61  154.64 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  151.671      4.239   35.78   <2e-16 ***
-    ## bmi          980.214     85.678   11.44   <2e-16 ***
+    ## (Intercept)  149.383      4.425  33.761   <2e-16 ***
+    ## bmi          948.442     95.283   9.954   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 62.9 on 219 degrees of freedom
-    ## Multiple R-squared:  0.3741, Adjusted R-squared:  0.3712 
-    ## F-statistic: 130.9 on 1 and 219 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 65.73 on 219 degrees of freedom
+    ## Multiple R-squared:  0.3115, Adjusted R-squared:  0.3084 
+    ## F-statistic: 99.08 on 1 and 219 DF,  p-value: < 2.2e-16
 
 Scatter plot with regression line.
 
@@ -198,13 +199,13 @@ Calculate the RSS.
 sum(residuals(fit1)^2)
 ```
 
-    ## [1] 866399.4
+    ## [1] 946270.9
 
 ``` r
 sum(residuals(fit2)^2)
 ```
 
-    ## [1] 451511.1
+    ## [1] 504889.4
 
 Compare the 2 models using the `anova` function.
 
@@ -225,9 +226,9 @@ anova(fit1,fit2)
     ##     map.tch + map.ltg + map.glu + tc.ldl + tc.hdl + tc.tch + 
     ##     tc.ltg + tc.glu + ldl.hdl + ldl.tch + ldl.ltg + ldl.glu + 
     ##     hdl.tch + hdl.ltg + hdl.glu + tch.ltg + tch.glu + ltg.glu
-    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
-    ## 1    219 866399                                  
-    ## 2    156 451511 63    414888 2.2753 2.065e-05 ***
+    ##   Res.Df    RSS Df Sum of Sq      F   Pr(>F)    
+    ## 1    219 946271                                 
+    ## 2    156 504889 63    441381 2.1647 6.02e-05 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -259,13 +260,13 @@ data.
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 ```
 
-    ## [1] 62.61277
+    ## [1] 65.43522
 
 ``` r
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
 
-    ## [1] 45.19996
+    ## [1] 47.79715
 
 We draw calibration plots for the 2 models. Model 1 calibrates slightly
 better.
@@ -306,13 +307,13 @@ Calculate RMSEs on test data.
 RMSE(data_test$y,predict(fit1,newdata=data_test))
 ```
 
-    ## [1] 62.17128
+    ## [1] 59.28132
 
 ``` r
 RMSE(data_test$y,predict(fit2,newdata=data_test))
 ```
 
-    ## [1] 62.67202
+    ## [1] 66.46369
 
 # 3 Calculus, optimization and OLS
 
@@ -419,18 +420,19 @@ kable(as.data.frame(fit.fw$anova),digits=2,
 
 | Step       |  Df |  Deviance | Resid. Df | Resid. Dev |     AIC |
 |:-----------|----:|----------:|----------:|-----------:|--------:|
-|            |  NA |        NA |       220 |  1304692.8 | 1921.01 |
-| \+ ltg     |   1 | 412445.77 |       219 |   892247.1 | 1839.04 |
-| \+ bmi     |   1 | 184023.82 |       218 |   708223.2 | 1789.99 |
-| \+ age.glu |   1 |  41642.57 |       217 |   666580.7 | 1778.60 |
-| \+ map     |   1 |  24873.44 |       216 |   641707.2 | 1772.19 |
-| \+ tc      |   1 |  16926.33 |       215 |   624780.9 | 1768.29 |
-| \+ bmi.tch |   1 |  16379.47 |       214 |   608401.4 | 1764.41 |
-| \+ sex     |   1 |  11389.24 |       213 |   597012.2 | 1762.24 |
-| \+ ldl     |   1 |  18430.65 |       212 |   578581.6 | 1757.31 |
-| \+ bmi.map |   1 |  11593.20 |       211 |   566988.3 | 1754.83 |
-| \+ map.ldl |   1 |   9707.76 |       210 |   557280.6 | 1753.02 |
-| \+ age     |   1 |   5855.48 |       209 |   551425.1 | 1752.68 |
+|            |  NA |        NA |       220 |  1294242.9 | 1919.24 |
+| \+ bmi     |   1 | 464526.00 |       219 |   829716.9 | 1822.98 |
+| \+ ltg     |   1 | 140742.50 |       218 |   688974.4 | 1783.90 |
+| \+ map     |   1 |  51709.26 |       217 |   637265.2 | 1768.66 |
+| \+ tc      |   1 |  42850.45 |       216 |   594414.7 | 1755.27 |
+| \+ age.sex |   1 |  21617.22 |       215 |   572797.5 | 1749.09 |
+| \+ sex     |   1 |  18434.54 |       214 |   554363.0 | 1743.86 |
+| \+ ldl     |   1 |  10198.21 |       213 |   544164.8 | 1741.75 |
+| \+ bmi.map |   1 |  11269.59 |       212 |   532895.2 | 1739.13 |
+| \+ age.tch |   1 |   5753.15 |       211 |   527142.0 | 1738.73 |
+| \+ ldl.glu |   1 |   5071.43 |       210 |   522070.6 | 1738.59 |
+| \+ tc.ldl  |   1 |   9323.33 |       209 |   512747.2 | 1736.61 |
+| \+ age.ltg |   1 |   8421.82 |       208 |   504325.4 | 1734.95 |
 
 The regression coefficients and the corresponding statistics of the
 AIC-optimal model are shown next.
@@ -442,18 +444,19 @@ kable(broom::tidy(fit.fw),digits=2,
 
 | term        | estimate | std.error | statistic | p.value |
 |:------------|---------:|----------:|----------:|--------:|
-| (Intercept) |   150.45 |      3.49 |     43.15 |    0.00 |
-| ltg         |   924.12 |    113.19 |      8.16 |    0.00 |
-| bmi         |   533.01 |     90.92 |      5.86 |    0.00 |
-| age.glu     |   194.13 |     82.25 |      2.36 |    0.02 |
-| map         |   304.15 |     90.19 |      3.37 |    0.00 |
-| tc          |  -829.65 |    215.60 |     -3.85 |    0.00 |
-| bmi.tch     |   192.40 |     70.47 |      2.73 |    0.01 |
-| sex         |  -272.73 |     86.10 |     -3.17 |    0.00 |
-| ldl         |   571.62 |    197.75 |      2.89 |    0.00 |
-| bmi.map     |   209.60 |     80.87 |      2.59 |    0.01 |
-| map.ldl     |  -151.77 |     81.45 |     -1.86 |    0.06 |
-| age         |   127.04 |     85.28 |      1.49 |    0.14 |
+| (Intercept) |   155.31 |      3.34 |     46.44 |    0.00 |
+| bmi         |   412.50 |     87.67 |      4.70 |    0.00 |
+| ltg         |   912.33 |    109.11 |      8.36 |    0.00 |
+| map         |   404.82 |     83.13 |      4.87 |    0.00 |
+| tc          |  -902.88 |    224.46 |     -4.02 |    0.00 |
+| age.sex     |   276.69 |     77.48 |      3.57 |    0.00 |
+| sex         |  -224.02 |     76.61 |     -2.92 |    0.00 |
+| ldl         |   572.77 |    209.33 |      2.74 |    0.01 |
+| bmi.map     |   160.68 |     71.89 |      2.24 |    0.03 |
+| age.tch     |  -279.46 |    104.35 |     -2.68 |    0.01 |
+| ldl.glu     |   201.48 |     82.37 |      2.45 |    0.02 |
+| tc.ldl      |  -166.55 |     75.08 |     -2.22 |    0.03 |
+| age.ltg     |   198.49 |    106.50 |      1.86 |    0.06 |
 
 We continue by fitting Ridge regression. We show the trace plot and the
 cross-validation plot.
@@ -513,10 +516,10 @@ kable(res.rmse,digits = 2,
 
 | method  |  rmse |
 |:--------|------:|
-| full    | 66.95 |
-| forward | 58.17 |
-| ridge   | 58.14 |
-| lasso   | 56.73 |
+| full    | 65.92 |
+| forward | 58.39 |
+| ridge   | 57.75 |
+| lasso   | 57.64 |
 
 The Lasso has the lowest generalization error (RMSE). We plot the
 regression coefficients for all 3 methods.
@@ -1498,6 +1501,211 @@ ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-73-1.png" style="display: block; margin: auto;" />
+
+# 15 Email Spam and Data Mining
+
+In this exercise we explore a typical data mining task. We use the
+`spam.rds` data set. The data for this example consists of information
+from 4601 email messages. The aim is to predict whether the email is
+spam. For all 4601 email messages, the true outcome (email type) “email”
+or “spam” is available, along with the relative frequencies of 57 of the
+most commonly occurring words and punctuation marks in the email
+message. This is a supervised learning problem, with the outcome the
+class variable email/spam. It is also called a classification problem.
+
+1.  Read the data set and partition it into 2/3 of training and 1/3 of
+    test data.
+
+2.  Use `rpart` to fit a decision tree. Examine the cross-validation
+    output, prune the tree and calculate the misclassification error.
+
+3.  Use `randomForest`, calculate the misclassification error and plot
+    the variable importance.
+
+4.  Run AdaBoost using `gbm`, print the misclassication error and plot
+    the relative influence of the variables.
+
+The solution to the exercise.
+
+We read the data and divide into 2/3 training and 1/3 test data.
+
+``` r
+spam <- readRDS(file="data/spam.rds")
+set.seed(102)
+train <- sort(sample(nrow(spam),3065))
+spam.train<- spam[train,]
+spam.test<- spam[-train,]
+```
+
+We grow a classification tree and examine the 10-fold cross-validation
+output.
+
+``` r
+# grow tree
+library(rpart)
+fit.rpart <- rpart(spam~.,data=spam.train,method='class',cp=1e-5)
+
+# cross-validation output
+t.tab <- printcp(fit.rpart)
+```
+
+    ## 
+    ## Classification tree:
+    ## rpart(formula = spam ~ ., data = spam.train, method = "class", 
+    ##     cp = 1e-05)
+    ## 
+    ## Variables actually used in tree construction:
+    ##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000      wf.650      wf.all      wf.business
+    ## [10] wf.edu      wf.free     wf.george   wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
+    ## [19] wf.pm       wf.re       wf.remove   wf.you      wf.your    
+    ## 
+    ## Root node error: 1223/3065 = 0.39902
+    ## 
+    ## n= 3065 
+    ## 
+    ##            CP nsplit rel error  xerror     xstd
+    ## 1  0.48569092      0   1.00000 1.00000 0.022167
+    ## 2  0.06868357      1   0.51431 0.53557 0.018556
+    ## 3  0.06132461      2   0.44563 0.44481 0.017296
+    ## 4  0.02698283      4   0.32298 0.33279 0.015361
+    ## 5  0.02371218      5   0.29599 0.31562 0.015019
+    ## 6  0.01635323      6   0.27228 0.29027 0.014486
+    ## 7  0.01471791      7   0.25593 0.28618 0.014397
+    ## 8  0.00735895      8   0.24121 0.26574 0.013937
+    ## 9  0.00572363      9   0.23385 0.26165 0.013842
+    ## 10 0.00490597     11   0.22240 0.25675 0.013727
+    ## 11 0.00408831     13   0.21259 0.24612 0.013471
+    ## 12 0.00327065     19   0.18806 0.24285 0.013391
+    ## 13 0.00245298     22   0.17825 0.23385 0.013167
+    ## 14 0.00218043     24   0.17334 0.22567 0.012958
+    ## 15 0.00163532     27   0.16680 0.22077 0.012830
+    ## 16 0.00130826     36   0.15127 0.21668 0.012722
+    ## 17 0.00081766     41   0.14473 0.21504 0.012679
+    ## 18 0.00040883     47   0.13982 0.20932 0.012524
+    ## 19 0.00001000     51   0.13818 0.20769 0.012480
+
+``` r
+kable(t.tab,digits = 3,booktabs=TRUE)
+```
+
+|    CP | nsplit | rel error | xerror |  xstd |
+|------:|-------:|----------:|-------:|------:|
+| 0.486 |      0 |     1.000 |  1.000 | 0.022 |
+| 0.069 |      1 |     0.514 |  0.536 | 0.019 |
+| 0.061 |      2 |     0.446 |  0.445 | 0.017 |
+| 0.027 |      4 |     0.323 |  0.333 | 0.015 |
+| 0.024 |      5 |     0.296 |  0.316 | 0.015 |
+| 0.016 |      6 |     0.272 |  0.290 | 0.014 |
+| 0.015 |      7 |     0.256 |  0.286 | 0.014 |
+| 0.007 |      8 |     0.241 |  0.266 | 0.014 |
+| 0.006 |      9 |     0.234 |  0.262 | 0.014 |
+| 0.005 |     11 |     0.222 |  0.257 | 0.014 |
+| 0.004 |     13 |     0.213 |  0.246 | 0.013 |
+| 0.003 |     19 |     0.188 |  0.243 | 0.013 |
+| 0.002 |     22 |     0.178 |  0.234 | 0.013 |
+| 0.002 |     24 |     0.173 |  0.226 | 0.013 |
+| 0.002 |     27 |     0.167 |  0.221 | 0.013 |
+| 0.001 |     36 |     0.151 |  0.217 | 0.013 |
+| 0.001 |     41 |     0.145 |  0.215 | 0.013 |
+| 0.000 |     47 |     0.140 |  0.209 | 0.013 |
+| 0.000 |     51 |     0.138 |  0.208 | 0.012 |
+
+We prune the tree and visualize the result.
+
+``` r
+fit.rpart2 <- prune(fit.rpart,cp=.0033)
+rpart.plot(fit.rpart2,extra=1)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-76-1.png" style="display: block; margin: auto;" />
+We compute the misclassification error.
+
+``` r
+(err.rpart2 <- mean(spam.test$spam!=predict(fit.rpart2,newdata=spam.test,type="class")))
+```
+
+    ## [1] 0.09570312
+
+We fit the random forest, calculate the misclassification error and plot
+the variable importance.
+
+``` r
+fit.rf <- randomForest(spam ~ ., 
+                       data = spam.train%>%
+                         dplyr::mutate(spam=factor(spam)), 
+                       ntree = 100,
+                       importance=TRUE)
+fit.rf
+```
+
+    ## 
+    ## Call:
+    ##  randomForest(formula = spam ~ ., data = spam.train %>% dplyr::mutate(spam = factor(spam)),      ntree = 100, importance = TRUE) 
+    ##                Type of random forest: classification
+    ##                      Number of trees: 100
+    ## No. of variables tried at each split: 7
+    ## 
+    ##         OOB estimate of  error rate: 4.96%
+    ## Confusion matrix:
+    ##      0    1 class.error
+    ## 0 1787   55  0.02985885
+    ## 1   97 1126  0.07931316
+
+``` r
+(err.rf <- mean(spam.test$spam!=predict(fit.rf,newdata=spam.test)))
+```
+
+    ## [1] 0.05533854
+
+``` r
+varImpPlot(fit.rf,type=1)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-80-1.png" style="display: block; margin: auto;" />
+We run AdaBoost using `gbm` and by specifying
+`distribution = "adaboost"`. We plot the relative influence of each
+variable and calculate the misclassification error.
+
+``` r
+fit.boost <-gbm(spam~.,data=spam.train,distribution = "adaboost") 
+fit.boost
+```
+
+    ## gbm(formula = spam ~ ., distribution = "adaboost", data = spam.train)
+    ## A gradient boosted model with adaboost loss function.
+    ## 100 iterations were performed.
+    ## There were 57 predictors of which 21 had non-zero influence.
+
+``` r
+drelimp <- summary(fit.boost,plotit=FALSE)%>%
+  data.frame
+
+drelimp2 <- drelimp%>%
+  slice(1:30)
+
+drelimp2%>%
+  ggplot(.,aes(x=reorder(var,-rel.inf),y=rel.inf))+
+  geom_bar(stat="identity",fill="red")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        text = element_text(size=15))+
+  ylab("Relative influence")+
+  xlab("")
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-82-1.png" style="display: block; margin: auto;" />
+
+``` r
+pred.boost <- ifelse(predict(fit.boost, newdata = spam.test,type="response")>0.5,1,0)
+```
+
+    ## Using 100 trees...
+
+``` r
+(err.adaboost <- mean(spam.test$spam!=pred.boost))
+```
+
+    ## [1] 0.06640625
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
