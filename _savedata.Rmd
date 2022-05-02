@@ -76,6 +76,7 @@ saveRDS(Sonar,file="data/sonar.rds")
 
 ```{r}
 spam <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data")
+names(spam) <- read.table('http://www.stats.uwaterloo.ca/~hachipma/stat946/spambase.col')[[1]]
 saveRDS(spam,file="data/spam.rds")
 ```
 

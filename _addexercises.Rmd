@@ -205,3 +205,30 @@ mean(pred.rf != dTest$spam) ## Test error: 5.4%
 
 ```
 
+Adaboost.
+```{r}
+dTrain$spam <- as.numeric(as.character(dTrain$spam))
+fit.boost <-gbm(spam~.,data=dTrain,distribution = "adaboost") 
+pred.boost <- ifelse(predict(fit.boost, newdata = dTest,type="response")>0.5,1,0)
+predict(fit.boost,
+        newdata=dTest[1:5,],
+        type="response" )
+mean(pred.boost != dTest$spam) ## Test error: 5.4%
+```
+
+```{r}
+# load packages
+library(rpart)
+library(rpart.plot)
+
+# grow a classification tree
+fit.tree <- rpart(spam~.,data=dTrain,method="class")
+rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+plotcp(fit.tree,cex.lab=1.5,cex.axis=1.2,cex=1.5)
+
+fit.prune<- prune(fit.tree, 
+                  cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+rpart.plot(fit.prune,extra=1)
+mean(dTest$spam!=predict(fit.prune,newdata=dTest,type="class"))
+```
+

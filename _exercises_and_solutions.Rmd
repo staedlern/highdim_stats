@@ -1070,6 +1070,107 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
+
+# Email Spam and Data Mining
+
+In this exercise we explore a typical data mining task. We use the `spam.rds` data set.
+The data for this example consists of information from 4601 email messages. The aim is to predict whether the email is spam. For all 4601
+email messages, the true outcome (email type) "email" or "spam" is available,
+along with the relative frequencies of 57 of the most commonly occurring
+words and punctuation marks in the email message. This is a supervised
+learning problem, with the outcome the class variable email/spam. It is also
+called a classification problem. 
+
+1. Read the data set and partition it into 2/3 of training and 1/3 of test data.
+
+2. Use `rpart` to fit a decision tree. Examine the cross-validation output, prune the tree and calculate the misclassification error.
+
+3. Use `randomForest`, calculate the misclassification error and plot the variable importance.
+
+4. Run AdaBoost using `gbm`, print the misclassication error and plot the relative influence of the variables.
+
+
+The solution to the exercise.
+
+We read the data and divide into 2/3 training and 1/3 test data.
+```{r}
+spam <- readRDS(file="data/spam.rds")
+set.seed(102)
+train <- sort(sample(nrow(spam),3065))
+spam.train<- spam[train,]
+spam.test<- spam[-train,]
+```
+
+We grow a classification tree and examine the 10-fold cross-validation output.
+```{r}
+# grow tree
+library(rpart)
+fit.rpart <- rpart(spam~.,data=spam.train,method='class',cp=1e-5)
+
+# cross-validation output
+t.tab <- printcp(fit.rpart)
+kable(t.tab,digits = 3,booktabs=TRUE)
+```
+
+We prune the tree and visualize the result.
+```{r}
+fit.rpart2 <- prune(fit.rpart,cp=.0033)
+rpart.plot(fit.rpart2,extra=1)
+```
+We compute the misclassification error.
+
+```{r}
+(err.rpart2 <- mean(spam.test$spam!=predict(fit.rpart2,newdata=spam.test,type="class")))
+```
+
+We fit the random forest, calculate the misclassification error and plot the variable importance.
+```{r}
+fit.rf <- randomForest(spam ~ ., 
+                       data = spam.train%>%
+                         dplyr::mutate(spam=factor(spam)), 
+                       ntree = 100,
+                       importance=TRUE)
+fit.rf
+```
+
+```{r}
+(err.rf <- mean(spam.test$spam!=predict(fit.rf,newdata=spam.test)))
+```
+
+```{r fig.height=8,fig.width=8}
+varImpPlot(fit.rf,type=1)
+```
+We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. 
+We plot the relative influence of each variable and calculate the misclassification error.
+```{r}
+fit.boost <-gbm(spam~.,data=spam.train,distribution = "adaboost") 
+fit.boost
+```
+
+```{r fig.height=5,fig.width=8}
+drelimp <- summary(fit.boost,plotit=FALSE)%>%
+  data.frame
+
+drelimp2 <- drelimp%>%
+  slice(1:30)
+
+drelimp2%>%
+  ggplot(.,aes(x=reorder(var,-rel.inf),y=rel.inf))+
+  geom_bar(stat="identity",fill="red")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        text = element_text(size=15))+
+  ylab("Relative influence")+
+  xlab("")
+```
+
+
+```{r}
+pred.boost <- ifelse(predict(fit.boost, newdata = spam.test,type="response")>0.5,1,0)
+(err.adaboost <- mean(spam.test$spam!=pred.boost))
+```
+
+
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
