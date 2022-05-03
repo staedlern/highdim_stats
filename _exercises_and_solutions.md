@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2022-05-02
+2022-05-03
 
 -   [1 Diabetes data and linear
     regression](#1-diabetes-data-and-linear-regression)
@@ -16,20 +16,22 @@ Nicolas Städler
     regression](#6-closed-form-solution-for-ridge-regression)
 -   [7 Bayesian interpretation of Ridge regression
     (difficult)](#7-bayesian-interpretation-of-ridge-regression-difficult)
--   [8 Elastic net mixing parameter and
-    cross-validation](#8-elastic-net-mixing-parameter-and-cross-validation)
+-   [8 Riboflavin data and elasticnet mixing
+    parameter](#8-riboflavin-data-and-elasticnet-mixing-parameter)
 -   [9 Ridge and Lasso for the orthonormal design
     (difficult)](#9-ridge-and-lasso-for-the-orthonormal-design-difficult)
--   [10 Logistic regression and
-    splines](#10-logistic-regression-and-splines)
--   [11 Decision trees, Random Forest and
-    AdaBoost](#11-decision-trees-random-forest-and-adaboost)
+-   [10 Heart disease data and logistic
+    regression](#10-heart-disease-data-and-logistic-regression)
+-   [11 Phoneme recognition](#11-phoneme-recognition)
 -   [12 Classification and the `caret`
     package](#12-classification-and-the-caret-package)
--   [13 Phoneme recognition](#13-phoneme-recognition)
--   [14 Survival analysis and the Lymphoma
-    data](#14-survival-analysis-and-the-lymphoma-data)
--   [15 Email Spam and Data Mining](#15-email-spam-and-data-mining)
+-   [13 Survival analysis and the Lymphoma
+    data](#13-survival-analysis-and-the-lymphoma-data)
+-   [14 Decision trees, Random Forest and
+    AdaBoost](#14-decision-trees-random-forest-and-adaboost)
+-   [15 Email spam and data mining](#15-email-spam-and-data-mining)
+-   [16 Multiple testing and gene
+    expression](#16-multiple-testing-and-gene-expression)
 
 # 1 Diabetes data and linear regression
 
@@ -672,7 +674,7 @@ The solution to this exercise.
 
 <img src="ridge_map.jpg" width="100%" style="display: block; margin: auto;" />
 
-# 8 Elastic net mixing parameter and cross-validation
+# 8 Riboflavin data and elasticnet mixing parameter
 
 1.  Load the `hdi` package and read the riboflavin data set
     (`?riboflavin`).
@@ -771,7 +773,7 @@ The solution to this exercise.
 
 <img src="lasso_orthonormal.jpg" width="100%" style="display: block; margin: auto;" />
 
-# 10 Logistic regression and splines
+# 10 Heart disease data and logistic regression
 
 We explore logistic regression based on the South African heart disease
 data. Proceed as follows:
@@ -933,186 +935,7 @@ The plot shows how the log-odds change with age (keeping the other
 variables fixed). We observe a slight deviation from linearity, i.e. the
 log-odds increase more strongly for age \<35 than for age \>35.
 
-# 11 Decision trees, Random Forest and AdaBoost
-
-In this exercise we explore decision trees based on the South African
-heart disease data.
-
-1.  Load the South African heart disease data and grow a decision tree
-    using `rpart`. Visualize the tree using `rpart.plot`. How many leave
-    nodes has the tree?
-2.  Re-grow the tree but now relax the “default” control parameters
-    (choose `rpart.control(cp=0, minsplit=50)`). How many leaves has the
-    tree now?
-3.  Plot the cross-validation error against the complexity parameter
-    *α*. What is the tree size of the optimal model?
-4.  Prune the tree using `prune` and by choosing cp (=*α*) to achieve
-    minimal cross-validation error.
-5.  Calculate the confusion matrix and the misclassification error.
-6.  Generate a bootstrap sample. Grow a tree and calculate the
-    out-of-bag error.
-7.  Fit a random forest using `randomForest`. Plot the fitted object.
-    What is this plot telling us? Calculate the variable importance.
-    Which are the most important variables?
-8.  Run AdaBoost using `gbm`. What is the prediction for a patient with
-    covariates sbp=100, tobacco=0, ldl=5, famhist=“Present”, obesity=25,
-    alcohol=10 and age=50. Compute the variable importance.
-
-The solution to this exercise.
-
-First we read the data and grow the tree.
-
-``` r
-# load packages
-library(rpart)
-library(rpart.plot)
-
-# grow a classification tree
-fit.tree <- rpart(chd~.,data=sahd,method="class")
-rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-45-1.png" style="display: block; margin: auto;" />
-
-We re-grow the tree using different control parameters.
-
-``` r
-# controlling the growth of the tree with rpart.control
-# cp: improvement in each split needs to be > cp
-# minsplit: minimal number of samples in a node inorder to do a split
-fit.tree2 <- rpart(chd~.,data=sahd,method="class",
-                   control = rpart.control(cp = 0,minsplit=10)
-                   
-)
-rpart.plot(fit.tree2,extra=1,under=TRUE,tweak = 1.2,faclen=3)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-46-1.png" style="display: block; margin: auto;" />
-
-We can get the tree size from the cptable (tree size=number of
-leaves=number splits+1).
-
-``` r
-fit.tree2$cptable[fit.tree2$cptable[,"CP"]==0,"nsplit"]+1 # number of leaves
-```
-
-    ## [1] 43
-
-Next, we plot the cross-validation error against the complexity
-parameter *α*.
-
-``` r
-plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-48-1.png" style="display: block; margin: auto;" />
-
-We prune the tree and visualize the result.
-
-``` r
-# prune the tree
-fit.prune<- prune(fit.tree2, 
-                  cp=fit.tree2$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
-rpart.plot(fit.prune,extra=1)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-49-1.png" style="display: block; margin: auto;" />
-
-Finally, we compute the confusion matrix and the misclassification
-error.
-
-``` r
-# confusion matrix of actual and fitted class labels
-table(Actual=sahd$chd,Fitted=predict(fit.prune,type="class"))
-```
-
-    ##       Fitted
-    ## Actual   0   1
-    ##      0 268  34
-    ##      1  80  80
-
-``` r
-# missclassification error
-mean(sahd$chd!=predict(fit.prune,type="class"))
-```
-
-    ## [1] 0.2467532
-
-We sample with replacement (bootstrap sample).
-
-``` r
-set.seed(1)
-inthebag <- sample(1:nrow(sahd),size=nrow(sahd),replace=TRUE)
-outofbag <- setdiff(1:nrow(sahd),inthebag)
-```
-
-We fit a tree on the in-the-bag samples and calculate the
-misclassification error on the out-of-bag samples.
-
-``` r
-fit.in <- rpart(chd~.,data=sahd[inthebag,],method="class")
-pred.oob <- predict(fit.in,newdata=sahd[outofbag,],type="class")
-mean(sahd$chd[outofbag]!=pred.oob)
-```
-
-    ## [1] 0.3559322
-
-We fit the random forest, plot the error as a function of the number of
-trees and plot the variable importance.
-
-``` r
-library(randomForest)
-sahd$chd <- factor(sahd$chd)
-fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
-plot(fit.rf)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-53-1.png" style="display: block; margin: auto;" />
-
-``` r
-varImpPlot(fit.rf,type=1)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-53-2.png" style="display: block; margin: auto;" />
-We run AdaBoost using `gbm` and by specifying
-`distribution = "adaboost"`. The `summary` provides a measure of
-variable importance. Prediction can be made using `predict`.
-
-``` r
-fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
-summary(fit.boost)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-54-1.png" style="display: block; margin: auto;" />
-
-    ##             var    rel.inf
-    ## tobacco tobacco 96.4821033
-    ## age         age  2.9567803
-    ## ldl         ldl  0.5611164
-    ## sbp         sbp  0.0000000
-    ## famhist famhist  0.0000000
-    ## obesity obesity  0.0000000
-    ## alcohol alcohol  0.0000000
-
-``` r
-newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
-predict(fit.boost,
-        newdata=newd,
-        type="response" )
-```
-
-    ## Using 100 trees...
-
-    ## [1] 1
-
-# 12 Classification and the `caret` package
-
-Follow the short
-[tutorial](https://cran.r-project.org/web/packages/caret/vignettes/caret.html)
-which guides you through a classifcation example using the `caret`
-package.
-
-# 13 Phoneme recognition
+# 11 Phoneme recognition
 
 In this exercise we investigate prediction of phonemes based on
 digitized speech data.
@@ -1201,7 +1024,7 @@ for(i in 1:5){
 }
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-57-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-47-1.png" style="display: block; margin: auto;" />
 
 We run logistic regression and calculate the train and test errors.
 
@@ -1233,7 +1056,7 @@ coef.lasso <- as.numeric(coefficients(fit.glmnet,s = cv.glmnet$lambda.1se))[-1]
 plot(cv.glmnet)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-60-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-50-1.png" style="display: block; margin: auto;" />
 
 ``` r
 pred_train <- c(predict(fit.glmnet,xtrain,s = cv.glmnet$lambda.1se,type = "class"))
@@ -1241,13 +1064,13 @@ pred_test <- c(predict(fit.glmnet,xtest,s = cv.glmnet$lambda.1se,type = "class")
 mean(pred_train!=ytrain)
 ```
 
-    ## [1] 0.170579
+    ## [1] 0.1690141
 
 ``` r
 mean(pred_test!=ytest)
 ```
 
-    ## [1] 0.2072893
+    ## [1] 0.2050114
 
 We use the natural cubic spline basis with *ν* = 12 to express the
 coefficients as a smooth function of the frequencies. We calculate the
@@ -1288,9 +1111,16 @@ lines(coef.smooth,col="red",lwd=3)
 abline(h=0)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-62-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-52-1.png" style="display: block; margin: auto;" />
 
-# 14 Survival analysis and the Lymphoma data
+# 12 Classification and the `caret` package
+
+Follow the short
+[tutorial](https://cran.r-project.org/web/packages/caret/vignettes/caret.html)
+which guides you through a classification example using the `caret`
+package.
+
+# 13 Survival analysis and the Lymphoma data
 
 In this exercise we explore the Lymphoma data set to predict survival
 based on gene expression data.
@@ -1363,7 +1193,7 @@ y <- read.table("data/lymphtime.txt",header = TRUE)%>%
 ```
 
 Plot the distribution of the survival times.
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-65-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-55-1.png" style="display: block; margin: auto;" />
 
 Plot of the Kaplan-Meier estimates.
 
@@ -1374,7 +1204,7 @@ fit.surv <- survfit(Surv(time, status) ~ 1,
 ggsurvplot(fit.surv,conf.int=FALSE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-66-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-56-1.png" style="display: block; margin: auto;" />
 
 Fit a Cox regression model.
 
@@ -1421,7 +1251,7 @@ fit.coxnet <- glmnet(x, y.surv, family = "cox")
 plot(fit.coxnet,xvar="lambda")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-69-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-59-1.png" style="display: block; margin: auto;" />
 
 Calculate the cross-validated C-index.
 
@@ -1433,7 +1263,7 @@ cv.coxnet <- cv.glmnet(x,y.surv,
 plot(cv.coxnet)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-70-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-60-1.png" style="display: block; margin: auto;" />
 
 Classify patients into groups with good and poor prognosis (based on
 thresholding the linear predictor at zero).
@@ -1451,7 +1281,7 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-71-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-61-1.png" style="display: block; margin: auto;" />
 
 The curves are very well separated. However, these linear predictor
 scores are biased: we are evaluating their performance on the same data
@@ -1500,9 +1330,181 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-63-1.png" style="display: block; margin: auto;" />
+
+# 14 Decision trees, Random Forest and AdaBoost
+
+In this exercise we explore decision trees based on the South African
+heart disease data.
+
+1.  Load the South African heart disease data and grow a decision tree
+    using `rpart`. Visualize the tree using `rpart.plot`. How many leave
+    nodes has the tree?
+2.  Re-grow the tree but now relax the “default” control parameters
+    (choose `rpart.control(cp=0, minsplit=50)`). How many leaves has the
+    tree now?
+3.  Plot the cross-validation error against the complexity parameter
+    *α*. What is the tree size of the optimal model?
+4.  Prune the tree using `prune` and by choosing cp (=*α*) to achieve
+    minimal cross-validation error.
+5.  Calculate the confusion matrix and the misclassification error.
+6.  Generate a bootstrap sample. Grow a tree and calculate the
+    out-of-bag error.
+7.  Fit a random forest using `randomForest`. Plot the fitted object.
+    What is this plot telling us? Calculate the variable importance.
+    Which are the most important variables?
+8.  Run AdaBoost using `gbm`. What is the prediction for a patient with
+    covariates sbp=100, tobacco=0, ldl=5, famhist=“Present”, obesity=25,
+    alcohol=10 and age=50. Compute the variable importance.
+
+The solution to this exercise.
+
+First we read the data and grow the tree.
+
+``` r
+# load packages
+library(rpart)
+library(rpart.plot)
+
+# grow a classification tree
+fit.tree <- rpart(chd~.,data=sahd,method="class")
+rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-64-1.png" style="display: block; margin: auto;" />
+
+We re-grow the tree using different control parameters.
+
+``` r
+# controlling the growth of the tree with rpart.control
+# cp: improvement in each split needs to be > cp
+# minsplit: minimal number of samples in a node inorder to do a split
+fit.tree2 <- rpart(chd~.,data=sahd,method="class",
+                   control = rpart.control(cp = 0,minsplit=10)
+                   
+)
+rpart.plot(fit.tree2,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-65-1.png" style="display: block; margin: auto;" />
+
+We can get the tree size from the cptable (tree size=number of
+leaves=number splits+1).
+
+``` r
+fit.tree2$cptable[fit.tree2$cptable[,"CP"]==0,"nsplit"]+1 # number of leaves
+```
+
+    ## [1] 43
+
+Next, we plot the cross-validation error against the complexity
+parameter *α*.
+
+``` r
+plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-67-1.png" style="display: block; margin: auto;" />
+
+We prune the tree and visualize the result.
+
+``` r
+# prune the tree
+fit.prune<- prune(fit.tree2, 
+                  cp=fit.tree2$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+rpart.plot(fit.prune,extra=1)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-68-1.png" style="display: block; margin: auto;" />
+
+Finally, we compute the confusion matrix and the misclassification
+error.
+
+``` r
+# confusion matrix of actual and fitted class labels
+table(Actual=sahd$chd,Fitted=predict(fit.prune,type="class"))
+```
+
+    ##       Fitted
+    ## Actual   0   1
+    ##      0 268  34
+    ##      1  80  80
+
+``` r
+# missclassification error
+mean(sahd$chd!=predict(fit.prune,type="class"))
+```
+
+    ## [1] 0.2467532
+
+We sample with replacement (bootstrap sample).
+
+``` r
+set.seed(1)
+inthebag <- sample(1:nrow(sahd),size=nrow(sahd),replace=TRUE)
+outofbag <- setdiff(1:nrow(sahd),inthebag)
+```
+
+We fit a tree on the in-the-bag samples and calculate the
+misclassification error on the out-of-bag samples.
+
+``` r
+fit.in <- rpart(chd~.,data=sahd[inthebag,],method="class")
+pred.oob <- predict(fit.in,newdata=sahd[outofbag,],type="class")
+mean(sahd$chd[outofbag]!=pred.oob)
+```
+
+    ## [1] 0.3559322
+
+We fit the random forest, plot the error as a function of the number of
+trees and plot the variable importance.
+
+``` r
+library(randomForest)
+sahd$chd <- factor(sahd$chd)
+fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
+plot(fit.rf)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-72-1.png" style="display: block; margin: auto;" />
+
+``` r
+varImpPlot(fit.rf,type=1)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-72-2.png" style="display: block; margin: auto;" />
+We run AdaBoost using `gbm` and by specifying
+`distribution = "adaboost"`. The `summary` provides a measure of
+variable importance. Prediction can be made using `predict`.
+
+``` r
+fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
+summary(fit.boost)
+```
+
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-73-1.png" style="display: block; margin: auto;" />
 
-# 15 Email Spam and Data Mining
+    ##             var    rel.inf
+    ## tobacco tobacco 96.4821033
+    ## age         age  2.9567803
+    ## ldl         ldl  0.5611164
+    ## sbp         sbp  0.0000000
+    ## famhist famhist  0.0000000
+    ## obesity obesity  0.0000000
+    ## alcohol alcohol  0.0000000
+
+``` r
+newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
+predict(fit.boost,
+        newdata=newd,
+        type="response" )
+```
+
+    ## Using 100 trees...
+
+    ## [1] 1
+
+# 15 Email spam and data mining
 
 In this exercise we explore a typical data mining task. We use the
 `spam.rds` data set. The data for this example consists of information
@@ -1706,6 +1708,139 @@ pred.boost <- ifelse(predict(fit.boost, newdata = spam.test,type="response")>0.5
 ```
 
     ## [1] 0.06640625
+
+# 16 Multiple testing and gene expression
+
+In this exercise we explore the issue of multiple testing using the gene
+expression data from the mouse experiment (see lecture slides).
+
+1.  Load the gene expression data set `esetmouse.rds` and explore the
+    structure of the object (use the functions `str`, `dim`, `pData`,
+    `expr`).
+
+2.  Carry out a two-sample t-test for a single gene and print the
+    p-value.
+
+3.  Repeat 2. for all genes, generate a histogram of p-values and
+    calculated the number of p-values \< 0.05.
+
+4.  Perform multiple testing correction using the Bonferroni and FDR
+    methods and count the number of significant genes (`p.adjust`).
+
+5.  Use the `limma` package to run the differential expression analysis
+    and plot the result using a volcano plot (use the functions `lmFit`,
+    `eBayes` and `volcanoplot`)
+
+Solution to the exercise.
+
+We load the `ExpressionSet`.
+
+``` r
+esetmouse <- readRDS(file="data/esetmouse.rds")
+class(esetmouse)
+```
+
+    ## [1] "ExpressionSet"
+    ## attr(,"package")
+    ## [1] "Biobase"
+
+``` r
+dim(esetmouse)
+```
+
+    ## Features  Samples 
+    ##    15923       24
+
+We can look at the expression values of the first sample and the first 6
+genes.
+
+``` r
+exprs(esetmouse)[1:6,1]
+```
+
+    ## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
+    ##  10.051651  10.163334  10.211724  10.334899  10.889349   9.666755
+
+An overview on the phenotype data can be obtained using the following
+commands.
+
+``` r
+table(pData(esetmouse)$strain)
+```
+
+    ## 
+    ##  A  B 
+    ## 12 12
+
+We run a two-sample t-test for gene *j* = 11425.
+
+``` r
+x <- esetmouse$strain # strain information
+y <- t(exprs(esetmouse)) # gene expressions matrix (columns refer to genes)
+
+ttest <- t.test(y[,11425]~x,var.equal=TRUE)
+ttest$statistic #tscore
+```
+
+    ##        t 
+    ## 1.774198
+
+``` r
+ttest$p.value
+```
+
+    ## [1] 0.0898726
+
+We calculate p-values for all genes, plot them as a histogram and count
+the number \< 0.05.
+
+``` r
+pvals <- apply(y,2,FUN=
+                 function(y){
+                   t.test(y~x,var.equal=TRUE)$p.value
+                 })
+hist(pvals)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-88-1.png" style="display: block; margin: auto;" />
+
+``` r
+sum(pvals<0.05)
+```
+
+    ## [1] 2908
+
+We run the Bonferroni and FDR correction methods.
+
+``` r
+sum(p.adjust(pvals,method="bonferroni")<0.05)
+```
+
+    ## [1] 82
+
+``` r
+sum(p.adjust(pvals,method="fdr")<0.05)
+```
+
+    ## [1] 1123
+
+Finally, we use the `limma` package to perform the differential
+expression analysis and we plot the results using a volcano plot.
+
+``` r
+library(limma)
+# first argument: gene expression matrix with genes in rows and sample in columns
+# second argument: design matrix
+fit.limma <- lmFit(t(y), design=model.matrix(~ x)) 
+
+# eBayes
+ebfit <- eBayes(fit.limma)
+
+# volcanplot
+volcanoplot(ebfit,coef=2)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-90-1.png" style="display: block; margin: auto;" />
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
