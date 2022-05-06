@@ -1017,7 +1017,7 @@ We prune the tree and visualize the result.
 ```{r}
 # prune the tree
 fit.prune<- prune(fit.tree2, 
-                  cp=fit.tree2$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+                  cp=fit.tree2$cptable[which.min(fit.tree2$cptable[,"xerror"]),"CP"])
 rpart.plot(fit.prune,extra=1)
 ```
 

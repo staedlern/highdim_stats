@@ -602,7 +602,7 @@ body {
 
 <h1 id="exercises-and-solutions---analysis-of-high-dimensional-data">Exercises
 and Solutions - Analysis of High-Dimensional Data</h1>
-<p>Nicolas Städler 2022-05-03</p>
+<p>Nicolas Städler 2022-05-06</p>
 <ul>
 <li><a href="#1-diabetes-data-and-linear-regression">1 Diabetes data and
 linear regression</a></li>
@@ -716,7 +716,8 @@ data.</p>
 ## (Intercept)  149.383      4.425  33.761   &lt;2e-16 ***
 ## bmi          948.442     95.283   9.954   &lt;2e-16 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 65.73 on 219 degrees of freedom
 ## Multiple R-squared:  0.3115, Adjusted R-squared:  0.3084 
@@ -778,7 +779,8 @@ Calculate the RSS.
 ## 1    219 946271                                 
 ## 2    156 504889 63    441381 2.1647 6.02e-05 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <h1 id="2-diabetes-data-and-model-validation">2 Diabetes data and model
 validation</h1>
 <p>In the previous section we developed 2 models to predict
@@ -1319,14 +1321,16 @@ on how to scale the <em>λ</em>.</li>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">intercept=</span><span class="cn">FALSE</span>,<span class="at">standardize =</span> <span class="cn">FALSE</span>,<span class="at">thresh =</span> <span class="fl">1e-20</span>,<span class="at">exact=</span><span class="cn">TRUE</span>)</span>
 <span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>coef.ridge <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">coef</span>(fit.ridge))[<span class="sc">-</span><span class="dv">1</span>]</span>
 <span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coef.ridge)</span></code></pre></div>
-<pre><code>## [1]  0.27330465 -0.24799766  0.19686435 -0.21942808  0.05302251 -0.02458886</code></pre>
+<pre><code>## [1]  0.27330465 -0.24799766  0.19686435 -0.21942808
+## [5]  0.05302251 -0.02458886</code></pre>
 <p>Next we calculate the coefficients based on the formula from the
 script. Note that we need to re-scale the lambda.</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>sd_y <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">var</span>(y)<span class="sc">*</span>(n<span class="dv">-1</span>)<span class="sc">/</span>n)[<span class="dv">1</span>,<span class="dv">1</span>]</span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>my.lambda2 <span class="ot">&lt;-</span> n<span class="sc">*</span>my.lambda<span class="sc">/</span>sd_y</span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>coef.ridge2 <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(x)<span class="sc">%*%</span>x<span class="sc">+</span>my.lambda2<span class="sc">*</span><span class="fu">diag</span>(<span class="at">nrow=</span><span class="fu">ncol</span>(x)))<span class="sc">%*%</span><span class="fu">t</span>(x)<span class="sc">%*%</span>y</span>
 <span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(coef.ridge2)[,<span class="dv">1</span>]</span></code></pre></div>
-<pre><code>## [1]  0.27031012 -0.24528806  0.19469189 -0.21696366  0.05244081 -0.02429057</code></pre>
+<pre><code>## [1]  0.27031012 -0.24528806  0.19469189 -0.21696366
+## [5]  0.05244081 -0.02429057</code></pre>
 <h1 id="7-bayesian-interpretation-of-ridge-regression-difficult">7
 Bayesian interpretation of Ridge regression (difficult)</h1>
 <ol style="list-style-type: decimal">
@@ -1408,11 +1412,17 @@ and plot the error curves.</p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Get selected genes</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">coef</span>(cv1))</span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(b)[b<span class="sc">!=</span><span class="dv">0</span>]</span></code></pre></div>
-<pre><code>##  [1] &quot;(Intercept)&quot; &quot;ARGF_at&quot;     &quot;DNAJ_at&quot;     &quot;GAPB_at&quot;     &quot;LYSC_at&quot;     &quot;PKSA_at&quot;     &quot;SPOIISA_at&quot;  &quot;SPOVAA_at&quot;  
-##  [9] &quot;XHLB_at&quot;     &quot;XKDS_at&quot;     &quot;XTRA_at&quot;     &quot;YBFI_at&quot;     &quot;YCDH_at&quot;     &quot;YCGO_at&quot;     &quot;YCKE_at&quot;     &quot;YCLB_at&quot;    
-## [17] &quot;YCLF_at&quot;     &quot;YDDH_at&quot;     &quot;YDDK_at&quot;     &quot;YEBC_at&quot;     &quot;YEZB_at&quot;     &quot;YFHE_r_at&quot;   &quot;YFIR_at&quot;     &quot;YHDS_r_at&quot;  
-## [25] &quot;YKBA_at&quot;     &quot;YOAB_at&quot;     &quot;YQJU_at&quot;     &quot;YRVJ_at&quot;     &quot;YTGB_at&quot;     &quot;YURQ_at&quot;     &quot;YXLD_at&quot;     &quot;YXLE_at&quot;    
-## [33] &quot;YYDA_at&quot;</code></pre>
+<pre><code>##  [1] &quot;(Intercept)&quot; &quot;ARGF_at&quot;     &quot;DNAJ_at&quot;    
+##  [4] &quot;GAPB_at&quot;     &quot;LYSC_at&quot;     &quot;PKSA_at&quot;    
+##  [7] &quot;SPOIISA_at&quot;  &quot;SPOVAA_at&quot;   &quot;XHLB_at&quot;    
+## [10] &quot;XKDS_at&quot;     &quot;XTRA_at&quot;     &quot;YBFI_at&quot;    
+## [13] &quot;YCDH_at&quot;     &quot;YCGO_at&quot;     &quot;YCKE_at&quot;    
+## [16] &quot;YCLB_at&quot;     &quot;YCLF_at&quot;     &quot;YDDH_at&quot;    
+## [19] &quot;YDDK_at&quot;     &quot;YEBC_at&quot;     &quot;YEZB_at&quot;    
+## [22] &quot;YFHE_r_at&quot;   &quot;YFIR_at&quot;     &quot;YHDS_r_at&quot;  
+## [25] &quot;YKBA_at&quot;     &quot;YOAB_at&quot;     &quot;YQJU_at&quot;    
+## [28] &quot;YRVJ_at&quot;     &quot;YTGB_at&quot;     &quot;YURQ_at&quot;    
+## [31] &quot;YXLD_at&quot;     &quot;YXLE_at&quot;     &quot;YYDA_at&quot;</code></pre>
 <div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="do">## By default, the selected variables are based on the largest value of</span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="do">## lambda such that the cv-error is within 1 standard error of the minimum</span></span></code></pre></div>
 <h1 id="9-ridge-and-lasso-for-the-orthonormal-design-difficult">9 Ridge
@@ -1460,7 +1470,8 @@ covariate.</p>
 ## (Intercept) -3.521710   0.416031  -8.465  &lt; 2e-16 ***
 ## age          0.064108   0.008532   7.513 5.76e-14 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
@@ -2026,7 +2037,7 @@ parameter <em>α</em>.</p>
 <p>We prune the tree and visualize the result.</p>
 <div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a><span class="co"># prune the tree</span></span>
 <span id="cb104-2"><a href="#cb104-2" aria-hidden="true" tabindex="-1"></a>fit.prune<span class="ot">&lt;-</span> <span class="fu">prune</span>(fit.tree2, </span>
-<span id="cb104-3"><a href="#cb104-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">cp=</span>fit.tree2<span class="sc">$</span>cptable[<span class="fu">which.min</span>(fit.tree<span class="sc">$</span>cptable[,<span class="st">&quot;xerror&quot;</span>]),<span class="st">&quot;CP&quot;</span>])</span>
+<span id="cb104-3"><a href="#cb104-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">cp=</span>fit.tree2<span class="sc">$</span>cptable[<span class="fu">which.min</span>(fit.tree2<span class="sc">$</span>cptable[,<span class="st">&quot;xerror&quot;</span>]),<span class="st">&quot;CP&quot;</span>])</span>
 <span id="cb104-4"><a href="#cb104-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(fit.prune,<span class="at">extra=</span><span class="dv">1</span>)</span></code></pre></div>
 <img src="data:image/png;base64,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" style="display: block; margin: auto;" />
 
@@ -2127,9 +2138,12 @@ cross-validation output.</p>
 ##     cp = 1e-05)
 ## 
 ## Variables actually used in tree construction:
-##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000      wf.650      wf.all      wf.business
-## [10] wf.edu      wf.free     wf.george   wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
-## [19] wf.pm       wf.re       wf.remove   wf.you      wf.your    
+##  [1] capavg      caplong     captot      cf.dollar  
+##  [5] cf.exclaim  wf.000      wf.650      wf.all     
+##  [9] wf.business wf.edu      wf.free     wf.george  
+## [13] wf.hp       wf.hpl      wf.internet wf.money   
+## [17] wf.our      wf.over     wf.pm       wf.re      
+## [21] wf.remove   wf.you      wf.your    
 ## 
 ## Root node error: 1223/3065 = 0.39902
 ## 
@@ -2397,8 +2411,10 @@ functions <code>lmFit</code>, <code>eBayes</code> and
 <p>We can look at the expression values of the first sample and the
 first 6 genes.</p>
 <div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exprs</span>(esetmouse)[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,<span class="dv">1</span>]</span></code></pre></div>
-<pre><code>## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
-##  10.051651  10.163334  10.211724  10.334899  10.889349   9.666755</code></pre>
+<pre><code>## 1367452_at 1367453_at 1367454_at 1367455_at 
+##  10.051651  10.163334  10.211724  10.334899 
+## 1367456_at 1367457_at 
+##  10.889349   9.666755</code></pre>
 <p>An overview on the phenotype data can be obtained using the following
 commands.</p>
 <div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="#cb143-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">pData</span>(esetmouse)<span class="sc">$</span>strain)</span></code></pre></div>
