@@ -227,7 +227,7 @@ optimize(myf,interval=c(-5,5))
 
 The task is to use the diabetes data to construct a model that predicts the response `y` (disease progression) based on covariates. The two hopes are, that the model would produce accurate baseline predictions of response for future patients, and also that the form of the model would suggest which covariates were important factors in disease progression.
 
-1. Read the prostate cancer data set.
+1. Read in the diabetes data set.
 2. Run forward stepwise regression. Which is the first variable included in the selection process? Print the coefficients of the AIC-optimal model as a table.
 3. Fit Ridge regression. Show the trace plot and the cross-validation plot.
 4. Run the Lasso approach and show the trace and the cross-validation plots.
