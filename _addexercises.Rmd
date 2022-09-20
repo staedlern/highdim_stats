@@ -232,3 +232,33 @@ rpart.plot(fit.prune,extra=1)
 mean(dTest$spam!=predict(fit.prune,newdata=dTest,type="class"))
 ```
 
+```{r include=FALSE}
+library(glmnet)
+set.seed(1)
+
+# simulate data
+n <- 20
+p <- 15
+x <-  matrix(rnorm(n * p), n, p)
+y <- as.numeric(x[,1:4]%*%c(2,-2,2,-2)+rnorm(n))
+
+fit.ridge1 <- glmnet(x,y,alpha=0,
+                    intercept=FALSE,standardize = FALSE,thresh = 1e-20,exact=TRUE)
+plot(fit.ridge1,xvar="lambda")
+
+my.lambda <- 9
+head(as.vector(coef(fit.ridge1,s=my.lambda,thresh = 1e-20,exact = TRUE,x=x,y=y))[-1])
+
+fit.ridge2 <- glmnet(x,y,alpha=0,lambda=my.lambda,
+                    intercept=FALSE,standardize = FALSE,thresh = 1e-20,exact=TRUE)
+head(as.vector(coef(fit.ridge2))[-1])
+
+sd_y <- sqrt(var(y)*(n-1)/n)
+my.lambda2 <- n*my.lambda/sd_y
+coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
+head(coef.ridge2)[,1]
+```
+
+
+
+

@@ -10,6 +10,9 @@ library(lars)
 library(gridExtra)
 library(stats)
 library(splines)
+library(rjags)
+library(ggmcmc)
+library(MCMCvis)
 ```
 
 We have seen that multiple regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the least-squares optimization with constraints on the regression coefficients can decrease the risk of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some constraints on the parameter $\beta$.
@@ -94,7 +97,7 @@ beta <- c(2,rep(0,p-1))
 
 # simulate covariates
 xtrain <- matrix(rnorm(n*p),n,p)
-ytrain <- xtrain%*%beta+rnorm(n,sd=0.5)
+ytrain <- as.numeric(xtrain%*%beta+rnorm(n,sd=0.5))
 dtrain <- data.frame(xtrain)
 dtrain$y <- ytrain
 ```
@@ -227,7 +230,7 @@ plot(fit.pc$x,xlim=c(-2,2),ylim=c(-2,2))
 ```
 
 ```{r include=FALSE, eval=FALSE}
-fn <- function(x){x/(1+x))}
+fn <- function(x){x/(1+x)}
 curve(fn,xlim=c(0,20),ylim=c(0,1),xlab="d",ylab="d^2/(1+d^2)",lwd=2,cex.axis=1.5)
 ```
 
@@ -255,6 +258,178 @@ where $D$ denotes the data and $p(D|\beta)$ is the likelihood function. In the e
 \[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
 and the regression coefficients are equipped with prior
 \[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p.\]
+
+For many practical problems the posterior distribution is analytically not tractable and inference is typically based on sampling from the posterior distribution using a procedure called Markov chain Monte Carlo (MCMC). The software packages BUGS and JAGS automatically build MCMC samplers for complex hierarchical models. We use `rjags` to illustrate the procedure for the Bayesian Ridge regression model (see Figure \@ref(fig:bayesianridge)). 
+
+```{r bayesianridge,echo=FALSE,out.width="80%",fig.cap="The Bayesian Ridge regression model."}
+knitr::include_graphics("bayesian_ridge.PNG")
+```
+
+First we specify the model, prepare the input data and provide initial values.
+
+```{r}
+library(rjags)
+
+# model
+bayesian_ridge <-"model{
+  for (i in 1:n){
+    y[i] ~ dnorm (mu[i], 1/sig^2)
+    mu[i] <- inprod(b,x[i,])
+  }
+  for (j in 1:p){
+    b[j] ~ dnorm (0, 1/tau^2)
+  }
+  sig~dunif(0,100)
+  tau~dunif(0,100)
+}
+"
+
+# data
+dat.jags <- list(x=xtrain,y=ytrain,p=ncol(xtrain),n=nrow(xtrain))
+
+# initial values
+inits <- function (){
+
+  list (b=rnorm(dat.jags$p),sig=runif(1),tau=runif(1))
+  
+}
+```
+
+We use the function `jags.model` to setup an MCMC sampler with `n.chains=3` chains (the number of samples, or MCMC iterations, used for adaptation is per default set to 1000).  
+
+```{r}
+# setup jags model
+jags.m <- jags.model(textConnection(bayesian_ridge),
+                     data=dat.jags,
+                     inits=inits,
+                     n.chains=3,
+                     quiet=TRUE)
+```
+
+After a burn-in period of $500$ steps we use `coda.samples` to generate the posterior samples. 
+
+```{r message=FALSE}
+# burn-in
+update(jags.m, n.iter=500) 
+
+# mcmc samples for inference
+posterior.samples <- coda.samples( jags.m,
+                                   variable.names = c("b","sig","tau"), 
+                                   n.iter=10000,thin=10) # thinning=10 
+```
+
+There are several R packages to investigate the posterior distribution. For example with `MCMCsummary` we can extract key summary information, i.e. mean, median, quantiles, Gelman-Rubin convergence statistic and the number of effective samples.
+
+```{r}
+library(MCMCvis)
+MCMCsummary(posterior.samples,
+            round=2,
+            params=c("sig","tau","b"))%>%
+  kable
+```
+
+Or, we can use the package`ggmcmc` and produce a traceplot to check the representativeness of the MCMC samples. 
+
+```{r}
+library(ggmcmc)
+ggs.mcmc <- ggs(posterior.samples)
+ggs_traceplot(ggs.mcmc,family="tau")
+```
+
+Alternatively, we can directly access the posterior samples and calculate any summary statistics of interest.
+
+```{r}
+# posterior samples as matrix
+matrix.postsamples <- as.matrix(posterior.samples)
+dim(matrix.postsamples)
+
+# histogram of posterior
+hist(matrix.postsamples[,"tau"])
+
+# posterior mean
+colMeans(matrix.postsamples) # posterior mean
+```
+
+Finally, we compare the regression coefficients from OLS, Ridge regression ($\lambda$ obtained using cross-validation) and Bayesian Ridge regression.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+beta.ridgecv <- as.numeric(coef(cv.ridge.glmnet,s=cv.ridge.glmnet$lambda.min))[-1]
+beta.ols <- coef(lm(ytrain~xtrain))[-1]
+beta.bayesian <- colMeans(matrix.postsamples)[1:9]
+dd <- data.frame(beta.ols=beta.ols,beta.ridgecv=beta.ridgecv,beta.ridgebayesian=beta.bayesian)
+rownames(dd) <- paste0("beta",1:9)
+ddl <- pivot_longer(dd%>%
+                      rownames_to_column(var="coef"),-coef) 
+
+ddl%>%
+  ggplot(.,aes(x=coef,y=value,col=name,pch=name))+
+  geom_point(size=3)+
+  geom_line(aes(group=name))+
+  theme_bw()+
+  geom_hline(yintercept = 0,lty=1)+
+  xlab("")
+```
+
+The coefficients obtained from Ridge regression and Bayesian Ridge regression are almost identical. 
+
+
+```{r include=FALSE, eval=FALSE}
+# model
+bayesian_ridge <-"model{
+  for (i in 1:n){
+    y[i] ~ dnorm (mu[i], 1/sig^2)
+    mu[i] <- inprod(b,x[i,])
+  }
+  for (j in 1:p){
+    b[j] ~ dnorm (0, 1/tau^2)
+  }
+}
+"
+
+# data
+dat.jags <- list(x=xtrain,y=ytrain,p=ncol(xtrain),n=nrow(xtrain),sig=0.5,tau=0.1)
+
+# initial values
+inits <- function (){
+
+  list (b=rnorm(dat.jags$p))
+  
+}
+
+# setup jags model
+jags.m <- jags.model(textConnection(bayesian_ridge),
+                     data=dat.jags,
+                     inits=inits,
+                     n.chains=1,
+                     quiet=TRUE,
+                     n.adapt=0)
+# 
+mcmc.test <- coda.samples( jags.m, variable.names="b", n.iter=50)
+summary(mcmc.test)
+traceplot(mcmc.test[,1])
+
+# mcmc sampling
+update(jags.m, n.iter=1000) # burn-in
+mcmc.samples <- coda.samples( jags.m, variable.names="b", n.iter=10000,thin=10) # thinning=10 
+
+# results
+summary(mcmc.samples)
+
+# closed-form solution
+lambda <-  dat.jags$sig^2/dat.jags$tau^2
+coef.ridge <- solve(t(dat.jags$x)%*%dat.jags$x+
+                      lambda*diag(nrow=ncol(dat.jags$x)))%*%t(dat.jags$x)%*%dat.jags$y
+head(coef.ridge)[,1]
+
+sd_y <- sqrt(var(dat.jags$y)*(dat.jags$n-1)/dat.jags$n)
+lambda2 <- sd_y*lambda/dat.jags$n
+fit.ridge2 <- glmnet(dat.jags$x,dat.jags$y,alpha=0,lambda=lambda2,
+                    intercept=FALSE,standardize = FALSE,thresh = 1e-20,exact=TRUE)
+head(as.vector(coef(fit.ridge2))[2:5])
+
+# In the above example we assumed $\sigma$ and $\tau$ to be given. In practice these two parameters are unknown and have to be equipped with prior distributions as well.
+```
+
 
 ### Splines
 
