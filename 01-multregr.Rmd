@@ -5,6 +5,7 @@ library(gridExtra)
 library(knitr)
 library(tidyverse)
 library(caret)
+library(MASS)
 ```
 
 In this chapter we will review multiple linear regression and in particular the Ordinary Least Squares (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$.
@@ -14,7 +15,7 @@ In this chapter we will review multiple linear regression and in particular the 
 We will typically denote the covariates by the symbol $X$. If $X$ is a vector, its components can be accessed
 by subscripts $X_j$. The response variable will be denoted by $Y$. We use uppercase letters such as $X$, $Y$ when referring to the generic aspects of a variable. Observed values are written in lowercase; hence the $i$th observed value of $X$ is written as $x_i$ (where $x_i$ is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of $n$ input p-vectors $x_i$, $i=1,\ldots,n$ would be represented by the $n\times p$ matrix $\bf{X}$. All vectors are assumed to be column vectors, the $i$th row of $\bf{X}$ is $x_i^T$.
 
-## Ordinary Least Squares
+## Ordinary least squares
 
 Given a vector of inputs $X=(X_1,X_2,\ldots,X_p)$, in multiple regression we predict the output $Y$ via the linear model:
 
@@ -193,7 +194,7 @@ We end this section with the helpful **_10:1 rule:_**
 
 > In order to avoid overfitting the number of predictors (or covariates) **p should be less than n/10**. This rule can be extended to binary and time-to-event endpoints. For binary endpoints we replace $n$ with $\min\{n_0,n_1\}$ and for time-to-event with $n_{\rm events}$.
 
-## Generalization Error
+## Generalization error
 
 The ultimative goal of a good model is to make good predictions for the future. That is we need to assess how the fitted model generalizes beyond the "observed" data. Conceptually, given new input data $x_{\rm new}$, the model provides a prediction $\hat{Y}=\hat{f}(x_{\rm new})$. The *Generalization Error* is the expected discrepancy between the prediction $\hat{Y}=\hat{f}(x_{\rm new})$ and the actual outcome $Y_{\rm new}$
 
@@ -282,3 +283,118 @@ kable(rmse,digits=2,booktabs=TRUE,
 ```
 
 The models with $p=1$ and $4$ achieve a good error close to the "irreducible" $\sigma_{\epsilon}$. On the other hand the predictions obtained with $p=8$ and $15$ are very poor (RMSEs are 6 to 8-fold larger).
+
+## Model selection
+
+We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models (indexed as $m=1,\ldots,M$). Model selection refers to the choice of an optimal model achieving a low generalization error. A plausible approach would be to fit the different models to  the training data and then select the model with smallest error on the test data. However, this is an illegitimate approach as the test data has to be kept untouched for the final evaluation of the selected model. Therefore we guide model selection by approximating the generalization error using training data only. We review now two such approximations, namely, cross-validation and the Akaike information criterion (AIC). 
+
+K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here $K=5$).
+
+```{r crossvalidation,echo=FALSE,out.width="80%"}
+knitr::include_graphics("crossvalidation.JPG")
+```
+
+Each chunk is then used as "hold-out" validation data to estimate the error of $m$th model trained on the other $K-1$ data chunks. In that way we obtain $K$ error estimates and we typically take the average as the cross-validation error of model $m$ (denoted by ${\rm CV}_m$). The next plot shows a typical cross-validation error plot. This curve attains its minimum at a model with  $p_m=4$ ($p_m$ is the number of included predictors in model $m$).
+
+```{r message=FALSE,warning=FALSE,echo=FALSE}
+set.seed(1)
+library(glmnet)
+library(caret)
+x <-  matrix(rnorm(20 * 20), 20, 15)
+y <- x[,1:4]%*%c(2,-2,2,-2)+rnorm(20)
+data <- data.frame(x,y)
+train.control <- trainControl(method = "cv", number = 5)
+step.model <- train(y ~., data = data,
+                    method = "leapForward", 
+                    tuneGrid = data.frame(nvmax = 1:15),
+                    trControl = train.control
+                    )
+ggplot(step.model)+
+  theme_bw()+
+  theme(text =element_text(size=15))+
+  ylab("CV")+xlab("Number of Predictors")
+```
+
+The AIC approach is founded in information theory and selects the model with smallest AIC
+
+$$
+{\rm AIC}_m=-2\;{\rm loglik}+2\;p_{m}.
+$$
+Thus, AIC rewards goodness of fit (as assessed by the likelihood function *loglik*) and penalizes model complexity (by the term $2 p_m$). The figure below shows for the same example the AIC curve. Also the AIC approaches suggests to use a model with $p_m=4$ predictors.
+
+```{r message=FALSE,warning=FALSE,echo=FALSE}
+models <- leaps::regsubsets(y~., data = data, 
+                            nvmax = 15,
+                            method = "forward")
+
+smodels <-  summary(models)
+nvar <- apply(smodels$which,1,sum)-1
+k <- nvar+2
+n <- nrow(data)
+aic <- smodels$bic-log(n)*k+k*(2+(2*k+2)/(n-k-1))
+plot(nvar, aic, xlab = "Number of Predictors", ylab = "AIC",type="b")
+```
+
+
+## Subset- and stepwise regression
+
+We have seen that multiple regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the least-squares optimization with constraints on the regression coefficients can decrease the risk of overfitting. In the following we will discuss methods which minimize the residual sum of squares, $\rm{RSS}(\beta)$, under some constraints on the parameter $\beta$.
+
+The most common approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset $S\subset\{1,\ldots,p\}$ we solve the optimization problem
+
+
+\[
+\hat{\beta}_{S}=\text{arg}\!\!\!\!\!\min\limits_{\beta_j=0\;\forall j\notin S}\!\!\!\textrm{RSS}(\beta).
+\]
+
+It is easy to show that this is equivalent to OLS regression based on subset $S$ covariates, i.e.
+
+\[
+\hat{\beta}_{S}=(\textbf{X}_S^T \textbf{X}_S)^{-1}\textbf{X}_S^T \textbf{y}.
+\]
+
+In practice we need to explore a sequence of subsets $S_1,\ldots,S_M$ and choose an optimal subset by either a re-sampling approach or by using an information criterion (see Section \@ref(model-selection)). There are a number of different strategies available. *Best subsets regression* consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are *backward stepwise* regression which starts with the full model and sequentially deletes covariates, whereas *forward stepwise* regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit. 
+
+In `R` we can use `regsubsets` from the `leaps` package or `stepAIC` from the `MASS` package to perform subset- and stepwise regression. For example to perform forward stepwise regression based on AIC we proceed as follows.
+
+```{r include=FALSE}
+set.seed(1)
+n <- 10
+p <- 9
+beta <- c(2,rep(0,p-1))
+
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+ytrain <- as.numeric(xtrain%*%beta+rnorm(n,sd=0.5))
+dtrain <- data.frame(xtrain)
+dtrain$y <- ytrain
+```
+
+```{r}
+# Forward regression
+fit0 <- lm(y~1,data=dtrain)
+up.model <- paste("~", paste(colnames(dtrain[,-(p+1)]), collapse=" + "))
+fit.fw <- stepAIC(fit0,
+                  direction="forward",
+                  scope=
+                    list(lower=fit0,
+                         upper=up.model)
+                    ,
+                  trace = FALSE
+)
+```
+
+We can summarize the stepwise process.
+
+```{r}
+kable(as.data.frame(fit.fw$anova),digits=3,booktabs=TRUE
+      ,caption="Inclusion of covariates in forward stepwise regression.")
+```
+
+Finally we can retrieve the regression coefficients of the optimal model.
+
+```{r}
+kable(broom::tidy(fit.fw),digits=3,booktabs=TRUE,
+      caption="Regression coefficients of the optimal model.")
+```
+

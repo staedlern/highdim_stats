@@ -1,0 +1,422 @@
+# Lasso Regression and Elasticnet
+
+```{r, include=FALSE}
+library(knitr)
+library(caret)
+library(glmnet)
+library(tidyverse)
+library(MASS)
+library(lars)
+library(gridExtra)
+library(stats)
+library(splines)
+library(rjags)
+library(ggmcmc)
+library(MCMCvis)
+```
+
+
+We have discussed Ridge regression and discussed its properties. Although Ridge regression can deal with high-dimensional data a disadvantage compared to subset- and stepwise regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging. 
+
+In Ridge regression we minimize $\rm RSS(\beta)$ given constraints on the so-called *L2-norm* of the regression coefficients
+
+\[\|\beta\|^2_2=\sum_{j=1}^p \beta^2_j \leq c.\] 
+
+Another very popular approach in high-dimensional statistics is *Lasso regression* (Lasso=least absolute shrinkage and selection operator). The Lasso works very similarly. The only difference is that constraints are imposed on the *L1-norm* of the coefficients
+
+\[\|\beta\|_1=\sum_{j=1}^p |\beta_j| \leq c.\]
+
+Therefore the Lasso is referred to as L1 regularization. The change in the form of the constraints (L2 vs L1) has important implications. Figure \@ref(fig:lassogeom) illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with "corners" (the Ridge constraint is a circle). If the sum of squares "hits" one of these corners then the coefficient corresponding to the axis is shrunk to zero. As $p$ increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the "diamond" geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).
+
+```{r lassogeom,echo=FALSE,out.width="80%",fig.cap="Geometry of Lasso regression."}
+knitr::include_graphics("lasso_geometry.JPG")
+```
+
+Similar to Ridge regression the Lasso can be formulated as a penalisation problem
+
+\[
+\hat{\beta}^{\rm Lasso}_{\lambda}=\text{arg}\min\limits_{\beta}\;\textrm{RSS}(\beta)+\lambda\|\beta\|_1.
+\]
+
+To fit the Lasso we use `glmnet` (with $\alpha=1$).
+
+```{r}
+fit.lasso.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=1) 
+```
+
+The following figure shows the Lasso solution for a grid of $\lambda$ values. We note that the Lasso shrinks some coefficients to exactly zero.
+
+```{r}
+plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
+```
+
+We choose the optimal tuning parameter $\lambda_{\rm opt}$ by cross-validation.
+
+```{r warning=FALSE}
+cv.lasso.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=1) 
+plot(cv.lasso.glmnet)
+cv.lasso.glmnet$lambda.min
+```
+
+The coefficient for the optimal model can be extracted using the `coef` function.
+
+```{r}
+beta.lasso <- coef(fit.lasso.glmnet, s = cv.lasso.glmnet$lambda.min)
+names(beta.lasso) <- colnames(xtrain)
+beta.lasso
+```
+
+We now discuss some properties of the Lasso.
+
+## Numerical optimization and soft thresholding
+
+In general there is no closed-form solution for the Lasso. The optimization has to be performed numerically. An efficient algorithm is implemented in `glmnet` and is referred to as "Pathwise Coordinate Optimization". The algorithm updates one regression coefficient at a time using the so-called soft-thresholding function. This is done iteratively until some convergence criterion is met.
+
+An exception is the case with an orthonormal design matrix $\bf X$, i.e. $\bf X^T\bf X=\bf I$. Under this assumption we have
+
+\begin{align*}
+\textrm{RSS}(\beta)&=(\textbf{y}-\textbf{X}\beta)^T(\textbf{y}-\textbf{X}\beta)\\
+&=\textbf{y}^T\textbf{y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
+\end{align*}
+
+and therefore the Lasso optimization reduces to $j=1,\ldots,p$ univariate problems
+
+\[\textrm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+0.5\beta_j^2+0.5\lambda |\beta_j|.\]
+
+In the exercises we will show that the solution is
+
+\begin{align*}
+\hat{\beta}_{\lambda,j}^{\textrm{Lasso}}&=\textrm{sign}(\hat{\beta}_j^{\rm OLS})\left(|\hat{\beta}_j^{\rm OLS}|-0.5\lambda\right)_{+}\\
+&=\left\{\begin{array}{ll}
+      \hat\beta^{\rm OLS}_j-0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j>0.5\lambda\\
+      0 & {\rm if}\;|\hat\beta^{\rm OLS}_j|\leq 0.5\lambda\\
+ \hat\beta^{\rm OLS}_j+0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j<-0.5\lambda
+    \end{array}
+  \right.
+\end{align*}
+
+
+That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next figure, is referred to as *soft-thresholding*.
+
+```{r, echo=FALSE, fig.cap="Soft-thresholding function."}
+softthreshold <- function(x,lambda=1){
+  sign(x)*pmax(abs(x)-0.5*lambda,0)
+}
+curve(softthreshold,xlim=c(-2,2),xlab="beta ols",ylab="beta lasso")
+```
+
+The soft-thresholding function is not only used for numerical optimization of the Lasso but also plays a role in wavelet thresholding used for signal and image denoising.
+
+## Variable selection
+
+We have seen that the Lasso simultaneously shrinks coefficients and sets some of them to zero. Therefore the Lasso performs variable selection which leads to more interpretabel models (compared to Ridge regression). For the Lasso we can define the set of selected variables
+
+$$\hat S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}\neq 0\}$$
+
+In our example this set can be obtained as follows.
+
+```{r}
+Shat <- rownames(beta.lasso)[which(beta.lasso != 0)]
+Shat
+```
+
+An interesting question is whether the Lasso does a good or bad job in variable selection. That is, does $\hat S^{\rm Lasso}_{\lambda}$ tend to agree with the true set of active variables $S_0$? Or, does the Lasso typically under- or over-select covariates? These questions are an active field of statistical research. 
+
+## Elasticnet regression
+
+We have encountered the L1 and L2 penalty. The Lasso (L1) penalty
+has the nice property that it leads to sparse solutions, i.e. it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge (L2) penalty, on the other hand, tends
+to shrink the coefficients of correlated variables toward each other. An attempt to take the best of both worlds is the *elastic net* penalty which has the form 
+
+\[\lambda \Big(\alpha \|\beta\|_1+(1-\alpha)\|\beta\|_2^2\Big).\]
+
+The second term encourages highly correlated features to be averaged, while
+the first term encourages a sparse solution in the coefficients of these averaged features.
+
+In `glmnet` the elastic net regression is implemented using the mixing parameter $\alpha$. The default is $\alpha=1$, i.e. the Lasso.
+
+## P-values for high-dimensional regression
+
+The Lasso is a very effective method in the $p>>n$ context. It avoids overfitting by shrinking the regression coefficient and eases interpretation by simultaneously performing variable selection. The Lasso has inspired many researcher which developed new statistical methods. One such approach uses the Lasso combined with the idea of "sample splitting" to obtain p-values in the high-dimensional regression context. The method proceed with the following steps:
+
+1. Sample splitting: Randomly divide the data into two parts, the *in-* and *out*-sample. 
+2. Screening: Use the Lasso to identify the key variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *in-* sample)
+3. P-value calculation: Obtain p-values using OLS regression on selected variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *out-*sample) 
+
+The p-values obtained in step 3 are sensitive to the random split chosen in step 1. Therefore, in order to avoid a "p-value lottery", the steps 1-3 are repeated many times and the results are aggregated. For more details we refer to @meinshausen_p_2009. The approach is implemented in the R package `hdi`.
+
+## Diabetes example
+
+We now review what we have learned with an example. The data that we consider consist of
+observations on 442 patients, with the response of interest being a quantitative
+measure of disease progression one year after baseline. There are ten baseline
+variables — age, sex, body-mass index, average blood pressure, and six blood
+serum measurements — plus quadratic terms, giving a total of $p=64$ features. The task for a statistician is to construct a model that predicts the response $Y$ from the covariates. The two hopes are, that the model would produce accurate baseline
+predictions of response for future patients, and also that the form of the model would suggest
+which covariates were important factors in disease progression.
+
+We start by splitting the data into training and test data.
+
+```{r}
+diabetes <- readRDS(file="data/diabetes.rds")
+data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(data) <- gsub(":",".",colnames(data))
+train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
+data_train <- data[train_ind,]
+xtrain <- as.matrix(data_train[,-1])
+ytrain <- data_train[,1]
+data_test <- data[-train_ind,]
+xtest <- as.matrix(data_test[,-1])
+ytest <- data_test[,1]
+```
+
+
+```{r eval=FALSE, include=FALSE}
+fit <- lm(y~age+sex+bmi+map,data=data)
+summary(fit)
+```
+
+We perform forward stepwise regression.
+
+
+```{r}
+# Forward regression
+fit0 <- lm(y~1,data=data_train)
+up.model <- paste("~", 
+                  paste(
+                    colnames(data_train[,-1]),collapse=" + ")
+                  )
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,
+                             upper=up.model
+                             
+                  ),
+                  trace = FALSE
+)
+#summary(fit.fw)
+```
+
+The selection process is depicted in the following table.
+
+```{r}
+kable(as.data.frame(fit.fw$anova),digits=2,
+      booktabs=TRUE)
+```
+
+The regression coefficients and the corresponding statistics of the AIC-optimal model are shown next.
+
+```{r}
+kable(broom::tidy(fit.fw),digits=2,
+      booktabs=TRUE)
+```
+
+We continue by fitting Ridge regression. We show the trace plot and the cross-validation plot.
+
+```{r}
+# Ridge
+set.seed(1515)
+fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
+fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
+plot(fit.ridge,xvar="lambda")
+plot(fit.ridge.cv)
+```
+
+Finally, we run the Lasso approach and show the trace and the cross-validation plots.
+
+```{r, fit.cap="Trace and cross-validation lot."}
+# Lasso
+set.seed(1515)
+fit.lasso <- glmnet(xtrain,ytrain,alpha=1)
+fit.lasso.cv <- cv.glmnet(xtrain,ytrain,alpha=1)
+plot(fit.lasso,xvar="lambda")
+plot(fit.lasso.cv)#fit.lasso.cv$lambda.1se
+```
+
+We calculate the root-mean-square errors (RMSE) on the test data and compare with the full model.
+
+```{r}
+# Full model
+fit.full <- lm(y~.,data=data_train)
+# RMSE
+pred.full <- predict(fit.full,newdata=data_test)
+pred.fw <- predict(fit.fw,newdata=data_test)
+pred.ridge <- as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))
+pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
+res.rmse <- data.frame(
+  method=c("full","forward","ridge","lasso"),
+  rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),
+         RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
+kable(res.rmse,digits = 2,
+      booktabs=TRUE)
+```
+
+The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
+
+```{r, echo=FALSE}
+beta.fw <- coef(fit.fw)
+beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
+beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
+res.coef <- data.frame(forward=0,ridge=as.numeric(beta.ridge),lasso=as.numeric(beta.lasso))
+rownames(res.coef) <- rownames(beta.ridge)
+res.coef[names(beta.fw),"forward"] <- beta.fw
+res.coef$coef <- rownames(res.coef)
+res.coef.l <- pivot_longer(res.coef,cols=c("forward","ridge","lasso"),names_to="method")
+
+res.coef.l%>%
+  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
+  ggplot(.,aes(x=coef,y=value,fill=method))+
+  geom_bar(width=0.5,position = position_dodge(width = 0.8),stat="identity")+
+  theme_bw()+
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  scale_fill_grey(aesthetics = c("fill","color"))+
+  xlab("")+ylab("beta")
+```
+
+
+
+```{r, eval=FALSE,echo=FALSE}
+library(lars)
+data("diabetes")
+x <- diabetes$x #mean=0, L2 norm=1
+xs <- scale(diabetes$x) #mean=0, var=1
+x2 <- diabetes$x2
+x2s <- scale(x2)
+y <- diabetes$y-mean(diabetes$y)
+ys <- scale(y)
+
+# Lasso
+fit <- glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
+plot(fit,xvar="norm",label=TRUE) # Fig 6.2 in SLS
+fit.cv <- cv.glmnet(xs,ys,alpha=1,standardize = FALSE,intercept=FALSE)
+plot(fit.cv) # Fig 6.5
+```
+
+```{r, eval=FALSE,echo=FALSE}
+library(lars)
+data("diabetes")
+dat <- read.csv("data/diabetes_raw.csv")
+colnames(dat) <- c("age","sex","bmi","map","tc","ldl","hdl","tch","ltg","glu","y")
+# x <- apply(dat[,-11],2,FUN=function(x){
+#   x <- x-mean(x)
+#   x/sqrt(sum(x^2))
+# })
+x <- scale(dat[,-11])/(sqrt(nrow(dat)-1))
+head(x[,"age"])
+head(diabetes$x2[,"age"])
+head(diabetes$x2[,"age^2"])
+age2 <- dat$age^2
+age2c <- age2-mean(age2)
+age2sc <- age2c/sqrt(sum(age2c^2))
+xage2 <- (x[,"age"])^2
+xage2c <- xage2-mean(xage2)
+xage2sc <- xage2c/sqrt(sum(xage2c^2))
+head(xage2sc)
+
+x2 <- scale(x^2)/sqrt((nrow(x)-1))
+colnames(x2) <- paste0(colnames(x2),"^2")
+xint <- scale(model.matrix(~0+.^2,data=data.frame(x)))/sqrt((nrow(x)-1))
+head(xint[,"age:sex"])
+head(diabetes$x2[,"age:sex"])
+
+xfull <- cbind(x,x2,xint)[,colnames(diabetes$x2)]
+```
+
+```{r, eval=FALSE,echo=FALSE}
+library(lars)
+data("diabetes")
+x2s <- scale(diabetes$x2)
+colnames(x2s) <- gsub(":",".",colnames(x2s))
+y <- diabetes$y-mean(diabetes$y)
+dat <- as.data.frame(cbind(y,x2s))
+
+# Forward regression
+fit0 <- lm(y~1,data=dat)
+fit.fw <- stepAIC(fit0,direction="forward",
+                  scope=list(lower=fit0,upper=paste("~", paste(colnames(x2s), collapse=" + "))
+                             ),
+                  trace = FALSE
+                  )
+kable(as.data.frame(fit.fw$anova),digits=2,booktabs=TRUE)
+
+#summary(fit.fw)
+beta.fw <- coef(fit.fw)
+kable(broom::tidy(fit.fw),digits=2,booktabs=TRUE)
+
+# Ridge
+set.seed(1515)
+fit.ridge <- glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
+fit.ridge.cv <- cv.glmnet(x2s,y,alpha=0,intercept = FALSE,standardize = FALSE)
+plot(fit.ridge.cv)
+fit.ridge.cv$lambda.1se
+beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
+
+# Lasso
+set.seed(1515)
+fit.lasso <- glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
+fit.lasso.cv <- cv.glmnet(x2s,y,alpha=1,intercept = FALSE,standardize = FALSE)
+plot(fit.lasso.cv)
+fit.lasso.cv$lambda.1se
+beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
+
+
+res.coef.l%>%
+  dplyr::filter(coef!="(Intercept)")%>%
+  dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
+  ggplot(.,aes(x=coef,y=value,fill=method))+
+  geom_bar(stat="identity",position = position_dodge(width = .7),width=0.8)+
+  theme_bw()+
+  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  xlab("")+ylab("beta")
+```
+
+We point out that the same analysis can be conducted with the `caret` package. The code to do so is provided next.
+
+```{r eval=FALSE}
+## Setup trainControl: 10-fold cross-validation
+tc <- trainControl(method = "cv", number = 10)
+
+## Ridge
+lambda.grid <- fit.ridge.cv$lambda
+fit.ridge.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 0,
+                                              lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.ridge.caret)
+# Best lambda
+fit.ridge.caret$bestTune$lambda
+# Model coefficients
+coef(fit.ridge.caret$finalModel,fit.ridge.cv$lambda.1se)%>%head
+# Make predictions
+fit.ridge.caret %>% predict(xtest,s=fit.ridge.cv$lambda.1se)%>%head
+
+## Lasso
+lambda.grid <- fit.lasso.cv$lambda
+fit.lasso.caret<-train(x=xtrain,
+                       y=ytrain, 
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 1,
+                                              lambda=lambda.grid),
+                       trControl = tc
+) 
+
+# CV curve
+plot(fit.lasso.caret)
+# Best lambda
+fit.lasso.caret$bestTune$lambda
+# Model coefficients
+coef(fit.lasso.caret$finalModel,
+     fit.lasso.caret$bestTune$lambda)%>%head
+# Make predictions
+fit.lasso.caret%>%predict(xtest,
+                          s=fit.ridge.cv$lambda.1se)%>%head
+
+## Compare Ridge and Lasso
+models <- list(ridge= fit.ridge.caret,lasso = fit.lasso.caret)
+resamples(models) %>% summary( metric = "RMSE")
+```
+

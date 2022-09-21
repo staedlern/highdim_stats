@@ -17,7 +17,7 @@ cover-image: logo2.jpg
 
 # Introduction
 
-This script was written for the course on *Analysis of High-Dimensional Data* of the CAS in Advanced Statistical Data Science (CAS ASDS) held at the University of Bern.
+This script was written for the course on *Analysis of High-Dimensional Data* held at the University of Bern and the ETH Zurich.
 Much of the content is based on the book from @elements. The course has a focus on applications using **R** [@R-base]. All data sets used throughout the script can be downloaded from [github](https://github.com/staedlern/highdim_stats).
 
 What are high-dimensional data and what is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:

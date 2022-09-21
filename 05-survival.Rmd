@@ -13,7 +13,7 @@ library(tidyverse)
 
 We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We will use the *lymphoma* data set to set the scene and explain the basics. In particular, we will discuss elastic net regularization in the context of cox regression, introduce the time-dependent Brier score as a measure of prediction accuracy, and we give an example on how to use the `pec` package to benchmark prediction algorithms.
 
-## Survival Endpoints and Cox Regression
+## Survival endpoints and Cox regression
 
 
 We start by reading the lymphoma data which consists of gene expression data for $p=7399$ genes measured on $n=240$ patients, as well as survival data, for these patients. 
@@ -130,7 +130,7 @@ The (exponentiated) regression coefficients are interpreted as hazard-ratios. Fo
 ggforest(fit)
 ```
 
-## Regularized Cox Regression
+## Regularized Cox regression
 
 The lymphoma data consists of $p=$ `r ncol(x)` predictors. A truly high-dimensional example! Similar as for linear - and logistic regression we can build upon the Cox regression model and use subset selection or regularization. The R package `glmnet` implements elastic net penalized cox regression. For illustration we restrict ourselves to the top genes (highest variance) and we scale the features as part of the data preprocessing. 
 
@@ -232,7 +232,7 @@ ggsurvplot(fit.surv,conf.int = TRUE)
 
 The survival curves are reasonably well separated, which suggests we have derived a gene signature which deserves further investigation.
 
-## Brier Score
+## Brier score
 
 We have seen how to evaluate the generalization error in the linear regression and classification context. For time-to-event data this is slightly more involved. A popular way to quantify the prediction accuracy is the time-dependent Brier score
 

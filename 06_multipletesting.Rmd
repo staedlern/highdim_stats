@@ -28,7 +28,7 @@ An overview on the phenotype data can be obtained using the following commands.
 table(pData(esetmouse)$strain)
 ```
 
-## Gene-wise Two-sample Comparison
+## Gene-wise two-sample comparison
 
 We are interested in comparing gene expression between the 
 mice strains A and B.
@@ -94,7 +94,7 @@ sum(res.de$p.value<0.05)
 
 According to this analysis `r sum(res.de$p.value<0.05)` genes are differentially expressed between strains A and B. This is `r round(100*sum(res.de$p.value<0.05)/p,1)`% of all genes. In the next section we will explain that this analysis misses an important point, namely it neglects the issue of multiple testing.
 
-## Multiple Testing
+## Multiple testing
 
 To illustrate the multiple testing problem we create an artificial gene expression data set where we are certain that none of the genes is differentially expressed.  
 
@@ -144,7 +144,7 @@ hist(res.de$p.value)
 In the next section we will discuss *p-value adjustment* which is a method to counteract the issue of multiple testing.
 
 
-## P-value Adjustment
+## P-value adjustment
 
 Our previous consideration suggest that we could adjust the p-values by multiplying with the number $p$ of performed tests, i.e.
 
@@ -185,7 +185,7 @@ sum(res.de.sim$p.value.fdr<0.05)
 ```
 
 
-## Volcano Plot
+## Volcano plot
 
 It is important to effectively display statistical results obtained from high-dimensional data. We have discussed how to calculate p-values and how to adjust them for multiplicity. However, the p-value is often not the only quantity of interest. In differential gene expression analysis we are also interested in the magnitude of change in expression. 
 
@@ -241,7 +241,7 @@ res.de.sim%>%
 ```
 
 
-## Variance Shrinkage and Empirical Bayes
+## Variance shrinkage and empirical bayes
 
 The basis of the statistical analyses are the t-statistics 
 

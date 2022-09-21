@@ -12,7 +12,7 @@ library(rpart)
 
 Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
 
-## Logistic Regression
+## Logistic regression
 
 We start with standard logistic regression where the response $Y$ takes values $0$ and $1$, and the aim is to do prediction based on covariates $X=(X_1,\ldots,X_p)$. We model the probability of success (i.e., $Y=1$) $$p(x;\beta)=P(Y=1|X=x;\beta)$$ assuming a binomial distribution with logit link function
 
@@ -87,7 +87,7 @@ an increase of 1kg in lifetime tobacco usage accounts for an increase in the
 odds of coronary heart disease of $\exp(0.080)$=`r round(exp(0.080),3)` or $8.3$%. Incorporating the standard error we get an approximate $95$% confidence interval of
 $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0226,0.080+2*0.0226)),3),collapse = ",")),")")`.
 
-## Regularized Logistic Regression
+## Regularized logistic regression
 
 Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
@@ -230,7 +230,7 @@ The misclassification error on the test data can be calculated as follows.
 round(mean(pred!=ytest),3)
 ```
 
-## Classification Trees and Machine Learning
+## Classification trees and machine learning
 
 Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. We first introduce *classification trees* which learn a binary tree where *leaves* represent class labels and *branches* represent conjunctions of features that lead to those class labels. The package `rpart` can be used to learn classification trees.
 
