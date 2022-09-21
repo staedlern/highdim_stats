@@ -1,0 +1,2768 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{book}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={ Prediction and Feature Assessment},
+  pdfauthor={Nicolas Städler},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\usepackage{booktabs}
+\usepackage{amsthm}
+\makeatletter
+\def\thm@space@setup{%
+  \thm@preskip=8pt plus 2pt minus 4pt
+  \thm@postskip=\thm@preskip
+}
+\makeatother
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage[]{natbib}
+\bibliographystyle{apalike}
+
+\title{\includegraphics[width=3.5in,height=\textheight]{logo2.jpg}\\
+Prediction and Feature Assessment}
+\author{Nicolas Städler}
+\date{2022-09-20}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{1}
+\tableofcontents
+}
+\hypertarget{introduction}{%
+\chapter{Introduction}\label{introduction}}
+
+This script was written for the course on \emph{Analysis of High-Dimensional Data} of the CAS in Advanced Statistical Data Science (CAS ASDS) held at the University of Bern.
+Much of the content is based on the book from \citet{elements}. The course has a focus on applications using \textbf{R} \citep{R-base}. All data sets used throughout the script can be downloaded from \href{https://github.com/staedlern/highdim_stats}{github}.
+
+What are high-dimensional data and what is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:
+
+\emph{High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the number of observations. Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.}
+
+High-dimensional statistics is often paraphrased with the expression \(p>>n\) which refers to a linear regression setting where the number of covariates \(p\) is much larger than the number of samples \(n\). Nevertheless, challenges with standard statistical approaches already appear when \(p\) is comparable to \(n\) and we will see that in more complex models issues due to high-dimensionality often manifest itself in a more subtle manners.
+
+High-dimensional data are omnipresent and the approaches which we will discuss find applications in many disciplines. In this course we will explore examples from molecular biology, health care, speech recognition and finance.
+
+In this script we distinguish between two typical tasks of high-dimensional statistics. The first task considers many explanatory variables \(X_1,\ldots,X_p\) and one response variable \(Y\). The goal is to predict the response and to identify the most relevant covariates. We refer to this task as \emph{Prediction and Feature Selection}. The second task considers one (or few) explanatory variable \(X\) and many response variables \(Y_1, \ldots, Y_p\). The aim is to identify those variables which differ with respect to \(X\) (e.g.~treatment groups A vs B). We refer to this task as \emph{Feature Assessment}.
+
+\begin{figure}
+\includegraphics[width=0.9\linewidth]{twotasks} \caption{Prediction and feature selection (left graph) and feature assessment (right graph).}\label{fig:twotasks}
+\end{figure}
+
+The script starts with the \emph{multiple linear regression} model and the \emph{least squares} estimator. We discuss the limitations of least squares in the \(p>>n\) scenario, explain the challenge of \emph{overfitting}, introduce the \emph{generalization error} and elaborate on the \emph{bias-variance dilemma}. We then discuss methods designed to overcome challenges in high dimensions. We start with \emph{subset-} and \emph{stepwise regression} and then discuss in more detail regularization methods, including \emph{Ridge regression}, \emph{Lasso regression} and \emph{Elasticnet regression}. Next, we turn our attention to binary endpoints. In particular we discuss regularization in the context of the \emph{logistic regression} model. We then talk about \emph{classification trees}, \emph{Random Forest} and \emph{AdaBoost}. We then move to \emph{time-to-event endpoints} and show how to extend the previously introduced methods to \emph{survival data}. We introduce the \emph{Brier score} to assess the generalization error in the survival context. The last section is devoted to \emph{high-dimensional feature assessment}. Based on a \emph{differential gene expression} example we will discuss the issue of \emph{multiple testing}, introduce methods for \emph{p-value adjustment}, and finally we will touch upon \emph{variance shrinkage}.
+
+\hypertarget{multiple-linear-regression}{%
+\chapter{Multiple Linear Regression}\label{multiple-linear-regression}}
+
+In this chapter we will review multiple linear regression and in particular the Ordinary Least Squares (OLS) estimator. We will further investigate the challenges which appear in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e.~\(p>>n\).
+
+\hypertarget{notation}{%
+\section{Notation}\label{notation}}
+
+We will typically denote the covariates by the symbol \(X\). If \(X\) is a vector, its components can be accessed
+by subscripts \(X_j\). The response variable will be denoted by \(Y\). We use uppercase letters such as \(X\), \(Y\) when referring to the generic aspects of a variable. Observed values are written in lowercase; hence the \(i\)th observed value of \(X\) is written as \(x_i\) (where \(x_i\) is again a scalar or vector). Matrices are represented by bold uppercase letters; for example, a set of \(n\) input p-vectors \(x_i\), \(i=1,\ldots,n\) would be represented by the \(n\times p\) matrix \(\bf{X}\). All vectors are assumed to be column vectors, the \(i\)th row of \(\bf{X}\) is \(x_i^T\).
+
+\hypertarget{ordinary-least-squares}{%
+\section{Ordinary Least Squares}\label{ordinary-least-squares}}
+
+Given a vector of inputs \(X=(X_1,X_2,\ldots,X_p)\), in multiple regression we predict the output \(Y\) via the linear model:
+
+\[ \hat{Y}=\hat\beta_0+\sum_{j=1}^{p}X_j\hat\beta_j.\]
+
+The term \(\beta_0\) is the intercept. If we include the constant variable 1 in \(X\), include \(\hat\beta_0\) in the vector of coefficients \(\hat\beta\), then we can write
+
+\[\hat{Y}=X^T\hat\beta.\]
+
+How do we fit the linear model to a set of training data (i.e.~how do we obtain the estimator \(\hat \beta\))? We typically use \emph{ordinary least squares} (OLS) where we pick the coefficient \(\beta\) to minimize the residual sum of squares
+
+\begin{eqnarray*}
+\textrm{RSS}(\beta)&=&\sum_{i=1}^{n}(y_i-x_i^T\beta)^2\\
+&=&(\textbf{y} - \textbf{X} \beta)^T (\textbf{y} - \textbf{X} \beta)\\
+&=&\|\textbf{y} - \textbf{X} \beta\|^2_2.
+\end{eqnarray*}
+
+If the matrix \(\bf X^T \bf X\) is nonsingular, then the solution is given by
+
+\[\hat\beta=(\bf X^T \bf X)^{-1}\bf X^T \bf y.\]
+
+Thus, the prediction at the new input point \(X_{\rm new}\) is
+
+\begin{align*}
+\hat{Y}&=\hat{f}(X_{\rm new})\\
+&=X_{\rm new}^T\hat\beta\\
+&=X_{\rm new}^T(\textbf{X}^T \textbf{X})^{-1}\textbf{X}^T \textbf{y}.
+\end{align*}
+
+Figures \ref{fig:olsgeom2} and \ref{fig:olsgeom1} show two geometric representations of the OLS estimator. In Figure \ref{fig:olsgeom2} the \(n\) data points \((y_i,x_{i1},\ldots,x_{ip})\) randomly spread around a \(p\)-dimensional hyperplane in a \(p+1\)-dimensional space; the random spread only occurs parallel to the y-axis and the hyperplane is defined via \(\hat \beta\). Figure \ref{fig:olsgeom1} shows a different representation where the vector \(\bf y\) is a single point in the \(n\)-dimensional space \({\bf R}^n\); the fitted \(\hat {\bf y}\) is the orthogonal projection onto the \(p\)-dimensional subspace of \({\bf R}^n\) spanned by the vectors \({\bf x}_1,\ldots,{\bf x}_p\).
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{ols_geom2} 
+
+}
+
+\caption{Data points spreading around the p-dimensional OLS hyperplane.}\label{fig:olsgeom2}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{ols_geom1} 
+
+}
+
+\caption{OLS fit $\hat{\textbf{y}}$ as the orthogonal projection of $\textbf{y}$ onto subspace spanned by covariates.}\label{fig:olsgeom1}
+\end{figure}
+
+\hypertarget{overfitting}{%
+\section{Overfitting}\label{overfitting}}
+
+Overfitting refers to the phenomenon of modelling the noise rather than the signal. In case the true model is parsimonious (few covariates driving the response \(Y\)) and data on many covariates are available, it is likely that a linear combination of all covariates yields a higher likelihood than a combination of the few that are actually related to the response. As only the few covariates related to the response contain the signal, the model involving all covariates then cannot
+but explain more than the signal alone: it also models the error. Hence, it overfits the data.
+
+We illustrate overfitting by generating artificial data.
+We simulate \(n=10\) training data points, take \(p=15\) and \(X_{i1},\ldots,X_{ip}\) i.i.d. \(N(0,1)\). We assume that the response depends only on the first covariate, i.e.~\(Y_i=\beta_1 X_{i1}+\epsilon_i\), where \(\beta_1=2\) and \(\epsilon_i\) i.i.d. \(N(0,0.5^2)\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{10}
+\NormalTok{p }\OtherTok{\textless{}{-}} \DecValTok{15}
+\NormalTok{beta }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{,p}\DecValTok{{-}1}\NormalTok{))}
+
+\CommentTok{\# simulate covariates}
+\NormalTok{xtrain }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{rnorm}\NormalTok{(n}\SpecialCharTok{*}\NormalTok{p),n,p)}
+\NormalTok{ytrain }\OtherTok{\textless{}{-}}\NormalTok{ xtrain}\SpecialCharTok{\%*\%}\NormalTok{beta}\SpecialCharTok{+}\FunctionTok{rnorm}\NormalTok{(n,}\AttributeTok{sd=}\FloatTok{0.5}\NormalTok{)}
+\NormalTok{dtrain }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(xtrain)}
+\NormalTok{dtrain}\SpecialCharTok{$}\NormalTok{y }\OtherTok{\textless{}{-}}\NormalTok{ ytrain}
+\end{Highlighting}
+\end{Shaded}
+
+We fit a univariate linear regression model with X1 as covariate and print the \texttt{summary}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit1 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{X1,}\AttributeTok{data=}\NormalTok{dtrain)}
+\FunctionTok{summary}\NormalTok{(fit1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = y ~ X1, data = dtrain)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.59574 -0.41567 -0.06222  0.18490  0.97592 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  -0.1002     0.1785  -0.561     0.59    
+## X1            1.8070     0.2373   7.614 6.22e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.5558 on 8 degrees of freedom
+## Multiple R-squared:  0.8787, Adjusted R-squared:  0.8636 
+## F-statistic: 57.97 on 1 and 8 DF,  p-value: 6.223e-05
+\end{verbatim}
+
+The coefficient for X1 is close to the true value. The R squared value \(R^2=\) 0.88 indicates that the model fits the data well. In order to explore what happens if we add noise covariates, we re-fit the model with an increasing number of covariates, i.e.~\(p=4\), \(8\) and \(15\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit4 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{X1}\SpecialCharTok{+}\NormalTok{X2}\SpecialCharTok{+}\NormalTok{X3}\SpecialCharTok{+}\NormalTok{X4,}\AttributeTok{data=}\NormalTok{dtrain)}
+\NormalTok{fit8 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{X1}\SpecialCharTok{+}\NormalTok{X2}\SpecialCharTok{+}\NormalTok{X3}\SpecialCharTok{+}\NormalTok{X4}\SpecialCharTok{+}\NormalTok{X5}\SpecialCharTok{+}\NormalTok{X6}\SpecialCharTok{+}\NormalTok{X7}\SpecialCharTok{+}\NormalTok{X8,}\AttributeTok{data=}\NormalTok{dtrain)}
+\NormalTok{fit15 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{.,}\AttributeTok{data=}\NormalTok{dtrain) }\CommentTok{\#all 15 covariates}
+\end{Highlighting}
+\end{Shaded}
+
+The next plot shows the data points (black circles) together with the fitted values (red crosses).
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-8-1} 
+
+}
+
+\caption{Observed and fitted values for models with increasing $p$.}\label{fig:unnamed-chunk-8}
+\end{figure}
+
+With increasing \(p\) the fitted values start to deviate from the true model (blue line) and they move closer towards the observed data points. Finally, with \(p=15\), the fitted values match perfectly the data, i.e.~the model captures the noise and overfits the data. In line with these plots we note that the R squared values increase with \(p\).
+
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-9}R2 for models with increasing p.}
+\centering
+\begin{tabular}[t]{lr}
+\toprule
+model & R2\\
+\midrule
+p=1 & 0.88\\
+p=4 & 0.90\\
+p=8 & 0.98\\
+p=15 & 1.00\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The following figure shows the regression coefficients for the different models. The larger the \(p\), the bigger the discrepancy to the true coefficients.
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-10-1} 
+
+}
+
+\caption{Regression coefficients for models with increasing $p$.}\label{fig:unnamed-chunk-10}
+\end{figure}
+
+This becomes even more evident when calculating the mean squared error between the estimated and true coefficients.
+
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-11}MSE between estimated and true coefficients.}
+\centering
+\begin{tabular}[t]{lr}
+\toprule
+  & mse\\
+\midrule
+p=1 & 0.02\\
+p=4 & 0.04\\
+p=8 & 0.84\\
+p=15 & 1.63\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The \texttt{summary} of the full model with \(p=15\) indicates that something went wrong.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(fit15)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = y ~ ., data = dtrain)
+## 
+## Residuals:
+## ALL 10 residuals are 0: no residual degrees of freedom!
+## 
+## Coefficients: (6 not defined because of singularities)
+##             Estimate Std. Error t value Pr(>|t|)
+## (Intercept) -0.01592        NaN     NaN      NaN
+## X1          -0.50138        NaN     NaN      NaN
+## X2           0.81492        NaN     NaN      NaN
+## X3          -0.56052        NaN     NaN      NaN
+## X4           0.72667        NaN     NaN      NaN
+## X5           1.84831        NaN     NaN      NaN
+## X6           0.05759        NaN     NaN      NaN
+## X7          -1.21460        NaN     NaN      NaN
+## X8          -1.30908        NaN     NaN      NaN
+## X9          -1.39005        NaN     NaN      NaN
+## X10               NA         NA      NA       NA
+## X11               NA         NA      NA       NA
+## X12               NA         NA      NA       NA
+## X13               NA         NA      NA       NA
+## X14               NA         NA      NA       NA
+## X15               NA         NA      NA       NA
+## 
+## Residual standard error: NaN on 0 degrees of freedom
+## Multiple R-squared:      1,  Adjusted R-squared:    NaN 
+## F-statistic:   NaN on 9 and 0 DF,  p-value: NA
+\end{verbatim}
+
+There is a note saying ``no residual degrees of freedom''. Furthermore, many entries in the table of coefficients are not available and a note says that coefficients cannot be calculated because of \emph{singularities}. What has happened? In fact, the OLS estimator as introduced above is not well defined. The design matrix \(\bf X\) is rank deficient (\({\rm rank}({\bf X})=n< p\)) and therefore the matrix \({\bf X}^T {\bf X}\) is singular (not invertible). We can check this by calculating the determinant.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x }\OtherTok{\textless{}{-}} \FunctionTok{model.matrix}\NormalTok{(fit15)}
+\FunctionTok{det}\NormalTok{(}\FunctionTok{t}\NormalTok{(x)}\SpecialCharTok{\%*\%}\NormalTok{x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] -2.8449e-81
+\end{verbatim}
+
+In this simulation exercise we illustrated the problem of overfitting. We have seen that the models with large \(p\) fit the data very well, but the estimated coefficients are far off from the truth. In practice we do not know the truth. How do we know when a model is overfitting and how do we decide what a ``good'' model is? Shortly we will introduce the \protect\hyperlink{generalization-error}{Generalization Error} which will shed light on this question.
+
+We end this section with the helpful \textbf{\emph{10:1 rule:}}
+
+\begin{quote}
+In order to avoid overfitting the number of predictors (or covariates) \textbf{p should be less than n/10}. This rule can be extended to binary and time-to-event endpoints. For binary endpoints we replace \(n\) with \(\min\{n_0,n_1\}\) and for time-to-event with \(n_{\rm events}\).
+\end{quote}
+
+\hypertarget{generalization-error}{%
+\section{Generalization Error}\label{generalization-error}}
+
+The ultimative goal of a good model is to make good predictions for the future. That is we need to assess how the fitted model generalizes beyond the ``observed'' data. Conceptually, given new input data \(x_{\rm new}\), the model provides a prediction \(\hat{Y}=\hat{f}(x_{\rm new})\). The \emph{Generalization Error} is the expected discrepancy between the prediction \(\hat{Y}=\hat{f}(x_{\rm new})\) and the actual outcome \(Y_{\rm new}\)
+
+\[{\rm Err}(x_{\rm new})=E[(Y_{\rm new}-\hat{f}(x_{\rm new}))^2].\]
+One can show that this error can be decomposed into three terms
+
+\begin{eqnarray}
+{\rm Err}(x_{\rm new})&=&\sigma_{\epsilon}^2+{\rm Bias}^2(\hat{f}(x_{\rm new})) + {\rm Var}(\hat{f}(x_{\rm new})),
+\end{eqnarray}
+
+where the first term is the irreducible error (or ``noise''), the second term describes the systematic bias from the truth and the third term is the variance of the predictive model. For linear regression the expected variance can be approximated by \(\sigma^2_{\epsilon} \frac{p}{N}\). Complex models (with large number of covariates) have typically a small bias but a large variance. Therefore the equation above is referred to as the bias-variance dilemma as it describes the conflict in trying simultaneously minimize both sources of error, bias and variance.\\
+
+How do we calculate the Generalization Error in practice? The most simple approach is to separate the data into a training and testing set (see Figure \ref{fig:traintest}). The model is fitted (or ``trained'') on the training data and the Generalization Error is calculated on the test data and quantified using the root-mean-square error (RMSE)
+
+\[ {\rm RMSE}= \sqrt{\frac{\sum_{i=1}^{n_{\rm test}}(y_{\rm test,i}-\hat y_{i})^2}{n_{\rm test}}}.\]
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{traintest} 
+
+}
+
+\caption{Splitting the data into training set and test sets.}\label{fig:traintest}
+\end{figure}
+
+We illustrate this based on the dummy data. First we simulate test data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# simulate test data}
+\NormalTok{xtest }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{rnorm}\NormalTok{(n}\SpecialCharTok{*}\NormalTok{p),n,p)}
+\NormalTok{ytest }\OtherTok{\textless{}{-}}\NormalTok{ xtest}\SpecialCharTok{\%*\%}\NormalTok{beta}\SpecialCharTok{+}\FunctionTok{rnorm}\NormalTok{(n,}\AttributeTok{sd=}\FloatTok{0.5}\NormalTok{)}
+\NormalTok{dtest }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(xtest)}
+\NormalTok{dtest}\SpecialCharTok{$}\NormalTok{y }\OtherTok{\textless{}{-}}\NormalTok{ ytest}
+\end{Highlighting}
+\end{Shaded}
+
+Next, we take the fitted models and make predictions on the test data
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# prediction}
+\NormalTok{pred1 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit1,}\AttributeTok{newdata =}\NormalTok{ dtest)}
+\NormalTok{pred4 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit4,}\AttributeTok{newdata =}\NormalTok{ dtest)}
+\NormalTok{pred8 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit8,}\AttributeTok{newdata =}\NormalTok{ dtest)}
+\NormalTok{pred15 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit15,}\AttributeTok{newdata =}\NormalTok{ dtest)}
+\end{Highlighting}
+\end{Shaded}
+
+and we calculate the RMSE.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# rmse}
+\NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \FunctionTok{RMSE}\NormalTok{(pred1,ytest),}\FunctionTok{RMSE}\NormalTok{(pred4,ytest),}
+  \FunctionTok{RMSE}\NormalTok{(pred8,ytest),}\FunctionTok{RMSE}\NormalTok{(pred15,ytest)}
+\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(rmse) }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"p="}\NormalTok{,}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{8}\NormalTok{,}\DecValTok{15}\NormalTok{))}
+\FunctionTok{rownames}\NormalTok{(rmse) }\OtherTok{\textless{}{-}} \StringTok{"RMSE"}
+\FunctionTok{kable}\NormalTok{(rmse,}\AttributeTok{digits=}\DecValTok{2}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{,}
+      \AttributeTok{caption=}\StringTok{"RMSE for models with increasing p."}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-17}RMSE for models with increasing p.}
+\centering
+\begin{tabular}[t]{lrrrr}
+\toprule
+  & p=1 & p=4 & p=8 & p=15\\
+\midrule
+RMSE & 0.54 & 0.63 & 3.28 & 3.7\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The models with \(p=1\) and \(4\) achieve a good error close to the ``irreducible'' \(\sigma_{\epsilon}\). On the other hand the predictions obtained with \(p=8\) and \(15\) are very poor (RMSEs are 6 to 8-fold larger).
+
+\hypertarget{regularization}{%
+\chapter{Regularization}\label{regularization}}
+
+We have seen that multiple regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the least-squares optimization with constraints on the regression coefficients can decrease the risk of overfitting. In the following we will discuss methods which minimize the residual sum of squares, \(\rm{RSS}(\beta)\), under some constraints on the parameter \(\beta\).
+
+\hypertarget{model-selection}{%
+\section{Model Selection}\label{model-selection}}
+
+We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models (indexed as \(m=1,\ldots,M\)). Model selection refers to the choice of an optimal model achieving a low generalization error. A plausible approach would be to fit the different models to the training data and then select the model with smallest error on the test data. However, this is an illegitimate approach as the test data has to be kept untouched for the final evaluation of the selected model. Therefore we guide model selection by approximating the generalization error using training data only. We review now two such approximations, namely, cross-validation and the Akaike information criterion (AIC).
+
+K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here \(K=5\)).
+
+\begin{center}\includegraphics[width=0.8\linewidth]{crossvalidation} \end{center}
+
+Each chunk is then used as ``hold-out'' validation data to estimate the error of \(m\)th model trained on the other \(K-1\) data chunks. In that way we obtain \(K\) error estimates and we typically take the average as the cross-validation error of model \(m\) (denoted by \({\rm CV}_m\)). The next plot shows a typical cross-validation error plot. This curve attains its minimum at a model with \(p_m=4\) (\(p_m\) is the number of included predictors in model \(m\)).
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-19-1} \end{center}
+
+The AIC approach is founded in information theory and selects the model with smallest AIC
+
+\[
+{\rm AIC}_m=-2\;{\rm loglik}+2\;p_{m}.
+\]
+Thus, AIC rewards goodness of fit (as assessed by the likelihood function \emph{loglik}) and penalizes model complexity (by the term \(2 p_m\)). The figure below shows for the same example the AIC curve. Also the AIC approaches suggests to use a model with \(p_m=4\) predictors.
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-20-1} \end{center}
+
+\hypertarget{subset--and-stepwise-regression}{%
+\section{Subset- and Stepwise Regression}\label{subset--and-stepwise-regression}}
+
+The most common approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset \(S\subset\{1,\ldots,p\}\) we solve the optimization problem
+
+\[
+\hat{\beta}_{S}=\text{arg}\!\!\!\!\!\min\limits_{\beta_j=0\;\forall j\notin S}\!\!\!\textrm{RSS}(\beta).
+\]
+
+It is easy to show that this is equivalent to OLS regression based on subset \(S\) covariates, i.e.
+
+\[
+\hat{\beta}_{S}=(\textbf{X}_S^T \textbf{X}_S)^{-1}\textbf{X}_S^T \textbf{y}.
+\]
+
+In practice we need to explore a sequence of subsets \(S_1,\ldots,S_M\) and choose an optimal subset by either a re-sampling approach or by using an information criterion (see Section \ref{model-selection}). There are a number of different strategies available. \emph{Best subsets regression} consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are \emph{backward stepwise} regression which starts with the full model and sequentially deletes covariates, whereas \emph{forward stepwise} regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit.
+
+In \texttt{R} we can use \texttt{regsubsets} from the \texttt{leaps} package or \texttt{stepAIC} from the \texttt{MASS} package to perform subset- and stepwise regression. For example to perform forward stepwise regression based on AIC we proceed as follows.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Forward regression}
+\NormalTok{fit0 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\DecValTok{1}\NormalTok{,}\AttributeTok{data=}\NormalTok{dtrain)}
+\NormalTok{up.model }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(}\StringTok{"\textasciitilde{}"}\NormalTok{, }\FunctionTok{paste}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dtrain[,}\SpecialCharTok{{-}}\NormalTok{(p}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)]), }\AttributeTok{collapse=}\StringTok{" + "}\NormalTok{))}
+\NormalTok{fit.fw }\OtherTok{\textless{}{-}} \FunctionTok{stepAIC}\NormalTok{(fit0,}
+                  \AttributeTok{direction=}\StringTok{"forward"}\NormalTok{,}
+                  \AttributeTok{scope=}
+                    \FunctionTok{list}\NormalTok{(}\AttributeTok{lower=}\NormalTok{fit0,}
+                         \AttributeTok{upper=}\NormalTok{up.model)}
+\NormalTok{                    ,}
+                  \AttributeTok{trace =} \ConstantTok{FALSE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We can summarize the stepwise process.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}\FunctionTok{as.data.frame}\NormalTok{(fit.fw}\SpecialCharTok{$}\NormalTok{anova),}\AttributeTok{digits=}\DecValTok{3}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}
+\NormalTok{      ,}\AttributeTok{caption=}\StringTok{"Inclusion of covariates in forward stepwise regression."}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-23}Inclusion of covariates in forward stepwise regression.}
+\centering
+\begin{tabular}[t]{lrrrrr}
+\toprule
+Step & Df & Deviance & Resid. Df & Resid. Dev & AIC\\
+\midrule
+ & NA & NA & 9 & 22.468 & 10.095\\
++ X1 & 1 & 20.017 & 8 & 2.450 & -10.064\\
++ X4 & 1 & 0.883 & 7 & 1.567 & -12.535\\
++ X9 & 1 & 0.376 & 6 & 1.191 & -13.277\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Finally we can retrieve the regression coefficients of the optimal model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(broom}\SpecialCharTok{::}\FunctionTok{tidy}\NormalTok{(fit.fw),}\AttributeTok{digits=}\DecValTok{3}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{,}
+      \AttributeTok{caption=}\StringTok{"Regression coefficients of the optimal model."}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-24}Regression coefficients of the optimal model.}
+\centering
+\begin{tabular}[t]{lrrrr}
+\toprule
+term & estimate & std.error & statistic & p.value\\
+\midrule
+(Intercept) & 0.210 & 0.157 & 1.334 & 0.231\\
+X1 & 1.611 & 0.243 & 6.624 & 0.001\\
+X4 & -0.508 & 0.205 & -2.475 & 0.048\\
+X9 & -0.322 & 0.234 & -1.376 & 0.218\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\hypertarget{ridge-regression}{%
+\section{Ridge Regression}\label{ridge-regression}}
+
+Subset selection as outlined above works by either including or
+excluding covariates, i.e.~constrain specific regression coefficients to be zero.
+
+An alternative is \emph{Ridge regression}, which regularizes the optimization problem by shrinking regression coefficients towards zero. This discourages complex models because
+models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem
+
+\[
+\hat{\beta}^{\rm Ridge}_{c}=\text{arg}\min\limits_{\|\beta\|_2^2\leq c}\textrm{RSS}(\beta).
+\]
+
+The geometry of the optimization problem is illustrated in Figure \ref{fig:ridgegeom}. It shows the levels sets of \({\rm RSS}(\beta)\), ellipsoids centered around the OLS estimate, and the circular ridge
+parameter constraint, centered around zero with radius \(c > 0\). The Ridge estimator
+is the point where the smallest level set hits the constraint. Exactly at that point the \(\rm{RSS}(\beta)\) is
+minimized over those \(\beta\)'s that ``live'' inside the constraint.
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.7\linewidth]{ridge_geometry} 
+
+}
+
+\caption{Geometry of Ridge regression.}\label{fig:ridgegeom}
+\end{figure}
+
+Alternatively, Ridge regression can be cast as the optimization of the penalised residual sum of squares with a \emph{penalty} on the magnitude of the coefficients, i.e.~
+
+\[\hat{\beta}^{\rm Ridge}_{\lambda}=\textrm{arg}\min\limits_{\beta}\textrm{RSS}(\beta)+\lambda\|\beta\|^2_2.\]
+
+Both formulations are equivalent in the sense that there is a one-to-one relationship between the tuning parameters \(c\) and \(\lambda\). We will use more often the latter ``penalisation'' formulation. The parameter \(\lambda\) is the amount of penalisation. Note that with no penalization, \(\lambda=0\), Ridge regression coincides with OLS. Increasing \(\lambda\) has the effect of shrinking the regression coefficients to zero.
+
+The Ridge optimization problem has the closed form solution (see exercises)
+
+\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&=(\textbf{X}^T \textbf{X}+\lambda \textbf{I})^{-1}\textbf{X}^T \textbf{y}.
+\end{align*}
+
+Note that for \(\lambda>0\) the matrix \(\textbf{X}^T \textbf{X}+\lambda \textbf{I}\) has always full rank and therefore Ridge regression is well defined even in the high-dimensional context (in contrast to OLS).
+
+Ridge regression is implemented in the package \texttt{glmnet}. We use \texttt{alpha=0} and can call
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.ridge.glmnet }\OtherTok{\textless{}{-}}\FunctionTok{glmnet}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}\AttributeTok{y=}\NormalTok{ytrain,}\AttributeTok{alpha=}\DecValTok{0}\NormalTok{) }
+\FunctionTok{plot}\NormalTok{(fit.ridge.glmnet,}\AttributeTok{xvar=}\StringTok{"lambda"}\NormalTok{,}\AttributeTok{label=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-25-1} \end{center}
+
+\hypertarget{choice-of-penalty-parameter}{%
+\subsection{Choice of penalty parameter}\label{choice-of-penalty-parameter}}
+
+In subset- and stepwise regression we had to identify the optimal subset. Similarly, for Ridge regression model selection consists of selecting the tuning parameter \(\lambda\). We proceed by choosing a grid of values \(0<\lambda_1<\lambda_2<\ldots<\lambda_M<\infty\) and proceed as explained in Section \ref{model-selection}, that is we choose the optimal \(\lambda_{\rm opt}\) by either re-sampling or information criteria. In \texttt{glmnet} we use cross-validation using the command \texttt{cv.glmnet}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv.ridge.glmnet }\OtherTok{\textless{}{-}}\FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}\AttributeTok{y=}\NormalTok{ytrain,}\AttributeTok{alpha=}\DecValTok{0}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+The next plot shows the cross-validation error with upper and lower standard deviations as a function of the lambda values (note the log scale for the lambdas).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(cv.ridge.glmnet)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-27-1} \end{center}
+
+The tuning parameter with the smallest cross-validation error is stored in the argument \texttt{lambda.min}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv.ridge.glmnet}\SpecialCharTok{$}\NormalTok{lambda.min}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.8286695
+\end{verbatim}
+
+Another choice is \texttt{lambda.1se} which denotes the largest \(\lambda\) within 1 standard error of the smallest cross-validation error.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv.ridge.glmnet}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3.671521
+\end{verbatim}
+
+\hypertarget{shrinkage-property}{%
+\subsection{Shrinkage property}\label{shrinkage-property}}
+
+The OLS estimator becomes unstable (high variance) in presence of collinearity. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components.
+
+This can be best understood by rotating the data using a principle component analysis (see Figure \ref{fig:principlecomponent}). In particular, we consider the singular value decomposition
+
+\[\textbf{X}=\textbf{U}\textbf{D}\textbf{V}^T,\]
+
+where the columns of \(\textbf{U}\) form an orthonormal basis of the column space of \(\textbf{X}\), \(\textbf{D}\) is a diagonal matrix with entries \(d_1\geq d_2\geq\ldots\geq d_p \geq 0\) called the singular values, and the columns of \(\textbf{V}\) represent the principle component directions. For OLS the vector of fitted values \({\bf \hat y}^{\rm OLS}\) is the orthogonal projection of \({\bf y}\) onto the column space of \(\bf X\). Therefore, in terms of rotated data we have
+
+\[\hat{\textbf{y}}^{\rm OLS}=\sum_{j=1}^{p}\textbf{u}_j \textbf{u}_j^T \textbf{y}.\]
+
+Similarly, we can represent the fitted values from Ridge regression as
+
+\[\hat{\textbf{y}}^{\rm Ridge}=\sum_{j=1}^{p}\textbf{u}_j \frac{d_j^2}{d_j^2+\lambda}\textbf{u}_j^T\textbf{y}.\]
+
+This shows that the level of shrinkage \(\frac{d_j^2}{d_j^2+\lambda}\) is largest in the direction of the last principle component, which in return is the direction where the data exhibits smallest variance.
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/principlecomponent-1} 
+
+}
+
+\caption{Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis.}\label{fig:principlecomponent}
+\end{figure}
+
+\hypertarget{effective-degrees-of-freedom}{%
+\subsection{Effective degrees of freedom}\label{effective-degrees-of-freedom}}
+
+Although Ridge regression involves all \(p\) covariates the \emph{effective degrees of freedom} are smaller than \(p\) as we have imposed constraints through the penalty. In the book \citet{elements} it is shown that the effective degrees of freedom for Ridge regression, \(\nu^{\rm ridge}_{\lambda}\), are given by
+
+\[\nu^{\rm ridge}_{\lambda}=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]
+where \(d_1,\ldots,d_p\) are the singular values of \(\bf X\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# get singular values}
+\NormalTok{fit.svd }\OtherTok{\textless{}{-}} \FunctionTok{svd}\NormalTok{(xtrain) }\CommentTok{\#fit.svd$d}
+
+\CommentTok{\# ridge degree of freedom for lambdaopt}
+\NormalTok{df\_lambdaopt }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(fit.svd}\SpecialCharTok{$}\NormalTok{d}\SpecialCharTok{\^{}}\DecValTok{2}\SpecialCharTok{/}\NormalTok{(fit.svd}\SpecialCharTok{$}\NormalTok{d}\SpecialCharTok{\^{}}\DecValTok{2}\SpecialCharTok{+}\NormalTok{cv.ridge.glmnet}\SpecialCharTok{$}\NormalTok{lambda.min))}
+\NormalTok{df\_lambdaopt}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 6.167042
+\end{verbatim}
+
+\hypertarget{bayesian-interpretation}{%
+\subsection{Bayesian interpretation}\label{bayesian-interpretation}}
+
+We have introduced regularization by least-squares optimization with additional constraints on \(\beta\). An alternative approach to regularization is based on Bayesian statistics. In a Bayesian setting the parameter \(\beta=(\beta_1,\ldots,\beta_p)\) is itself a random variable with \emph{prior} distribution \(p(\beta)\). Bayesian inference is based on the \emph{posterior} distribution \[p(\beta|D)=\frac{p(D|\beta)p(\beta)}{p(D)},\]
+where \(D\) denotes the data and \(p(D|\beta)\) is the likelihood function. In the exercises we will show that the Ridge solution can be viewed as the maximum a posteriori (MAP) estimate of a hierarchical Bayesian model where the data follows a multivariate regression model
+\[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
+and the regression coefficients are equipped with prior
+\[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p.\]
+
+For many practical problems the posterior distribution is analytically not tractable and inference is typically based on sampling from the posterior distribution using a procedure called Markov chain Monte Carlo (MCMC). The software packages BUGS and JAGS automatically build MCMC samplers for complex hierarchical models. We use \texttt{rjags} to illustrate the procedure for the Bayesian Ridge regression model (see Figure \ref{fig:bayesianridge}).
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{bayesian_ridge} 
+
+}
+
+\caption{The Bayesian Ridge regression model.}\label{fig:bayesianridge}
+\end{figure}
+
+First we specify the model, prepare the input data and provide initial values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(rjags)}
+
+\CommentTok{\# model}
+\NormalTok{bayesian\_ridge }\OtherTok{\textless{}{-}}\StringTok{"model\{}
+\StringTok{  for (i in 1:n)\{}
+\StringTok{    y[i] \textasciitilde{} dnorm (mu[i], 1/sig\^{}2)}
+\StringTok{    mu[i] \textless{}{-} inprod(b,x[i,])}
+\StringTok{  \}}
+\StringTok{  for (j in 1:p)\{}
+\StringTok{    b[j] \textasciitilde{} dnorm (0, 1/tau\^{}2)}
+\StringTok{  \}}
+\StringTok{  sig\textasciitilde{}dunif(0,100)}
+\StringTok{  tau\textasciitilde{}dunif(0,100)}
+\StringTok{\}}
+\StringTok{"}
+
+\CommentTok{\# data}
+\NormalTok{dat.jags }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}\AttributeTok{y=}\NormalTok{ytrain,}\AttributeTok{p=}\FunctionTok{ncol}\NormalTok{(xtrain),}\AttributeTok{n=}\FunctionTok{nrow}\NormalTok{(xtrain))}
+
+\CommentTok{\# initial values}
+\NormalTok{inits }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{ ()\{}
+
+  \FunctionTok{list}\NormalTok{ (}\AttributeTok{b=}\FunctionTok{rnorm}\NormalTok{(dat.jags}\SpecialCharTok{$}\NormalTok{p),}\AttributeTok{sig=}\FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{),}\AttributeTok{tau=}\FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+  
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+We use the function \texttt{jags.model} to setup an MCMC sampler with \texttt{n.chains=3} chains (the number of samples, or MCMC iterations, used for adaptation is per default set to 1000).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# setup jags model}
+\NormalTok{jags.m }\OtherTok{\textless{}{-}} \FunctionTok{jags.model}\NormalTok{(}\FunctionTok{textConnection}\NormalTok{(bayesian\_ridge),}
+                     \AttributeTok{data=}\NormalTok{dat.jags,}
+                     \AttributeTok{inits=}\NormalTok{inits,}
+                     \AttributeTok{n.chains=}\DecValTok{3}\NormalTok{,}
+                     \AttributeTok{quiet=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+After a burn-in period of \(500\) steps we use \texttt{coda.samples} to generate the posterior samples.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# burn{-}in}
+\FunctionTok{update}\NormalTok{(jags.m, }\AttributeTok{n.iter=}\DecValTok{500}\NormalTok{) }
+
+\CommentTok{\# mcmc samples for inference}
+\NormalTok{posterior.samples }\OtherTok{\textless{}{-}} \FunctionTok{coda.samples}\NormalTok{( jags.m,}
+                                   \AttributeTok{variable.names =} \FunctionTok{c}\NormalTok{(}\StringTok{"b"}\NormalTok{,}\StringTok{"sig"}\NormalTok{,}\StringTok{"tau"}\NormalTok{), }
+                                   \AttributeTok{n.iter=}\DecValTok{10000}\NormalTok{,}\AttributeTok{thin=}\DecValTok{10}\NormalTok{) }\CommentTok{\# thinning=10 }
+\end{Highlighting}
+\end{Shaded}
+
+There are several R packages to investigate the posterior distribution. For example with \texttt{MCMCsummary} we can extract key summary information, i.e.~mean, median, quantiles, Gelman-Rubin convergence statistic and the number of effective samples.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MCMCvis)}
+\FunctionTok{MCMCsummary}\NormalTok{(posterior.samples,}
+            \AttributeTok{round=}\DecValTok{2}\NormalTok{,}
+            \AttributeTok{params=}\FunctionTok{c}\NormalTok{(}\StringTok{"sig"}\NormalTok{,}\StringTok{"tau"}\NormalTok{,}\StringTok{"b"}\NormalTok{))}\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  kable}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{l|r|r|r|r|r|r|r}
+\hline
+  & mean & sd & 2.5\% & 50\% & 97.5\% & Rhat & n.eff\\
+\hline
+sig & 0.86 & 0.41 & 0.36 & 0.76 & 1.89 & 1.01 & 1515\\
+\hline
+tau & 0.58 & 0.30 & 0.17 & 0.53 & 1.28 & 1.00 & 1479\\
+\hline
+b[1] & 0.74 & 0.60 & -0.25 & 0.69 & 2.08 & 1.01 & 1421\\
+\hline
+b[2] & -0.09 & 0.30 & -0.69 & -0.09 & 0.55 & 1.00 & 2151\\
+\hline
+b[3] & -0.29 & 0.38 & -1.07 & -0.30 & 0.48 & 1.00 & 2270\\
+\hline
+b[4] & -0.19 & 0.37 & -0.95 & -0.18 & 0.50 & 1.01 & 2625\\
+\hline
+b[5] & -0.13 & 0.53 & -1.35 & -0.10 & 0.84 & 1.00 & 1910\\
+\hline
+b[6] & -0.14 & 0.33 & -0.80 & -0.14 & 0.51 & 1.00 & 2705\\
+\hline
+b[7] & -0.05 & 0.31 & -0.63 & -0.05 & 0.61 & 1.01 & 1915\\
+\hline
+b[8] & -0.52 & 0.43 & -1.40 & -0.52 & 0.32 & 1.00 & 2269\\
+\hline
+b[9] & -0.16 & 0.41 & -0.92 & -0.17 & 0.72 & 1.00 & 1831\\
+\hline
+\end{tabular}
+
+Or, we can use the package\texttt{ggmcmc} and produce a traceplot to check the representativeness of the MCMC samples.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggmcmc)}
+\NormalTok{ggs.mcmc }\OtherTok{\textless{}{-}} \FunctionTok{ggs}\NormalTok{(posterior.samples)}
+\FunctionTok{ggs\_traceplot}\NormalTok{(ggs.mcmc,}\AttributeTok{family=}\StringTok{"tau"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-36-1} \end{center}
+
+Alternatively, we can directly access the posterior samples and calculate any summary statistics of interest.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# posterior samples as matrix}
+\NormalTok{matrix.postsamples }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(posterior.samples)}
+\FunctionTok{dim}\NormalTok{(matrix.postsamples)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 3000   11
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# histogram of posterior}
+\FunctionTok{hist}\NormalTok{(matrix.postsamples[,}\StringTok{"tau"}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-37-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# posterior mean}
+\FunctionTok{colMeans}\NormalTok{(matrix.postsamples) }\CommentTok{\# posterior mean}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        b[1]        b[2]        b[3]        b[4]        b[5]        b[6] 
+##  0.74111453 -0.08923934 -0.29030549 -0.19335623 -0.12935140 -0.14329942 
+##        b[7]        b[8]        b[9]         sig         tau 
+## -0.04671801 -0.52066557 -0.16102812  0.85820256  0.58398058
+\end{verbatim}
+
+Finally, we compare the regression coefficients from OLS, Ridge regression (\(\lambda\) obtained using cross-validation) and Bayesian Ridge regression.
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-38-1} \end{center}
+
+The coefficients obtained from Ridge regression and Bayesian Ridge regression are almost identical.
+
+\hypertarget{splines}{%
+\subsection{Splines}\label{splines}}
+
+Ridge regression and high-dimensionality play a role in many subfields of statistics. We illustrate this with the example of smoothing splines for univariate non-parametric regression.
+
+Sometimes it is extremely unlikely that the true function \(f(X)\) is actually linear in \(X\). Consider the following example.
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-40-1} 
+
+}
+
+\caption{Non-linear (sinusoidal) relationship between Y and X.}\label{fig:unnamed-chunk-40}
+\end{figure}
+
+How can we approximate the relationship between Y and X?
+The most simple approximation is a straight horizontal line (dashed blue line; the true sinusoidal function is depicted in black).
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-41-1} 
+
+}
+
+\caption{Approximation by a constant.}\label{fig:unnamed-chunk-41}
+\end{figure}
+
+Clearly this approximation is too rigid. Next, we try a piecewise constant approximation with two inner ``knots''.
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-42-1} 
+
+}
+
+\caption{Piecewise constant approximation.}\label{fig:unnamed-chunk-42}
+\end{figure}
+
+Finally, we use a piecewise linear function.
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-43-1} 
+
+}
+
+\caption{Piecewise linear approximation.}\label{fig:unnamed-chunk-43}
+\end{figure}
+
+The approximation improves. Nevertheless it would be nice if the different line segments would line up. What we need are piecewise polynomials which are ``smooth'' at the knots. Such functions are called ``splines''. We assume that \(f\) can be expressed by a set of basis functions
+
+\[ f(X)=\sum_{j=1}^{p}\beta_j B_j(X).\]
+For example for a cubic spline with \(K\) fixed knots and fixed polynomial degree \(d=3\) (``cubic'') we have \(p=K+d+1\) and the \(B_j(x)\)'s form a B-spline basis (one could also use the truncated-power basis). The coefficients \(\beta_m\) are estimated using OLS. Although we have only one single variable \(X\), the design matrix consists of \(p=K+d+1\) features and we quickly run into issues due to overfitting. In \texttt{R} we obtain a B-spline basis with \texttt{bs} and we can plot the basis functions \(B_j(x)\) as follows.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{spl }\OtherTok{\textless{}{-}} \FunctionTok{bs}\NormalTok{(x,}\AttributeTok{df=}\DecValTok{10}\NormalTok{) }\CommentTok{\# cubic spline with p=10 degrees of freedom}
+\FunctionTok{plot}\NormalTok{(spl[,}\DecValTok{1}\NormalTok{]}\SpecialCharTok{\textasciitilde{}}\NormalTok{x, }\AttributeTok{ylim=}\FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\FunctionTok{max}\NormalTok{(spl)), }\AttributeTok{type=}\StringTok{\textquotesingle{}l\textquotesingle{}}\NormalTok{, }\AttributeTok{lwd=}\DecValTok{2}\NormalTok{, }\AttributeTok{col=}\DecValTok{1}\NormalTok{, }
+     \AttributeTok{xlab=}\StringTok{"Cubic B{-}spline basis"}\NormalTok{, }\AttributeTok{ylab=}\StringTok{""}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\FunctionTok{ncol}\NormalTok{(spl)) }\FunctionTok{lines}\NormalTok{(spl[,j]}\SpecialCharTok{\textasciitilde{}}\NormalTok{x, }\AttributeTok{lwd=}\DecValTok{2}\NormalTok{, }\AttributeTok{col=}\NormalTok{j)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-44-1} \end{center}
+
+The estimated coefficients \(\hat \beta_j\) are obtain using \texttt{lm}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.csp }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{spl)}
+\CommentTok{\#fit.csp \textless{}{-} lm(y\textasciitilde{}bs(x,df=10))}
+\FunctionTok{coef}\NormalTok{(fit.csp)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## (Intercept)        spl1        spl2        spl3        spl4        spl5 
+##  -0.1664090   0.6710022   1.0956429   1.2056968   0.9713568   0.2323033 
+##        spl6        spl7        spl8        spl9       spl10 
+##  -0.2876482  -1.2456044  -0.3914716   0.2894841  -0.4376537
+\end{verbatim}
+
+The cubic spline with \(p=10\) degrees of freedom fits the data well as shown in the next plot (in dashed violet).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(x, y)}
+\FunctionTok{lines}\NormalTok{(x, fx, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(x, }\FunctionTok{predict}\NormalTok{(fit.csp), }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{col =} \StringTok{"violet"}\NormalTok{,}\AttributeTok{lwd=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-46-1} \end{center}
+
+An alternative approach are so-called \emph{smoothing splines}, where we take \(p=n\) and the \(B_j(x)\)'s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of \(x_i\), \(i=1,\ldots,n\). The coefficients \(\beta_j\) cannot be estimated using OLS as the number \(p\) of basis functions (columns of the design matrix) equals the number of observations \(n\). Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients \(\beta_j\), i.e.
+
+\[\hat{\beta}_{\lambda}=\textrm{arg}\min\limits_{\beta}\;\|\textbf{y}- \textbf{B} \beta\|^2+\lambda \beta^T\Omega\beta,\]
+
+where \(\bf B\) is the design matrix with \(jth\) column \((B_j(x_1),\ldots,B_j(x_n))^T\). In practice we can fit
+smoothing splines using the function \texttt{smooth.spline}. The penalty term is specified by setting the effective degrees of freedom \(\nu\) or by selecting \(\lambda\) using cross-validation (see Section \ref{choice-of-penalty-parameter}).
+
+We fit smoothing splines to our simulation example.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# smoothing spline with 10 effective degrees of freedom}
+\NormalTok{fit.smsp.df10 }\OtherTok{\textless{}{-}} \FunctionTok{smooth.spline}\NormalTok{(x, y, }\AttributeTok{df =} \DecValTok{10}\NormalTok{) }
+
+\CommentTok{\# smoothing spline with 30 effective degrees of freedom}
+\NormalTok{fit.smsp.df30 }\OtherTok{\textless{}{-}} \FunctionTok{smooth.spline}\NormalTok{(x, y, }\AttributeTok{df =} \DecValTok{30}\NormalTok{) }
+
+\CommentTok{\# smoothing spline with effective degrees of freedom estimated by cv}
+\NormalTok{fit.smsp.cv }\OtherTok{\textless{}{-}} \FunctionTok{smooth.spline}\NormalTok{(x, y) }
+
+\FunctionTok{plot}\NormalTok{(x, y)}
+\FunctionTok{lines}\NormalTok{(x, fx, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(x, fit.smsp.df10}\SpecialCharTok{$}\NormalTok{y, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{,}\AttributeTok{lwd=}\DecValTok{3}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(x, fit.smsp.df30}\SpecialCharTok{$}\NormalTok{y, }\AttributeTok{lty =} \DecValTok{3}\NormalTok{, }\AttributeTok{col =} \StringTok{"green"}\NormalTok{,}\AttributeTok{lwd=}\DecValTok{3}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(x, fit.smsp.cv}\SpecialCharTok{$}\NormalTok{y, }\AttributeTok{lty =} \DecValTok{4}\NormalTok{, }\AttributeTok{col=}\StringTok{"red"}\NormalTok{,}\AttributeTok{lwd=}\DecValTok{3}\NormalTok{)}
+\FunctionTok{legend}\NormalTok{(}\FloatTok{0.7}\NormalTok{,}\FloatTok{1.5}\NormalTok{,}
+       \AttributeTok{lty=}\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+       \AttributeTok{lwd=}\DecValTok{3}\NormalTok{,}
+       \AttributeTok{col=}\FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{,}\StringTok{"blue"}\NormalTok{,}\StringTok{"green"}\NormalTok{,}\StringTok{"red"}\NormalTok{),}
+       \AttributeTok{legend=}\FunctionTok{c}\NormalTok{(}\StringTok{"truth"}\NormalTok{,}\StringTok{"cubic p=10"}\NormalTok{,}\StringTok{"cubic p=30"}\NormalTok{,}\StringTok{"smoothing"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-48-1} \end{center}
+
+The smoothing spline with \(\nu=30\) (in green) leads to overfitting. The smoothing splines obtained by cross-validation (in red) or by fixing \(\nu=10\) (in blue) are both good approximation of the truth. The corresponding effective degrees of freedom of the cross-validation solution can be retrieved from the model fit.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.smsp.cv}\SpecialCharTok{$}\NormalTok{df}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 6.458247
+\end{verbatim}
+
+\hypertarget{lasso-regression}{%
+\section{Lasso Regression}\label{lasso-regression}}
+
+We have discussed Ridge regression and discussed its properties. Although Ridge regression can deal with high-dimensional data a disadvantage compared to subset- and stepwise regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging.
+
+In Ridge regression we minimize \(\rm RSS(\beta)\) given constraints on the so-called \emph{L2-norm} of the regression coefficients
+
+\[\|\beta\|^2_2=\sum_{j=1}^p \beta^2_j \leq c.\]
+
+Another very popular approach in high-dimensional statistics is \emph{Lasso regression} (Lasso=least absolute shrinkage and selection operator). The Lasso works very similarly. The only difference is that constraints are imposed on the \emph{L1-norm} of the coefficients
+
+\[\|\beta\|_1=\sum_{j=1}^p |\beta_j| \leq c.\]
+
+Therefore the Lasso is referred to as L1 regularization. The change in the form of the constraints (L2 vs L1) has important implications. Figure \ref{fig:lassogeom} illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with ``corners'' (the Ridge constraint is a circle). If the sum of squares ``hits'' one of these corners then the coefficient corresponding to the axis is shrunk to zero. As \(p\) increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the ``diamond'' geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{lasso_geometry} 
+
+}
+
+\caption{Geometry of Lasso regression.}\label{fig:lassogeom}
+\end{figure}
+
+Similar to Ridge regression the Lasso can be formulated as a penalisation problem
+
+\[
+\hat{\beta}^{\rm Lasso}_{\lambda}=\text{arg}\min\limits_{\beta}\;\textrm{RSS}(\beta)+\lambda\|\beta\|_1.
+\]
+
+To fit the Lasso we use \texttt{glmnet} (with \(\alpha=1\)).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.lasso.glmnet }\OtherTok{\textless{}{-}}\FunctionTok{glmnet}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}\AttributeTok{y=}\NormalTok{ytrain,}\AttributeTok{alpha=}\DecValTok{1}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+The following figure shows the Lasso solution for a grid of \(\lambda\) values. We note that the Lasso shrinks some coefficients to exactly zero.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(fit.lasso.glmnet,}\AttributeTok{xvar=}\StringTok{"lambda"}\NormalTok{,}\AttributeTok{label=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-51-1} \end{center}
+
+We choose the optimal tuning parameter \(\lambda_{\rm opt}\) by cross-validation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv.lasso.glmnet }\OtherTok{\textless{}{-}}\FunctionTok{cv.glmnet}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}\AttributeTok{y=}\NormalTok{ytrain,}\AttributeTok{alpha=}\DecValTok{1}\NormalTok{) }
+\FunctionTok{plot}\NormalTok{(cv.lasso.glmnet)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-52-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv.lasso.glmnet}\SpecialCharTok{$}\NormalTok{lambda.min}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.2201019
+\end{verbatim}
+
+The coefficient for the optimal model can be extracted using the \texttt{coef} function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{beta.lasso }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(fit.lasso.glmnet, }\AttributeTok{s =}\NormalTok{ cv.lasso.glmnet}\SpecialCharTok{$}\NormalTok{lambda.min)}
+\FunctionTok{names}\NormalTok{(beta.lasso) }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(xtrain)}
+\NormalTok{beta.lasso}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 10 x 1 sparse Matrix of class "dgCMatrix"
+##                      s1
+## (Intercept)  0.08727244
+## V1           1.44830414
+## V2          -0.04302609
+## V3           .         
+## V4          -0.07325330
+## V5           .         
+## V6           .         
+## V7           .         
+## V8          -0.24778236
+## V9           .
+\end{verbatim}
+
+We now discuss some properties of the Lasso.
+
+\hypertarget{numerical-optimization-and-soft-thresholding}{%
+\subsection{Numerical optimization and soft thresholding}\label{numerical-optimization-and-soft-thresholding}}
+
+In general there is no closed-form solution for the Lasso. The optimization has to be performed numerically. An efficient algorithm is implemented in \texttt{glmnet} and is referred to as ``Pathwise Coordinate Optimization''. The algorithm updates one regression coefficient at a time using the so-called soft-thresholding function. This is done iteratively until some convergence criterion is met.
+
+An exception is the case with an orthonormal design matrix \(\bf X\), i.e.~\(\bf X^T\bf X=\bf I\). Under this assumption we have
+
+\begin{align*}
+\textrm{RSS}(\beta)&=(\textbf{y}-\textbf{X}\beta)^T(\textbf{y}-\textbf{X}\beta)\\
+&=\textbf{y}^T\textbf{y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
+\end{align*}
+
+and therefore the Lasso optimization reduces to \(j=1,\ldots,p\) univariate problems
+
+\[\textrm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+0.5\beta_j^2+0.5\lambda |\beta_j|.\]
+
+In the exercises we will show that the solution is
+
+\begin{align*}
+\hat{\beta}_{\lambda,j}^{\textrm{Lasso}}&=\textrm{sign}(\hat{\beta}_j^{\rm OLS})\left(|\hat{\beta}_j^{\rm OLS}|-0.5\lambda\right)_{+}\\
+&=\left\{\begin{array}{ll}
+      \hat\beta^{\rm OLS}_j-0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j>0.5\lambda\\
+      0 & {\rm if}\;|\hat\beta^{\rm OLS}_j|\leq 0.5\lambda\\
+ \hat\beta^{\rm OLS}_j+0.5\lambda & {\rm if}\;\hat\beta^{\rm OLS}_j<-0.5\lambda
+    \end{array}
+  \right.
+\end{align*}
+
+That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next figure, is referred to as \emph{soft-thresholding}.
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/unnamed-chunk-54-1} 
+
+}
+
+\caption{Soft-thresholding function.}\label{fig:unnamed-chunk-54}
+\end{figure}
+
+The soft-thresholding function is not only used for numerical optimization of the Lasso but also plays a role in wavelet thresholding used for signal and image denoising.
+
+\hypertarget{variable-selection}{%
+\subsection{Variable selection}\label{variable-selection}}
+
+We have seen that the Lasso simultaneously shrinks coefficients and sets some of them to zero. Therefore the Lasso performs variable selection which leads to more interpretabel models (compared to Ridge regression). For the Lasso we can define the set of selected variables
+
+\[\hat S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}\neq 0\}\]
+
+In our example this set can be obtained as follows.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Shat }\OtherTok{\textless{}{-}} \FunctionTok{rownames}\NormalTok{(beta.lasso)[}\FunctionTok{which}\NormalTok{(beta.lasso }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{)]}
+\NormalTok{Shat}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "(Intercept)" "V1"          "V2"          "V4"          "V8"
+\end{verbatim}
+
+An interesting question is whether the Lasso does a good or bad job in variable selection. That is, does \(\hat S^{\rm Lasso}_{\lambda}\) tend to agree with the true set of active variables \(S_0\)? Or, does the Lasso typically under- or over-select covariates? These questions are an active field of statistical research.
+
+\hypertarget{elasticnet-regression}{%
+\subsection{Elasticnet Regression}\label{elasticnet-regression}}
+
+We have encountered the L1 and L2 penalty. The Lasso (L1) penalty
+has the nice property that it leads to sparse solutions, i.e.~it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge (L2) penalty, on the other hand, tends
+to shrink the coefficients of correlated variables toward each other. An attempt to take the best of both worlds is the \emph{elastic net} penalty which has the form
+
+\[\lambda \Big(\alpha \|\beta\|_1+(1-\alpha)\|\beta\|_2^2\Big).\]
+
+The second term encourages highly correlated features to be averaged, while
+the first term encourages a sparse solution in the coefficients of these averaged features.
+
+In \texttt{glmnet} the elastic net regression is implemented using the mixing parameter \(\alpha\). The default is \(\alpha=1\), i.e.~the Lasso.
+
+\hypertarget{diabetes-example}{%
+\section{Diabetes example}\label{diabetes-example}}
+
+We now review what we have learned with an example. The data that we consider consist of
+observations on 442 patients, with the response of interest being a quantitative
+measure of disease progression one year after baseline. There are ten baseline
+variables --- age, sex, body-mass index, average blood pressure, and six blood
+serum measurements --- plus quadratic terms, giving a total of \(p=64\) features. The task for a statistician is to construct a model that predicts the response \(Y\) from the covariates. The two hopes are, that the model would produce accurate baseline
+predictions of response for future patients, and also that the form of the model would suggest
+which covariates were important factors in disease progression.
+
+We start by splitting the data into training and test data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{diabetes }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\AttributeTok{file=}\StringTok{"data/diabetes.rds"}\NormalTok{)}
+\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(}\AttributeTok{y=}\NormalTok{diabetes}\SpecialCharTok{$}\NormalTok{y,diabetes}\SpecialCharTok{$}\NormalTok{x2))}
+\FunctionTok{colnames}\NormalTok{(data) }\OtherTok{\textless{}{-}} \FunctionTok{gsub}\NormalTok{(}\StringTok{":"}\NormalTok{,}\StringTok{"."}\NormalTok{,}\FunctionTok{colnames}\NormalTok{(data))}
+\NormalTok{train\_ind }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(data)),}\AttributeTok{size=}\FunctionTok{nrow}\NormalTok{(data)}\SpecialCharTok{/}\DecValTok{2}\NormalTok{)}
+\NormalTok{data\_train }\OtherTok{\textless{}{-}}\NormalTok{ data[train\_ind,]}
+\NormalTok{xtrain }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(data\_train[,}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])}
+\NormalTok{ytrain }\OtherTok{\textless{}{-}}\NormalTok{ data\_train[,}\DecValTok{1}\NormalTok{]}
+\NormalTok{data\_test }\OtherTok{\textless{}{-}}\NormalTok{ data[}\SpecialCharTok{{-}}\NormalTok{train\_ind,]}
+\NormalTok{xtest }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(data\_test[,}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])}
+\NormalTok{ytest }\OtherTok{\textless{}{-}}\NormalTok{ data\_test[,}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+We perform forward stepwise regression.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Forward regression}
+\NormalTok{fit0 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\DecValTok{1}\NormalTok{,}\AttributeTok{data=}\NormalTok{data\_train)}
+\NormalTok{up.model }\OtherTok{\textless{}{-}} \FunctionTok{paste}\NormalTok{(}\StringTok{"\textasciitilde{}"}\NormalTok{, }
+                  \FunctionTok{paste}\NormalTok{(}
+                    \FunctionTok{colnames}\NormalTok{(data\_train[,}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]),}\AttributeTok{collapse=}\StringTok{" + "}\NormalTok{)}
+\NormalTok{                  )}
+\NormalTok{fit.fw }\OtherTok{\textless{}{-}} \FunctionTok{stepAIC}\NormalTok{(fit0,}\AttributeTok{direction=}\StringTok{"forward"}\NormalTok{,}
+                  \AttributeTok{scope=}\FunctionTok{list}\NormalTok{(}\AttributeTok{lower=}\NormalTok{fit0,}
+                             \AttributeTok{upper=}\NormalTok{up.model}
+                             
+\NormalTok{                  ),}
+                  \AttributeTok{trace =} \ConstantTok{FALSE}
+\NormalTok{)}
+\CommentTok{\#summary(fit.fw)}
+\end{Highlighting}
+\end{Shaded}
+
+The selection process is depicted in the following table.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}\FunctionTok{as.data.frame}\NormalTok{(fit.fw}\SpecialCharTok{$}\NormalTok{anova),}\AttributeTok{digits=}\DecValTok{2}\NormalTok{,}
+      \AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lrrrrr}
+\toprule
+Step & Df & Deviance & Resid. Df & Resid. Dev & AIC\\
+\midrule
+ & NA & NA & 220 & 1262297.5 & 1913.71\\
++ bmi & 1 & 434735.33 & 219 & 827562.1 & 1822.40\\
++ ltg & 1 & 155835.95 & 218 & 671726.2 & 1778.30\\
++ age.sex & 1 & 47106.62 & 217 & 624619.6 & 1764.23\\
++ map & 1 & 29740.28 & 216 & 594879.3 & 1755.45\\
+\addlinespace
++ bmi.glu & 1 & 22952.37 & 215 & 571926.9 & 1748.75\\
++ hdl & 1 & 19077.03 & 214 & 552849.9 & 1743.25\\
++ sex & 1 & 15702.72 & 213 & 537147.2 & 1738.89\\
++ hdl.tch & 1 & 9543.83 & 212 & 527603.3 & 1736.92\\
++ sex.ldl & 1 & 5735.62 & 211 & 521867.7 & 1736.51\\
+\addlinespace
++ tch.ltg & 1 & 6279.00 & 210 & 515588.7 & 1735.83\\
++ age.map & 1 & 5342.10 & 209 & 510246.6 & 1735.53\\
+\bottomrule
+\end{tabular}
+
+The regression coefficients and the corresponding statistics of the AIC-optimal model are shown next.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(broom}\SpecialCharTok{::}\FunctionTok{tidy}\NormalTok{(fit.fw),}\AttributeTok{digits=}\DecValTok{2}\NormalTok{,}
+      \AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lrrrr}
+\toprule
+term & estimate & std.error & statistic & p.value\\
+\midrule
+(Intercept) & 155.72 & 3.36 & 46.29 & 0.00\\
+bmi & 466.07 & 81.82 & 5.70 & 0.00\\
+ltg & 497.33 & 94.05 & 5.29 & 0.00\\
+age.sex & 274.22 & 76.35 & 3.59 & 0.00\\
+map & 315.78 & 80.98 & 3.90 & 0.00\\
+\addlinespace
+bmi.glu & 206.59 & 74.57 & 2.77 & 0.01\\
+hdl & -392.14 & 94.40 & -4.15 & 0.00\\
+sex & -201.94 & 80.87 & -2.50 & 0.01\\
+hdl.tch & -210.17 & 87.81 & -2.39 & 0.02\\
+sex.ldl & 118.77 & 74.81 & 1.59 & 0.11\\
+\addlinespace
+tch.ltg & -146.12 & 89.83 & -1.63 & 0.11\\
+age.map & 119.49 & 80.78 & 1.48 & 0.14\\
+\bottomrule
+\end{tabular}
+
+We continue by fitting Ridge regression. We show the trace plot and the cross-validation plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Ridge}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1515}\NormalTok{)}
+\NormalTok{fit.ridge }\OtherTok{\textless{}{-}} \FunctionTok{glmnet}\NormalTok{(xtrain,ytrain,}\AttributeTok{alpha=}\DecValTok{0}\NormalTok{)}
+\NormalTok{fit.ridge.cv }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(xtrain,ytrain,}\AttributeTok{alpha=}\DecValTok{0}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(fit.ridge,}\AttributeTok{xvar=}\StringTok{"lambda"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-61-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(fit.ridge.cv)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-61-2} \end{center}
+
+Finally, we run the Lasso approach and show the trace and the cross-validation plots.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Lasso}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1515}\NormalTok{)}
+\NormalTok{fit.lasso }\OtherTok{\textless{}{-}} \FunctionTok{glmnet}\NormalTok{(xtrain,ytrain,}\AttributeTok{alpha=}\DecValTok{1}\NormalTok{)}
+\NormalTok{fit.lasso.cv }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(xtrain,ytrain,}\AttributeTok{alpha=}\DecValTok{1}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(fit.lasso,}\AttributeTok{xvar=}\StringTok{"lambda"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-62-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(fit.lasso.cv)}\CommentTok{\#fit.lasso.cv$lambda.1se}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-62-2} \end{center}
+
+We calculate the root-mean-square errors (RMSE) on the test data and compare with the full model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Full model}
+\NormalTok{fit.full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{.,}\AttributeTok{data=}\NormalTok{data\_train)}
+\CommentTok{\# RMSE}
+\NormalTok{pred.full }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit.full,}\AttributeTok{newdata=}\NormalTok{data\_test)}
+\NormalTok{pred.fw }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit.fw,}\AttributeTok{newdata=}\NormalTok{data\_test)}
+\NormalTok{pred.ridge }\OtherTok{\textless{}{-}} \FunctionTok{as.vector}\NormalTok{(}\FunctionTok{predict}\NormalTok{(fit.ridge,}\AttributeTok{newx=}\NormalTok{xtest,}\AttributeTok{s=}\NormalTok{fit.ridge.cv}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se))}
+\NormalTok{pred.lasso }\OtherTok{\textless{}{-}} \FunctionTok{as.vector}\NormalTok{(}\FunctionTok{predict}\NormalTok{(fit.lasso,}\AttributeTok{newx=}\NormalTok{xtest,}\AttributeTok{s=}\NormalTok{fit.lasso.cv}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se))}
+\NormalTok{res.rmse }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{method=}\FunctionTok{c}\NormalTok{(}\StringTok{"full"}\NormalTok{,}\StringTok{"forward"}\NormalTok{,}\StringTok{"ridge"}\NormalTok{,}\StringTok{"lasso"}\NormalTok{),}
+  \AttributeTok{rmse=}\FunctionTok{c}\NormalTok{(}\FunctionTok{RMSE}\NormalTok{(pred.full,ytest),}\FunctionTok{RMSE}\NormalTok{(pred.fw,ytest),}
+         \FunctionTok{RMSE}\NormalTok{(pred.ridge,ytest),}\FunctionTok{RMSE}\NormalTok{(pred.lasso,ytest)))}
+\FunctionTok{kable}\NormalTok{(res.rmse,}\AttributeTok{digits =} \DecValTok{2}\NormalTok{,}
+      \AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lr}
+\toprule
+method & rmse\\
+\midrule
+full & 84.51\\
+forward & 59.89\\
+ridge & 62.63\\
+lasso & 58.47\\
+\bottomrule
+\end{tabular}
+
+The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-64-1} \end{center}
+
+We point out that the same analysis can be conducted with the \texttt{caret} package. The code to do so is provided next.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# Setup trainControl: 10{-}fold cross{-}validation}
+\NormalTok{tc }\OtherTok{\textless{}{-}} \FunctionTok{trainControl}\NormalTok{(}\AttributeTok{method =} \StringTok{"cv"}\NormalTok{, }\AttributeTok{number =} \DecValTok{10}\NormalTok{)}
+
+\DocumentationTok{\#\# Ridge}
+\NormalTok{lambda.grid }\OtherTok{\textless{}{-}}\NormalTok{ fit.ridge.cv}\SpecialCharTok{$}\NormalTok{lambda}
+\NormalTok{fit.ridge.caret}\OtherTok{\textless{}{-}}\FunctionTok{train}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}
+                       \AttributeTok{y=}\NormalTok{ytrain, }
+                       \AttributeTok{method =} \StringTok{"glmnet"}\NormalTok{,}
+                       \AttributeTok{tuneGrid =} \FunctionTok{expand.grid}\NormalTok{(}\AttributeTok{alpha =} \DecValTok{0}\NormalTok{,}
+                                              \AttributeTok{lambda=}\NormalTok{lambda.grid),}
+                       \AttributeTok{trControl =}\NormalTok{ tc}
+\NormalTok{) }
+
+\CommentTok{\# CV curve}
+\FunctionTok{plot}\NormalTok{(fit.ridge.caret)}
+\CommentTok{\# Best lambda}
+\NormalTok{fit.ridge.caret}\SpecialCharTok{$}\NormalTok{bestTune}\SpecialCharTok{$}\NormalTok{lambda}
+\CommentTok{\# Model coefficients}
+\FunctionTok{coef}\NormalTok{(fit.ridge.caret}\SpecialCharTok{$}\NormalTok{finalModel,fit.ridge.cv}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se)}\SpecialCharTok{\%\textgreater{}\%}\NormalTok{head}
+\CommentTok{\# Make predictions}
+\NormalTok{fit.ridge.caret }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{predict}\NormalTok{(xtest,}\AttributeTok{s=}\NormalTok{fit.ridge.cv}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se)}\SpecialCharTok{\%\textgreater{}\%}\NormalTok{head}
+
+\DocumentationTok{\#\# Lasso}
+\NormalTok{lambda.grid }\OtherTok{\textless{}{-}}\NormalTok{ fit.lasso.cv}\SpecialCharTok{$}\NormalTok{lambda}
+\NormalTok{fit.lasso.caret}\OtherTok{\textless{}{-}}\FunctionTok{train}\NormalTok{(}\AttributeTok{x=}\NormalTok{xtrain,}
+                       \AttributeTok{y=}\NormalTok{ytrain, }
+                       \AttributeTok{method =} \StringTok{"glmnet"}\NormalTok{,}
+                       \AttributeTok{tuneGrid =} \FunctionTok{expand.grid}\NormalTok{(}\AttributeTok{alpha =} \DecValTok{1}\NormalTok{,}
+                                              \AttributeTok{lambda=}\NormalTok{lambda.grid),}
+                       \AttributeTok{trControl =}\NormalTok{ tc}
+\NormalTok{) }
+
+\CommentTok{\# CV curve}
+\FunctionTok{plot}\NormalTok{(fit.lasso.caret)}
+\CommentTok{\# Best lambda}
+\NormalTok{fit.lasso.caret}\SpecialCharTok{$}\NormalTok{bestTune}\SpecialCharTok{$}\NormalTok{lambda}
+\CommentTok{\# Model coefficients}
+\FunctionTok{coef}\NormalTok{(fit.lasso.caret}\SpecialCharTok{$}\NormalTok{finalModel,}
+\NormalTok{     fit.lasso.caret}\SpecialCharTok{$}\NormalTok{bestTune}\SpecialCharTok{$}\NormalTok{lambda)}\SpecialCharTok{\%\textgreater{}\%}\NormalTok{head}
+\CommentTok{\# Make predictions}
+\NormalTok{fit.lasso.caret}\SpecialCharTok{\%\textgreater{}\%}\FunctionTok{predict}\NormalTok{(xtest,}
+                          \AttributeTok{s=}\NormalTok{fit.ridge.cv}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se)}\SpecialCharTok{\%\textgreater{}\%}\NormalTok{head}
+
+\DocumentationTok{\#\# Compare Ridge and Lasso}
+\NormalTok{models }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\AttributeTok{ridge=}\NormalTok{ fit.ridge.caret,}\AttributeTok{lasso =}\NormalTok{ fit.lasso.caret)}
+\FunctionTok{resamples}\NormalTok{(models) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{summary}\NormalTok{( }\AttributeTok{metric =} \StringTok{"RMSE"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{classification}{%
+\chapter{Classification}\label{classification}}
+
+Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
+
+\hypertarget{logistic-regression}{%
+\section{Logistic Regression}\label{logistic-regression}}
+
+We start with standard logistic regression where the response \(Y\) takes values \(0\) and \(1\), and the aim is to do prediction based on covariates \(X=(X_1,\ldots,X_p)\). We model the probability of success (i.e., \(Y=1\)) \[p(x;\beta)=P(Y=1|X=x;\beta)\] assuming a binomial distribution with logit link function
+
+\[\text{logit}(x;\beta)=\log \Big(\frac{p(x;\beta)}{1-p(x;\beta)}\Big)=X^T\beta.\]
+
+In logistic regression we estimate the regression parameter \(\beta\) by maximizing the log-likelihood
+
+\begin{align*}
+\ell(\beta|\textbf{y},\textbf{X})&=\sum_{i=1}^{n}(1-y_i)\log(1-p(x_i;\beta))+y_i\log p(x_i;\beta)\\
+&=\sum_{i=1}^{n}y_i x_i^T\beta - \log(1+\exp(x_i^T\beta)).
+\end{align*}
+
+Given an estimate \(\hat \beta\) (from training data), prediction based on new input data \(X_{\rm new}\) can be obtained via the predicted probability of success \(p(X_{\rm new};\hat \beta)\), e.g.~the class labels corresponding to the maximum probability
+
+\begin{align*}
+  \hat{Y}\equiv\hat{G}(X_{\textrm{new}})\equiv\left\{
+    \begin{array}{ll}
+      1, & \mbox{if $p(X_{\textrm{new}};\hat\beta)>0.5$}.\\
+      0, & \mbox{otherwise}.
+    \end{array}
+  \right.
+\end{align*}
+
+There are different measures to judge the quality of the predictions. We focus on the misclassification error which is simply the fraction of misclassified test samples. Another important measure used in the context of classification is the receiver operating characteristic (ROC).
+
+We illustrate logistic regression using an example taken from the book by \citet{elements}. The data shown in Figure \ref{fig:sahd} are a
+subset of the Coronary Risk-Factor Study (CORIS) baseline survey, carried
+out in three rural areas of the Western Cape, South Africa. The aim of the study was to establish the intensity of ischemic
+heart disease risk factors in that high-incidence region. The data represent
+white males between 15 and 64, and the response variable is the presence or
+absence of myocardial infarction (MI) at the time of the survey (the overall
+prevalence of MI was 5.1\% in this region). There are 160 cases in our data
+set, and a sample of 302 controls. The variables are:
+
+\begin{itemize}
+\tightlist
+\item
+  sbp: systolic blood pressure
+\item
+  tobacco: cumulative tobacco (kg)
+\item
+  ldl: low densiity lipoprotein cholesterol adiposity
+\item
+  famhist: family history of heart disease (Present, Absent)
+\item
+  obesity
+\item
+  alcohol: current alcohol consumption
+\item
+  age: age at onset
+\item
+  chd: response, coronary heart disease.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\AttributeTok{file=}\StringTok{"data/sahd.rds"}\NormalTok{)}
+\FunctionTok{pairs}\NormalTok{(}\FunctionTok{data.matrix}\NormalTok{(dat[,}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]),}
+      \AttributeTok{col=}\FunctionTok{ifelse}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{chd}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,}\StringTok{"red"}\NormalTok{,}\StringTok{"blue"}\NormalTok{),}
+      \AttributeTok{pch=}\FunctionTok{ifelse}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{chd}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}
+
+{\centering \includegraphics{highdimstats_files/figure-latex/sahd-1} 
+
+}
+
+\caption{Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).}\label{fig:sahd}
+\end{figure}
+
+We first fit a logistic regression model using the function \texttt{glm}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.logistic }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(chd}\SpecialCharTok{\textasciitilde{}}\NormalTok{sbp}\SpecialCharTok{+}\NormalTok{tobacco}\SpecialCharTok{+}\NormalTok{ldl}\SpecialCharTok{+}\NormalTok{famhist}\SpecialCharTok{+}\NormalTok{obesity}\SpecialCharTok{+}\NormalTok{alcohol}\SpecialCharTok{+}\NormalTok{age,}
+                    \AttributeTok{data=}\NormalTok{dat,}
+                    \AttributeTok{family=}\StringTok{"binomial"}\NormalTok{)}
+\FunctionTok{kable}\NormalTok{(broom}\SpecialCharTok{::}\FunctionTok{tidy}\NormalTok{(fit.logistic),}\AttributeTok{digits=}\DecValTok{3}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lrrrr}
+\toprule
+term & estimate & std.error & statistic & p.value\\
+\midrule
+(Intercept) & -4.130 & 0.964 & -4.283 & 0.000\\
+sbp & 0.006 & 0.006 & 1.023 & 0.306\\
+tobacco & 0.080 & 0.026 & 3.034 & 0.002\\
+ldl & 0.185 & 0.057 & 3.219 & 0.001\\
+famhistPresent & 0.939 & 0.225 & 4.177 & 0.000\\
+\addlinespace
+obesity & -0.035 & 0.029 & -1.187 & 0.235\\
+alcohol & 0.001 & 0.004 & 0.136 & 0.892\\
+age & 0.043 & 0.010 & 4.181 & 0.000\\
+\bottomrule
+\end{tabular}
+
+There are some surprises in this table of coefficients, which must be interpreted with caution. Systolic blood pressure (sbp) is not significant! Nor
+is obesity, and its sign is negative. This confusion is a result of the correlation between the set of predictors. On their own, both sbp and obesity
+are significant, and with positive sign. However, in the presence of many other correlated variables, they are no longer needed (and can even get a
+negative sign).
+
+How does one interpret a coefficient of \(0.080\) (Std. Error = \(0.026\)) for
+tobacco, for example? Tobacco is measured in total lifetime usage in kilograms, with a median of \(1.0\)kg for the controls and \(4.1\)kg for the cases. Thus
+an increase of 1kg in lifetime tobacco usage accounts for an increase in the
+odds of coronary heart disease of \(\exp(0.080)\)=1.083 or \(8.3\)\%. Incorporating the standard error we get an approximate \(95\)\% confidence interval of
+\(\exp(0.081 ± 2 × 0.026)\)=(1.035,1.133).
+
+\hypertarget{regularized-logistic-regression}{%
+\section{Regularized Logistic Regression}\label{regularized-logistic-regression}}
+
+Similar as for linear regression, in the high-dimensional setting where \(n\) is small compared to \(p\), the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In \texttt{R} subset- and stepwise logistic regression is implemented in \texttt{stepAIC} and elastic net regularization in \texttt{glmnet} (with argument \texttt{family="binomial"}). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term:
+
+\begin{align*}
+\hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
+\end{align*}
+
+With \(\alpha=0\) and \(\alpha=1\) we obtain the Ridge and the Lasso solution, respectively.
+
+We turn back to the heart disease example and perform backward stepwise logistic regression.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.bw }\OtherTok{\textless{}{-}} \FunctionTok{stepAIC}\NormalTok{(fit.logistic,}\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{,}\AttributeTok{trace=}\ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The terms removed in each step are provided in the next table.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}\FunctionTok{as.data.frame}\NormalTok{(fit.bw}\SpecialCharTok{$}\NormalTok{anova),}\AttributeTok{digits=}\DecValTok{3}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lrrrrr}
+\toprule
+Step & Df & Deviance & Resid. Df & Resid. Dev & AIC\\
+\midrule
+ & NA & NA & 454 & 483.174 & 499.174\\
+- alcohol & 1 & 0.019 & 455 & 483.193 & 497.193\\
+- sbp & 1 & 1.104 & 456 & 484.297 & 496.297\\
+- obesity & 1 & 1.147 & 457 & 485.444 & 495.444\\
+\bottomrule
+\end{tabular}
+
+The regression coefficients of the final model are shown below.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(broom}\SpecialCharTok{::}\FunctionTok{tidy}\NormalTok{(fit.bw),}\AttributeTok{digits=}\DecValTok{3}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lrrrr}
+\toprule
+term & estimate & std.error & statistic & p.value\\
+\midrule
+(Intercept) & -4.204 & 0.498 & -8.437 & 0.000\\
+tobacco & 0.081 & 0.026 & 3.163 & 0.002\\
+ldl & 0.168 & 0.054 & 3.093 & 0.002\\
+famhistPresent & 0.924 & 0.223 & 4.141 & 0.000\\
+age & 0.044 & 0.010 & 4.521 & 0.000\\
+\bottomrule
+\end{tabular}
+
+We continue with the Lasso approach and show the trace plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x }\OtherTok{\textless{}{-}} \FunctionTok{scale}\NormalTok{(}\FunctionTok{data.matrix}\NormalTok{(dat[,}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]))}
+\NormalTok{y }\OtherTok{\textless{}{-}}\NormalTok{ dat}\SpecialCharTok{$}\NormalTok{chd}
+\NormalTok{fit.lasso }\OtherTok{\textless{}{-}} \FunctionTok{glmnet}\NormalTok{(}\AttributeTok{x=}\NormalTok{x,}\AttributeTok{y=}\NormalTok{y,}\AttributeTok{family=}\StringTok{"binomial"}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(fit.lasso,}\AttributeTok{xvar =} \StringTok{"lambda"}\NormalTok{,}\AttributeTok{label=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-74-1} \end{center}
+
+The first coefficient which is shrunk to zero is alcohol followed by sbp and obesity. This is in line with the results from backward selection.
+
+We now turn to a truly high-dimensional example. The data consists of expression levels recorded for \(3'571\) genes in \(72\) patients with leukemia. The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix \(\bf X\) of gene expression values, and a vector \(\bf y\) of 72 binary disease outcomes. We first create training and test data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# set seed}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{15}\NormalTok{)}
+
+\CommentTok{\# get leukemia data}
+\NormalTok{leukemia }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\AttributeTok{file=}\StringTok{"data/leukemia.rds"}\NormalTok{)}
+\NormalTok{x }\OtherTok{\textless{}{-}}\NormalTok{ leukemia}\SpecialCharTok{$}\NormalTok{x}
+\NormalTok{y }\OtherTok{\textless{}{-}}\NormalTok{ leukemia}\SpecialCharTok{$}\NormalTok{y}
+
+\CommentTok{\# test/train }
+\NormalTok{ind\_train }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(y),}\AttributeTok{size=}\FunctionTok{length}\NormalTok{(y)}\SpecialCharTok{/}\DecValTok{2}\NormalTok{)}
+\NormalTok{xtrain }\OtherTok{\textless{}{-}}\NormalTok{ x[ind\_train,]}
+\NormalTok{ytrain }\OtherTok{\textless{}{-}}\NormalTok{ y[ind\_train]}
+\NormalTok{xtest }\OtherTok{\textless{}{-}}\NormalTok{ x[}\SpecialCharTok{{-}}\NormalTok{ind\_train,]}
+\NormalTok{ytest }\OtherTok{\textless{}{-}}\NormalTok{ y[}\SpecialCharTok{{-}}\NormalTok{ind\_train]}
+\end{Highlighting}
+\end{Shaded}
+
+The following heatmap illustrates the gene expression values for the different patients.
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-77-1} \end{center}
+
+We now run the elastic net logistic regression approach.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# run glmnet}
+\NormalTok{alpha  }\OtherTok{\textless{}{-}} \FloatTok{0.95}                \CommentTok{\# elastic net mixing parameter.}
+\NormalTok{fit.glmnet }\OtherTok{\textless{}{-}}\FunctionTok{glmnet}\NormalTok{(xtrain,ytrain,}\AttributeTok{family =} \StringTok{"binomial"}\NormalTok{,}\AttributeTok{alpha=}\NormalTok{alpha)}
+\end{Highlighting}
+\end{Shaded}
+
+The following Figure shows the trace plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(fit.glmnet,}\AttributeTok{xvar=}\StringTok{"lambda"}\NormalTok{,}\AttributeTok{label=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-79-1} \end{center}
+
+We run 10-fold cross-validation and show the misclassification error.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{118}\NormalTok{)}
+\CommentTok{\# run cv.glmnet}
+\NormalTok{nfolds }\OtherTok{\textless{}{-}} \DecValTok{10} \CommentTok{\# number of cross{-}validation folds.}
+\NormalTok{cv.glmnet }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(xtrain,ytrain,}
+                       \AttributeTok{family =} \StringTok{"binomial"}\NormalTok{,}\AttributeTok{type.measure =} \StringTok{"class"}\NormalTok{,}
+                       \AttributeTok{alpha =}\NormalTok{ alpha,}\AttributeTok{nfolds =}\NormalTok{ nfolds)}
+\FunctionTok{plot}\NormalTok{(cv.glmnet)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-80-1} \end{center}
+
+We take \texttt{lambda.1se} as the optimal tuning parameter.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#sum(coef(fit.glmnet, s = cv.glmnet$lambda.1se)!=0)}
+\CommentTok{\#sum(coef(fit.glmnet, s = cv.glmnet$lambda.min)!=0)}
+\NormalTok{(lambda.opt }\OtherTok{\textless{}{-}}\NormalTok{ cv.glmnet}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.2891844
+\end{verbatim}
+
+We extract the coefficients and plot them as a barplot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{beta.glmnet }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(fit.glmnet, }\AttributeTok{s =}\NormalTok{ cv.glmnet}\SpecialCharTok{$}\NormalTok{lambda.min)}
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Gene=}\FunctionTok{paste0}\NormalTok{(}\StringTok{"G"}\NormalTok{,}\DecValTok{1}\SpecialCharTok{:}\NormalTok{(}\FunctionTok{length}\NormalTok{(beta.glmnet)}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{)),}
+                 \AttributeTok{Beta=}\FunctionTok{as.numeric}\NormalTok{(beta.glmnet)[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{])}
+\NormalTok{df}\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(}\FunctionTok{abs}\NormalTok{(Beta)))}\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{slice}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{200}\NormalTok{)}\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(.,}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Gene,}\AttributeTok{y=}\NormalTok{Beta))}\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{theme\_bw}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_blank}\NormalTok{())}\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-82-1} \end{center}
+
+Finally, we predict the disease outcome of the test samples using the fitted model and compare against the observed outcomes of the test samples.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{predict}\NormalTok{(fit.glmnet,xtest,}\AttributeTok{s =}\NormalTok{ lambda.opt,}\AttributeTok{type =} \StringTok{"class"}\NormalTok{))}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{table}\NormalTok{(}\AttributeTok{true =} \FunctionTok{factor}\NormalTok{(ytest),}\AttributeTok{pred =} \FunctionTok{factor}\NormalTok{(pred)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     pred
+## true  0  1
+##    0 24  0
+##    1  3  9
+\end{verbatim}
+
+The misclassification error on the test data can be calculated as follows.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{round}\NormalTok{(}\FunctionTok{mean}\NormalTok{(pred}\SpecialCharTok{!=}\NormalTok{ytest),}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.083
+\end{verbatim}
+
+\hypertarget{classification-trees-and-machine-learning}{%
+\section{Classification Trees and Machine Learning}\label{classification-trees-and-machine-learning}}
+
+Classification is a frequent task in data mining and besides logistic regression there is a variety of other methods developed for this task. We first introduce \emph{classification trees} which learn a binary tree where \emph{leaves} represent class labels and \emph{branches} represent conjunctions of features that lead to those class labels. The package \texttt{rpart} can be used to learn classification trees.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# load packages}
+\FunctionTok{library}\NormalTok{(rpart)}
+\FunctionTok{library}\NormalTok{(rpart.plot)}
+
+\CommentTok{\# read south african heart disease data}
+\NormalTok{dat }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\AttributeTok{file=}\StringTok{"data/sahd.rds"}\NormalTok{)}
+
+\CommentTok{\# grow a classification tree}
+\NormalTok{fit.tree }\OtherTok{\textless{}{-}} \FunctionTok{rpart}\NormalTok{(chd}\SpecialCharTok{\textasciitilde{}}\NormalTok{.,}\AttributeTok{data=}\NormalTok{dat,}\AttributeTok{method=}\StringTok{"class"}\NormalTok{)}
+\CommentTok{\# plot(fit.tree, uniform=TRUE)}
+\CommentTok{\# text(fit.tree, use.n=TRUE, all=TRUE, cex=.8)}
+\FunctionTok{rpart.plot}\NormalTok{(fit.tree,}\AttributeTok{extra=}\DecValTok{1}\NormalTok{,}\AttributeTok{under=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{tweak =} \FloatTok{1.2}\NormalTok{,}\AttributeTok{faclen=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-85-1} \end{center}
+
+The algorithm starts by growing a typically too large tree which overfits the data. The next step is to ``prune'' the tree to obtain a good trade-off between goodness of fit and complexity. The following plot shows the relative cross-validation error (relative to the trivial tree consisting of only the root node) as a function of the complexity parameter.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plotcp}\NormalTok{(fit.tree,}\AttributeTok{cex.lab=}\FloatTok{1.5}\NormalTok{,}\AttributeTok{cex.axis=}\FloatTok{1.2}\NormalTok{,}\AttributeTok{cex=}\FloatTok{1.5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-86-1} \end{center}
+
+The optimally pruned tree has size 4 (i.e., 4 leave nodes).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# prune the tree}
+\NormalTok{fit.prune}\OtherTok{\textless{}{-}} \FunctionTok{prune}\NormalTok{(fit.tree, }
+                  \AttributeTok{cp=}\NormalTok{fit.tree}\SpecialCharTok{$}\NormalTok{cptable[}\FunctionTok{which.min}\NormalTok{(fit.tree}\SpecialCharTok{$}\NormalTok{cptable[,}\StringTok{"xerror"}\NormalTok{]),}\StringTok{"CP"}\NormalTok{])}
+\FunctionTok{rpart.plot}\NormalTok{(fit.prune,}\AttributeTok{extra=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-87-1} \end{center}
+
+Classification trees are the basis of powerful Machine Learning (ML) algorithms, namely \emph{Random Forest} and \emph{AdaBoost}. Both methods share the idea of growing various trees and combining the outputs to obtain a more powerful classification. However, the two approaches differ in the way they grow the trees and in how they do the aggregation. Random Forest works by building trees based on bootstrapped data sets and by aggregating the results using a majority vote (see Figure \ref{fig:randomforest}). The key idea behind AdaBoost is to sequentially fit a ``stump'' (i.e., a tree with two leaves) to weighted data with repeatedly modified weights. The weights assure that each stump takes the errors made by the previous stump into account. In that way a sequence of weak classifiers \(\{G_m\}_{m=1}^M\) is produced and finally a powerful new classifier is obtained by giving more influence towards the more accurate classifiers (see Figure \ref{fig:adaboost}). More details on these methods are provided in the book by \citet{elements}. Random Forest is implemented in the package \texttt{RandomForest} and AdaBoost in the package \texttt{gbm}. We will explore examples in the exercises.
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{randomforest} 
+
+}
+
+\caption{The key idea of Random Forest}\label{fig:randomforest}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{adaboost} 
+
+}
+
+\caption{The key idea of AdaBoost}\label{fig:adaboost}
+\end{figure}
+
+\hypertarget{survival-analysis}{%
+\chapter{Survival Analysis}\label{survival-analysis}}
+
+We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We will use the \emph{lymphoma} data set to set the scene and explain the basics. In particular, we will discuss elastic net regularization in the context of cox regression, introduce the time-dependent Brier score as a measure of prediction accuracy, and we give an example on how to use the \texttt{pec} package to benchmark prediction algorithms.
+
+\hypertarget{survival-endpoints-and-cox-regression}{%
+\section{Survival Endpoints and Cox Regression}\label{survival-endpoints-and-cox-regression}}
+
+We start by reading the lymphoma data which consists of gene expression data for \(p=7399\) genes measured on \(n=240\) patients, as well as survival data, for these patients.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# read gene expression matrix}
+\NormalTok{x }\OtherTok{\textless{}{-}} \FunctionTok{read.table}\NormalTok{(}\StringTok{"data/lymphx.txt"}\NormalTok{)}\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  as.matrix}
+
+\CommentTok{\# read survival data}
+\NormalTok{y }\OtherTok{\textless{}{-}} \FunctionTok{read.table}\NormalTok{(}\StringTok{"data/lymphtime.txt"}\NormalTok{,}\AttributeTok{header =} \ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  as.matrix}
+\end{Highlighting}
+\end{Shaded}
+
+The survival data consists of two variables \texttt{time} (the survival time) and \texttt{status} (event status, 1 in case of death, 0 in case of censoring).
+
+\begin{tabular}{r|r}
+\hline
+time & status\\
+\hline
+5.0 & 0\\
+\hline
+5.9 & 0\\
+\hline
+6.6 & 0\\
+\hline
+13.1 & 0\\
+\hline
+1.6 & 1\\
+\hline
+1.3 & 1\\
+\hline
+\end{tabular}
+
+The next plots shows the distribution of the survival times on a linear and log-scale.
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-92-1} \end{center}
+
+The distribution on the left is right skewed. However, after a log transformation the distribution looks near-to-symmetric. What makes this endpoint so special? Why can't we just use (regularized) linear regression to predict the (log) survival time based on the gene expression features? Such an approach would be shortsighted the reason being that we so far did not take into account the event status. The following graph shows survival times along side with the event status for a few patients. For patients with an event (blue triangles) the survival time equals the time-to-event. However, for censored patients (red dots) the actual time-to-event is not observed and will be larger than the survival time.
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-93-1} \end{center}
+
+In survival analysis we denote the time-to-event with \(T\). As illustrated above we typically only partially observe \(T\) as some subjects may be censored due to:
+
+\begin{itemize}
+\tightlist
+\item
+  Loss to follow-up
+\item
+  Withdrawal from study
+\item
+  No event by end of fixed study period.
+\end{itemize}
+
+Therefore we observe the survival time \(Y\) (which equals the event time or the censoring time whichever occurs earlier) and the event status \(D\) (\(D=1\) in case of event, \(D=0\) in case of censoring).
+
+A fundamental quantity in survival analysis is the survival function
+
+\[S(t)=P(T>t)=1-F(t)\]
+
+which can be estimated using the Kaplan-Meier method. In R we use \texttt{survfit} to invoke Kaplan-Meier and \texttt{ggsurvplot} to plot the estimated curve.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(y)}
+\NormalTok{fit.surv }\OtherTok{\textless{}{-}} \FunctionTok{survfit}\NormalTok{(}\FunctionTok{Surv}\NormalTok{(time, status) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }
+                    \AttributeTok{data =}\NormalTok{ dat)}
+\FunctionTok{ggsurvplot}\NormalTok{(fit.surv,}\AttributeTok{conf.int=}\ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-94-1} \end{center}
+
+More specific information on the estimated survival probabilities can be obtained using the \texttt{summary} function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# estimated probability of surviving beyond 10 years}
+\FunctionTok{summary}\NormalTok{(}\FunctionTok{survfit}\NormalTok{(}\FunctionTok{Surv}\NormalTok{(time, status) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ dat), }\AttributeTok{times =} \DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Now, how do we study the relationship between covariates and survival time? The solution is Cox regression! We introduce the hazard function defined as
+
+\begin{eqnarray*}
+h(t)&=&\lim_{dt\rightarrow 0}\frac{P(t\leq T < t+dt|T\geq t)}{dt}\\
+&=&-S'(t)/S(t).
+\end{eqnarray*}
+
+The Cox proportional hazards model then assumes a semi-parametric form for the hazard
+
+\[h(t|X)=h_0(t)\exp(X^T\beta),\]
+
+where \(h_0(t)\) is the baseline hazard and \(\beta\) are the regression coefficients. Cox regression estimates the regression coefficients by maximizing the so-called partial likelihood function (surprisingly this works without specifying the baseline hazard function). For illustration we fit a Cox regression model using the first 3 genes as predictors.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(y,x[,}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{]))}
+\NormalTok{fit }\OtherTok{\textless{}{-}} \FunctionTok{coxph}\NormalTok{(}\FunctionTok{Surv}\NormalTok{(time,status)}\SpecialCharTok{\textasciitilde{}}\NormalTok{.,}\AttributeTok{data=}\NormalTok{dat)}
+\FunctionTok{summary}\NormalTok{(fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+## coxph(formula = Surv(time, status) ~ ., data = dat)
+## 
+##   n= 240, number of events= 138 
+## 
+##       coef exp(coef) se(coef)      z Pr(>|z|)
+## V1  0.6382    1.8931   0.4504  1.417    0.156
+## V2 -0.5778    0.5611   0.4023 -1.436    0.151
+## V3 -0.1508    0.8600   0.3785 -0.398    0.690
+## 
+##    exp(coef) exp(-coef) lower .95 upper .95
+## V1    1.8931     0.5282    0.7831     4.577
+## V2    0.5611     1.7822    0.2551     1.234
+## V3    0.8600     1.1627    0.4095     1.806
+## 
+## Concordance= 0.559  (se = 0.028 )
+## Likelihood ratio test= 4.46  on 3 df,   p=0.2
+## Wald test            = 4.66  on 3 df,   p=0.2
+## Score (logrank) test = 4.66  on 3 df,   p=0.2
+\end{verbatim}
+
+The (exponentiated) regression coefficients are interpreted as hazard-ratios. For example a unit change in the 3rd covariate accounts for a risk reduction of \(\exp(\beta_3)\)=0.86 or \(14\%\). The results of Cox regression are often visualized using a forest plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggforest}\NormalTok{(fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-97-1} \end{center}
+
+\hypertarget{regularized-cox-regression}{%
+\section{Regularized Cox Regression}\label{regularized-cox-regression}}
+
+The lymphoma data consists of \(p=\) 7399 predictors. A truly high-dimensional example! Similar as for linear - and logistic regression we can build upon the Cox regression model and use subset selection or regularization. The R package \texttt{glmnet} implements elastic net penalized cox regression. For illustration we restrict ourselves to the top genes (highest variance) and we scale the features as part of the data preprocessing.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# filter for top genes (highest variance) and scale the input matrix}
+\NormalTok{topvar.genes }\OtherTok{\textless{}{-}} \FunctionTok{order}\NormalTok{(}\FunctionTok{apply}\NormalTok{(x,}\DecValTok{2}\NormalTok{,var),}\AttributeTok{decreasing=}\ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{50}\NormalTok{]}
+\NormalTok{x }\OtherTok{\textless{}{-}} \FunctionTok{scale}\NormalTok{(x[,topvar.genes])}
+\end{Highlighting}
+\end{Shaded}
+
+We split the data set into training and test data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1234}\NormalTok{)}
+\NormalTok{train\_ind }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{nrow}\NormalTok{(x),}\AttributeTok{size=}\FunctionTok{nrow}\NormalTok{(x)}\SpecialCharTok{/}\DecValTok{2}\NormalTok{)}
+\NormalTok{xtrain }\OtherTok{\textless{}{-}}\NormalTok{ x[train\_ind,]}
+\NormalTok{ytrain }\OtherTok{\textless{}{-}}\NormalTok{ y[train\_ind,]}
+\NormalTok{xtest }\OtherTok{\textless{}{-}}\NormalTok{ x[}\SpecialCharTok{{-}}\NormalTok{train\_ind,]}
+\NormalTok{ytest }\OtherTok{\textless{}{-}}\NormalTok{ y[}\SpecialCharTok{{-}}\NormalTok{train\_ind,]}
+\end{Highlighting}
+\end{Shaded}
+
+We invoke \texttt{glmnet} with argument \texttt{family="cox"} and set the mixing parameter to \(\alpha=0.95\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{ytrain.surv }\OtherTok{\textless{}{-}} \FunctionTok{Surv}\NormalTok{(ytrain[,}\StringTok{"time"}\NormalTok{],ytrain[,}\StringTok{"status"}\NormalTok{])}
+\NormalTok{fit.coxnet }\OtherTok{\textless{}{-}} \FunctionTok{glmnet}\NormalTok{(xtrain, ytrain.surv, }\AttributeTok{family =} \StringTok{"cox"}\NormalTok{,}\AttributeTok{alpha=}\FloatTok{0.95}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(fit.coxnet,}\AttributeTok{xvar=}\StringTok{"lambda"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-102-1} \end{center}
+
+We tune the amount of penalization by using cross-validation and take Harrel's concordance index as a goodness of fit measure.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv.coxnet }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(xtrain,ytrain.surv,}
+                       \AttributeTok{family=}\StringTok{"cox"}\NormalTok{,}
+                       \AttributeTok{type.measure=}\StringTok{"C"}\NormalTok{,}
+                       \AttributeTok{nfolds =} \DecValTok{5}\NormalTok{,}
+                       \AttributeTok{alpha=}\FloatTok{0.95}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(cv.coxnet)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-103-1} \end{center}
+
+The C-index ranges from 0.5 to 1. A value of 0.5 indicates that the model is no better at predicting an outcome than random chance. The largest tuning parameter within 1se of the maximum C-index is \(\lambda_{\rm{opt}}=\) 0.132. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-104-1} \end{center}
+
+We use the obtained model to make predictions on the test data. In particular we compute the linear predictor
+
+\[\hat{f}(X_{\textrm{new}})=X_{\textrm{new}}^T\hat{\beta}_{\lambda_{\rm opt}}.\]
+We can now classify patients into good and poor prognosis based on thresholding the linear predictor at zero.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# linear predictor}
+\NormalTok{lp }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit.coxnet,}
+              \AttributeTok{newx=}\NormalTok{xtest,}
+              \AttributeTok{s=}\NormalTok{cv.coxnet}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se,}
+              \AttributeTok{type=}\StringTok{"link"}\NormalTok{)}
+\NormalTok{dat.test }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(ytest)}
+\NormalTok{dat.test}\SpecialCharTok{$}\NormalTok{prognosis }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(lp}\SpecialCharTok{\textgreater{}}\DecValTok{0}\NormalTok{,}\StringTok{"poor"}\NormalTok{,}\StringTok{"good"}\NormalTok{)}
+\NormalTok{fit.surv }\OtherTok{\textless{}{-}} \FunctionTok{survfit}\NormalTok{(}\FunctionTok{Surv}\NormalTok{(time, status) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ prognosis, }
+                    \AttributeTok{data =}\NormalTok{ dat.test)}
+\FunctionTok{ggsurvplot}\NormalTok{(fit.surv,}\AttributeTok{conf.int =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-105-1} \end{center}
+
+The survival curves are reasonably well separated, which suggests we have derived a gene signature which deserves further investigation.
+
+\hypertarget{brier-score}{%
+\section{Brier Score}\label{brier-score}}
+
+We have seen how to evaluate the generalization error in the linear regression and classification context. For time-to-event data this is slightly more involved. A popular way to quantify the prediction accuracy is the time-dependent Brier score
+
+\[{\rm BS}(t,\hat{S})={\bf E}[(\Delta_{\rm{new}}(t)-\hat{S}(t|X_{\rm new}))^2] \]
+
+where \(\Delta_{\textrm{new}}(t)={\bf 1}(T_{\textrm{new}}\geq t)\) is the true status of a new test subject and
+\(\hat{S}(t|X_{\rm new})\) is the predicted survival probability. Calculation of the Brier score is complicated by the fact that we do not always observe the event time \(T\) due to censoring. The R package \texttt{pec} estimates the Brier score using a technique called \emph{Inverse Probability of Censoring Weighting (IPCW)}.
+
+We use forward selection on the training data to obtain a prediction model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dtrain }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(ytrain,xtrain))}
+\NormalTok{dtest }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(ytest,xtest))}
+\NormalTok{fit.lo }\OtherTok{\textless{}{-}} \FunctionTok{coxph}\NormalTok{(}\FunctionTok{Surv}\NormalTok{(time,status)}\SpecialCharTok{\textasciitilde{}}\DecValTok{1}\NormalTok{,}\AttributeTok{data=}\NormalTok{dtrain,}
+              \AttributeTok{x=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{y=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{up }\OtherTok{\textless{}{-}} \FunctionTok{as.formula}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"\textasciitilde{}"}\NormalTok{, }
+                       \FunctionTok{paste}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(xtrain), }
+                             \AttributeTok{collapse=}\StringTok{"+"}\NormalTok{)))}
+\NormalTok{fit.fw }\OtherTok{\textless{}{-}} \FunctionTok{stepAIC}\NormalTok{(fit.lo,}
+                  \AttributeTok{scope=}\FunctionTok{list}\NormalTok{(}\AttributeTok{lower=}\NormalTok{fit.lo,}
+                             \AttributeTok{upper=}\NormalTok{up),}
+                  \AttributeTok{direction=}\StringTok{"both"}\NormalTok{,}
+                  \AttributeTok{trace=}\ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The following table summarizes the variables added in each step of the forward selection approach.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}\FunctionTok{as.data.frame}\NormalTok{(fit.fw}\SpecialCharTok{$}\NormalTok{anova),}\AttributeTok{digits=}\DecValTok{3}\NormalTok{,}\AttributeTok{booktabs=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{lrrrrr}
+\toprule
+Step & Df & Deviance & Resid. Df & Resid. Dev & AIC\\
+\midrule
+ & NA & NA & 67 & 587.326 & 587.326\\
++ V4131 & 1 & 7.554 & 66 & 579.771 & 581.771\\
++ V4498 & 1 & 7.405 & 65 & 572.366 & 576.366\\
++ V5172 & 1 & 5.272 & 64 & 567.094 & 573.094\\
++ V5254 & 1 & 7.388 & 63 & 559.706 & 567.706\\
+\addlinespace
++ V5223 & 1 & 3.802 & 62 & 555.903 & 565.903\\
++ V4356 & 1 & 3.766 & 61 & 552.138 & 564.138\\
++ V4341 & 1 & 3.311 & 60 & 548.826 & 562.826\\
+\bottomrule
+\end{tabular}
+
+We further run a Cox regression model based on the predictors selected by \texttt{glmnet}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{beta}\FloatTok{.1}\NormalTok{se }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(fit.coxnet,}\AttributeTok{s=}\NormalTok{cv.coxnet}\SpecialCharTok{$}\NormalTok{lambda}\FloatTok{.1}\NormalTok{se)}
+\NormalTok{vars}\FloatTok{.1}\NormalTok{se }\OtherTok{\textless{}{-}} \FunctionTok{rownames}\NormalTok{(beta}\FloatTok{.1}\NormalTok{se)[}\FunctionTok{as.numeric}\NormalTok{(beta}\FloatTok{.1}\NormalTok{se)}\SpecialCharTok{!=}\DecValTok{0}\NormalTok{]}
+\NormalTok{fm}\FloatTok{.1}\NormalTok{se }\OtherTok{\textless{}{-}} \FunctionTok{as.formula}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(}\StringTok{"Surv(time,status)\textasciitilde{}"}\NormalTok{,}
+                            \FunctionTok{paste0}\NormalTok{(vars}\FloatTok{.1}\NormalTok{se,}\AttributeTok{collapse=}\StringTok{"+"}\NormalTok{)))}
+\NormalTok{fit}\FloatTok{.1}\NormalTok{se }\OtherTok{\textless{}{-}} \FunctionTok{coxph}\NormalTok{(fm}\FloatTok{.1}\NormalTok{se,}\AttributeTok{data=}\NormalTok{dtrain,}\AttributeTok{x=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{y=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Finally we use the \texttt{pec} package to calculate Brier scores for both models on the training and test data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(pec)}
+\NormalTok{fit.pec.train }\OtherTok{\textless{}{-}}\NormalTok{ pec}\SpecialCharTok{::}\FunctionTok{pec}\NormalTok{(}
+  \AttributeTok{object=}\FunctionTok{list}\NormalTok{(}\StringTok{"cox.fw"}\OtherTok{=}\NormalTok{fit.fw,}
+              \StringTok{"cox.1se"}\OtherTok{=}\NormalTok{fit}\FloatTok{.1}\NormalTok{se), }
+  \AttributeTok{data =}\NormalTok{ dtrain, }
+  \AttributeTok{formula =} \FunctionTok{Surv}\NormalTok{(time, status) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }
+  \AttributeTok{splitMethod =} \StringTok{"none"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in .recacheSubclasses(def@className, def, env): undefined subclass
+## "packedMatrix" of class "replValueSp"; definition not updated
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in .recacheSubclasses(def@className, def, env): undefined subclass
+## "packedMatrix" of class "mMatrix"; definition not updated
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.pec.test }\OtherTok{\textless{}{-}}\NormalTok{ pec}\SpecialCharTok{::}\FunctionTok{pec}\NormalTok{(}
+  \AttributeTok{object=}\FunctionTok{list}\NormalTok{(}\StringTok{"cox.fw"}\OtherTok{=}\NormalTok{fit.fw,}
+              \StringTok{"cox.1se"}\OtherTok{=}\NormalTok{fit}\FloatTok{.1}\NormalTok{se), }
+  \AttributeTok{data =}\NormalTok{ dtest, }
+  \AttributeTok{formula =} \FunctionTok{Surv}\NormalTok{(time, status) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }
+  \AttributeTok{splitMethod =} \StringTok{"none"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The following figure shows the Brier scores evaluated on training and test data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(fit.pec.train,}\AttributeTok{main=}\StringTok{"training data"}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(fit.pec.test,}\AttributeTok{main=}\StringTok{"test data"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-112-1} \end{center}
+
+The plot on the right shows the Brier score on the test data and indicates that the glmnet selected model performs slightly better than the reference model (no covariates, Kaplan-Meier estimate only).
+
+The \texttt{pec} package can also be used to benchmark different prediction models. We illustrate this based on random forest and forward selection. In this illustration we do not split the data into training and test. Instead we use cross-validation to compare the two prediction approaches.
+
+We start by writing a small wrapper function to use forward selection in \texttt{pec}. (A detailed description on the \texttt{pec} package and on how to set up wrapper functions is provided \href{https://pubmed.ncbi.nlm.nih.gov/25317082/}{here}.)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{selectCoxfw }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(formula,data,}\AttributeTok{steps=}\DecValTok{100}\NormalTok{,}\AttributeTok{direction=}\StringTok{"both"}\NormalTok{)}
+\NormalTok{\{}
+  \FunctionTok{require}\NormalTok{(prodlim)}
+\NormalTok{  fmlo }\OtherTok{\textless{}{-}} \FunctionTok{reformulate}\NormalTok{(}\StringTok{"1"}\NormalTok{,formula[[}\DecValTok{2}\NormalTok{]])}
+\NormalTok{  fitlo }\OtherTok{\textless{}{-}} \FunctionTok{coxph}\NormalTok{(fmlo,}\AttributeTok{data=}\NormalTok{data,}\AttributeTok{x=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{y=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  fwfit }\OtherTok{\textless{}{-}} \FunctionTok{stepAIC}\NormalTok{(fitlo,}
+                   \AttributeTok{scope=}\FunctionTok{list}\NormalTok{(}\AttributeTok{lower=}\NormalTok{fitlo,}
+                              \AttributeTok{upper=}\NormalTok{formula),}
+                   \AttributeTok{direction=}\NormalTok{direction,}
+                   \AttributeTok{steps=}\NormalTok{steps,}
+                   \AttributeTok{trace=}\ConstantTok{FALSE}\NormalTok{)}
+  \ControlFlowTok{if}\NormalTok{ (fwfit}\SpecialCharTok{$}\NormalTok{formula[[}\DecValTok{3}\NormalTok{]]}\SpecialCharTok{==}\DecValTok{1}\NormalTok{)\{}
+\NormalTok{    newform }\OtherTok{\textless{}{-}} \FunctionTok{reformulate}\NormalTok{(}\StringTok{"1"}\NormalTok{,formula[[}\DecValTok{2}\NormalTok{]])}
+\NormalTok{    newfit }\OtherTok{\textless{}{-}} \FunctionTok{prodlim}\NormalTok{(newform,}
+                      \AttributeTok{data=}\NormalTok{data)}
+\NormalTok{  \}}\ControlFlowTok{else}\NormalTok{\{}
+\NormalTok{    newform }\OtherTok{\textless{}{-}}\NormalTok{fwfit}\SpecialCharTok{$}\NormalTok{formula}
+\NormalTok{    newfit }\OtherTok{\textless{}{-}} \FunctionTok{coxph}\NormalTok{(newform,}\AttributeTok{data=}\NormalTok{data,}\AttributeTok{x=}\ConstantTok{TRUE}\NormalTok{,}\AttributeTok{y=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{  out }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\AttributeTok{fit=}\NormalTok{newfit,}
+              \AttributeTok{In=}\FunctionTok{attr}\NormalTok{(}\FunctionTok{terms}\NormalTok{(newfit}\SpecialCharTok{$}\NormalTok{formula),}\AttributeTok{which =} \StringTok{"term.labels"}\NormalTok{))}
+\NormalTok{  out}\SpecialCharTok{$}\NormalTok{call }\OtherTok{\textless{}{-}}\FunctionTok{match.call}\NormalTok{()}
+  \FunctionTok{class}\NormalTok{(out) }\OtherTok{\textless{}{-}} \StringTok{"selectCoxfw"}
+
+\NormalTok{  out}
+\NormalTok{\}}
+
+\NormalTok{predictSurvProb.selectCoxfw }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(object,newdata,times,...)\{}
+  \FunctionTok{predictSurvProb}\NormalTok{(object[[}\DecValTok{1}\NormalTok{]],}\AttributeTok{newdata=}\NormalTok{newdata,}\AttributeTok{times=}\NormalTok{times,...)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+We run forward selection.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(y,x))}
+\NormalTok{fm }\OtherTok{\textless{}{-}} \FunctionTok{as.formula}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"Surv(time, status) \textasciitilde{} "}\NormalTok{, }
+                       \FunctionTok{paste}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(dat[,}\SpecialCharTok{{-}}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{2}\NormalTok{)]), }
+                             \AttributeTok{collapse=}\StringTok{"+"}\NormalTok{)))}
+\NormalTok{fit.coxfw }\OtherTok{\textless{}{-}} \FunctionTok{selectCoxfw}\NormalTok{(fm,}\AttributeTok{data=}\NormalTok{dat,}
+                         \AttributeTok{direction=}\StringTok{"forward"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We fit a random forest using \texttt{cforest} from the \texttt{party} package.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit.cforest }\OtherTok{\textless{}{-}}\NormalTok{ pec}\SpecialCharTok{::}\FunctionTok{pecCforest}\NormalTok{(fm, }\AttributeTok{data =}\NormalTok{dat, }
+                               \AttributeTok{control =}\NormalTok{ party}\SpecialCharTok{::}\FunctionTok{cforest\_classical}\NormalTok{(}\AttributeTok{ntree =} \DecValTok{100}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+We random forest we can obtain a measure of variable importance using the function \texttt{varimp}.
+
+\begin{verbatim}
+## 
+## Variable importance for survival forests; this feature is _experimental_
+\end{verbatim}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-116-1} \end{center}
+
+Finally we compare the two approaches using the cross-validated Brier score.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pec.cv }\OtherTok{\textless{}{-}}\NormalTok{ pec}\SpecialCharTok{::}\FunctionTok{pec}\NormalTok{(}
+  \AttributeTok{object=}\FunctionTok{list}\NormalTok{(}\StringTok{"cox.fw"}\OtherTok{=}\NormalTok{fit.coxfw,}\StringTok{"cforest"}\OtherTok{=}\NormalTok{fit.cforest), }
+  \AttributeTok{data =}\NormalTok{ dat, }
+  \AttributeTok{formula =} \FunctionTok{Surv}\NormalTok{(time, status) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }
+  \AttributeTok{splitMethod =} \StringTok{"cv5"}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(pec.cv)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-117-1} \end{center}
+
+We conclude that forward selection and random forest do not outperform the reference model.
+
+\hypertarget{high-dimensional-feature-assessment}{%
+\chapter{High-Dimensional Feature Assessment}\label{high-dimensional-feature-assessment}}
+
+A frequent task is to find features which differ with respect to one or more experimental factors.
+We illustrate this type of analysis using a gene expression experiment (\(p=15923\) genes) performed with \(12\) randomly selected mice from two strains. The features are the \(p=15923\) genes and the strain (A vs B) is the experimental factor.
+
+A commonly used format for gene expression data is the \texttt{ExpressionSet} class from the \texttt{Biobase} package. The actual expressions are retrieved using the function \texttt{exprs}. Information on the phenotypes is obtained using \texttt{pData} and with \texttt{fData} we get more information on the genes (``features'').
+
+We load the \texttt{ExpressionSet}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{esetmouse }\OtherTok{\textless{}{-}} \FunctionTok{readRDS}\NormalTok{(}\AttributeTok{file=}\StringTok{"data/esetmouse.rds"}\NormalTok{)}
+\FunctionTok{class}\NormalTok{(esetmouse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "ExpressionSet"
+## attr(,"package")
+## [1] "Biobase"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{dim}\NormalTok{(esetmouse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Features  Samples 
+##    15923       24
+\end{verbatim}
+
+We can look at the expression values of the first sample and the first 6 genes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{exprs}\NormalTok{(esetmouse)[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{6}\NormalTok{,}\DecValTok{1}\NormalTok{]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
+##  10.051651  10.163334  10.211724  10.334899  10.889349   9.666755
+\end{verbatim}
+
+An overview on the phenotype data can be obtained using the following commands.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{table}\NormalTok{(}\FunctionTok{pData}\NormalTok{(esetmouse)}\SpecialCharTok{$}\NormalTok{strain)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  A  B 
+## 12 12
+\end{verbatim}
+
+\hypertarget{gene-wise-two-sample-comparison}{%
+\section{Gene-wise Two-sample Comparison}\label{gene-wise-two-sample-comparison}}
+
+We are interested in comparing gene expression between the
+mice strains A and B.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{x }\OtherTok{\textless{}{-}}\NormalTok{ esetmouse}\SpecialCharTok{$}\NormalTok{strain }\CommentTok{\# strain information}
+\NormalTok{y }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(}\FunctionTok{exprs}\NormalTok{(esetmouse)) }\CommentTok{\# gene expressions matrix (columns refer to genes)}
+\end{Highlighting}
+\end{Shaded}
+
+We start by visualizing the expression of gene \(j=11425\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{boxplot}\NormalTok{(y[,}\DecValTok{11425}\NormalTok{]}\SpecialCharTok{\textasciitilde{}}\NormalTok{x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-124-1} \end{center}
+
+This gene seems to be higher expressed in A. To nail down this observeration we can do a more formal hypothesis test. We build the ordinary t-statistic
+
+\begin{align*}
+t_{j}&=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}.
+\end{align*}
+
+We can calculate the two-sided p-value
+
+\begin{align*}
+q_j&=2\left(1-F(|t_j|,\nu=n_A+n_B-2)\right).
+\end{align*}
+
+In R we can perform a two-sample t-test using the function \texttt{t.test}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ttest }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(y[,}\DecValTok{11425}\NormalTok{]}\SpecialCharTok{\textasciitilde{}}\NormalTok{x,}\AttributeTok{var.equal=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{ttest}\SpecialCharTok{$}\NormalTok{statistic }\CommentTok{\#tscore}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        t 
+## 1.774198
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ttest}\SpecialCharTok{$}\NormalTok{p.value}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.0898726
+\end{verbatim}
+
+We obtain \(q_{11425}\)=0.09 and based on that we would not reject the null-hypothesis for this specific gene at the \(\alpha=0.05\) level. What about the other genes? We continue by repeating the analysis for all \(p=\) 15923 genes. We save the results in a data frame.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pvals }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(y,}\DecValTok{2}\NormalTok{,}\AttributeTok{FUN=}
+                 \ControlFlowTok{function}\NormalTok{(y)\{}
+                   \FunctionTok{t.test}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{x,}\AttributeTok{var.equal=}\ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{p.value}
+\NormalTok{                 \})}
+\NormalTok{tscore }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(y,}\DecValTok{2}\NormalTok{,}\AttributeTok{FUN=}
+                  \ControlFlowTok{function}\NormalTok{(y)\{}
+                    \FunctionTok{t.test}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{x,}\AttributeTok{var.equal=}\ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{statistic}
+\NormalTok{                  \})}
+\NormalTok{res.de }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{p.value=}\NormalTok{pvals,}
+                     \AttributeTok{t.score=}\NormalTok{tscore,}
+                     \AttributeTok{geneid=}\FunctionTok{names}\NormalTok{(tscore))}
+\end{Highlighting}
+\end{Shaded}
+
+Next we count the number of significant genes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum}\NormalTok{(res.de}\SpecialCharTok{$}\NormalTok{p.value}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2908
+\end{verbatim}
+
+According to this analysis 2908 genes are differentially expressed between strains A and B. This is 18.3\% of all genes. In the next section we will explain that this analysis misses an important point, namely it neglects the issue of multiple testing.
+
+\hypertarget{multiple-testing}{%
+\section{Multiple Testing}\label{multiple-testing}}
+
+To illustrate the multiple testing problem we create an artificial gene expression data set where we are certain that none of the genes is differentially expressed.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{p }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(y)}
+\NormalTok{n }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(y)}
+\NormalTok{ysim }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\FunctionTok{rnorm}\NormalTok{(n}\SpecialCharTok{*}\NormalTok{p),n,p)}
+\end{Highlighting}
+\end{Shaded}
+
+Now we repeat the gene-wise two-sample comparisons for the artificial data set.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pvals.sim }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(ysim,}\DecValTok{2}\NormalTok{,}\AttributeTok{FUN=}
+                 \ControlFlowTok{function}\NormalTok{(y)\{}
+                   \FunctionTok{t.test}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{x,}\AttributeTok{var.equal=}\ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{p.value}
+\NormalTok{                 \})}
+\NormalTok{tscore.sim }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(ysim,}\DecValTok{2}\NormalTok{,}\AttributeTok{FUN=}
+                  \ControlFlowTok{function}\NormalTok{(y)\{}
+                    \FunctionTok{t.test}\NormalTok{(y}\SpecialCharTok{\textasciitilde{}}\NormalTok{x,}\AttributeTok{var.equal=}\ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{statistic}
+\NormalTok{                  \})}
+\NormalTok{res.de.sim }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{p.value=}\NormalTok{pvals.sim,}\AttributeTok{t.score=}\NormalTok{tscore.sim)}
+\end{Highlighting}
+\end{Shaded}
+
+We count the number of significant genes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum}\NormalTok{(res.de.sim}\SpecialCharTok{$}\NormalTok{p.value}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 773
+\end{verbatim}
+
+This is a surprise! According to the analysis 773 genes are differentially expressed. However, we know that this cannot be true. What did we miss? The reason for the large number of falsely declared significant genes is that we performed multiple significance tests simultaneously. Each test is associated with an error which accumulate over the various test. In particular, we re-call that the probability of falsely rejecting the null-hypothesis (=Type-I error) is
+\[
+{\rm Prob}(q_j<\alpha)\leq \alpha. 
+\]
+
+We performed a significance test for each gene which makes the expected number of falsely rejected null-hypotheses \(p\times\alpha\)=796.15. Under the null hypothesis we would expect the p-values to follow a uniform distribution. Indeed, that is what we observe in our simulation example.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(res.de.sim}\SpecialCharTok{$}\NormalTok{p.value)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-131-1} \end{center}
+
+The distribution of p-values obtained from the real example has a peak near zero which indicates that some genes are truly differentially expressed between strains A and B.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(res.de}\SpecialCharTok{$}\NormalTok{p.value)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-132-1} \end{center}
+
+In the next section we will discuss \emph{p-value adjustment} which is a method to counteract the issue of multiple testing.
+
+\hypertarget{p-value-adjustment}{%
+\section{P-value Adjustment}\label{p-value-adjustment}}
+
+Our previous consideration suggest that we could adjust the p-values by multiplying with the number \(p\) of performed tests, i.e.
+
+\[q_{j}^{\rm adjust}=p\times q_j.\]
+
+This adjustment method is known as the Bonferroni correction. The method has the property that it controls the so-called family-wise-error rate (FWER). Let's assume that \(p_0\) is the number of \emph{true} null hypotheses (unknown to the researcher), then we can show
+
+\begin{align*}
+{\rm FWER}&={\rm Prob}({\rm at\;least\;one\;false\;positive})\\
+&={\rm Prob}(\min_{j=1..p_0} q^{\rm adjust}_j\leq \alpha)\\
+&={\rm Prob}(\min_{j=1..p_0} q_j\leq \alpha/p)\\
+&\leq \sum_{j=1}^{p_0} {\rm Prob}(q_j\leq \alpha/p)\\
+&={p_0}\frac{\alpha}{p}\leq\alpha.
+\end{align*}
+
+In our example we calculate the Bonferroni adjusted p-values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res.de}\SpecialCharTok{$}\NormalTok{p.value.bf }\OtherTok{\textless{}{-}}\NormalTok{ p}\SpecialCharTok{*}\NormalTok{res.de}\SpecialCharTok{$}\NormalTok{p.value}
+\NormalTok{res.de.sim}\SpecialCharTok{$}\NormalTok{p.value.bf }\OtherTok{\textless{}{-}}\NormalTok{ p}\SpecialCharTok{*}\NormalTok{res.de.sim}\SpecialCharTok{$}\NormalTok{p.value}
+\end{Highlighting}
+\end{Shaded}
+
+The number of significant genes in the real and simulated data are provided next. Note that none of the genes is significant in the simulated data which is in line with our expectations.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum}\NormalTok{(res.de}\SpecialCharTok{$}\NormalTok{p.value.bf}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 82
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum}\NormalTok{(res.de.sim}\SpecialCharTok{$}\NormalTok{p.value.bf}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0
+\end{verbatim}
+
+The R function \texttt{p.adjust} offers various adjustment procedures. The different methods are based on different assumptions and/or they control a different error measure. The Bonferroni correction is the most conservative approach and often leads to too few significant result (loss of statistical power). Less conservative is the so-called FDR approach which controls the False Discovery Rate (instead of FWER). We calculate the FDR adjusted p-values and print the number of significant genes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res.de}\SpecialCharTok{$}\NormalTok{p.value.fdr }\OtherTok{\textless{}{-}} \FunctionTok{p.adjust}\NormalTok{(res.de}\SpecialCharTok{$}\NormalTok{p.value,}\AttributeTok{method=}\StringTok{"fdr"}\NormalTok{)}
+\NormalTok{res.de.sim}\SpecialCharTok{$}\NormalTok{p.value.fdr }\OtherTok{\textless{}{-}} \FunctionTok{p.adjust}\NormalTok{(res.de.sim}\SpecialCharTok{$}\NormalTok{p.value,}\AttributeTok{method=}\StringTok{"fdr"}\NormalTok{)}
+\FunctionTok{sum}\NormalTok{(res.de}\SpecialCharTok{$}\NormalTok{p.value.fdr}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1123
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum}\NormalTok{(res.de.sim}\SpecialCharTok{$}\NormalTok{p.value.fdr}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0
+\end{verbatim}
+
+\hypertarget{volcano-plot}{%
+\section{Volcano Plot}\label{volcano-plot}}
+
+It is important to effectively display statistical results obtained from high-dimensional data. We have discussed how to calculate p-values and how to adjust them for multiplicity. However, the p-value is often not the only quantity of interest. In differential gene expression analysis we are also interested in the magnitude of change in expression.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{magn}\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(y,}\DecValTok{2}\NormalTok{,}\AttributeTok{FUN=}
+             \ControlFlowTok{function}\NormalTok{(y)\{}
+\NormalTok{               mba }\OtherTok{\textless{}{-}} \FunctionTok{tapply}\NormalTok{(y,x,mean)}
+               \FunctionTok{return}\NormalTok{(mba[}\DecValTok{2}\NormalTok{]}\SpecialCharTok{{-}}\NormalTok{mba[}\DecValTok{1}\NormalTok{])}
+\NormalTok{             \})}
+\NormalTok{magn.sim }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(ysim,}\DecValTok{2}\NormalTok{,}\AttributeTok{FUN=}
+                  \ControlFlowTok{function}\NormalTok{(y)\{}
+\NormalTok{                    mba }\OtherTok{\textless{}{-}} \FunctionTok{tapply}\NormalTok{(y,x,mean)}
+                    \FunctionTok{return}\NormalTok{(mba[}\DecValTok{2}\NormalTok{]}\SpecialCharTok{{-}}\NormalTok{mba[}\DecValTok{1}\NormalTok{])}
+\NormalTok{                  \})}
+\NormalTok{res.de}\SpecialCharTok{$}\NormalTok{magn }\OtherTok{\textless{}{-}}\NormalTok{ magn}
+\NormalTok{res.de.sim}\SpecialCharTok{$}\NormalTok{magn }\OtherTok{\textless{}{-}}\NormalTok{ magn.sim}
+\end{Highlighting}
+\end{Shaded}
+
+A frequently used display is the volcano plot which shows on the y-axis the \(-\log_{10}\) p-values and on the x-axis the magnitude of change. By using \(-\log_{10}\), the ``highly significant'' features appear at the top of the plot. Using log also permits us to better distinguish between small and very small p-values. We can further highlight the ``top genes'' as those with adjusted p-value \textless0.05 and magnitude of change \(>1\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res.de}\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{topgene=}\FunctionTok{ifelse}\NormalTok{(p.value.fdr}\SpecialCharTok{\textless{}}\FloatTok{0.05}\SpecialCharTok{\&}\FunctionTok{abs}\NormalTok{(magn)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{,}
+                               \StringTok{"top"}\NormalTok{,}
+                               \StringTok{"other"}\NormalTok{)}
+\NormalTok{                )}\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(.,}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{magn,}\AttributeTok{y=}\SpecialCharTok{{-}}\FunctionTok{log10}\NormalTok{(p.value),}\AttributeTok{col=}\NormalTok{topgene))}\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"top"}\OtherTok{=}\StringTok{"red"}\NormalTok{,}\StringTok{"other"}\OtherTok{=}\StringTok{"black"}\NormalTok{))}\SpecialCharTok{+}
+  \FunctionTok{theme\_bw}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{xlim}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{3}\NormalTok{,}\DecValTok{3}\NormalTok{)}\SpecialCharTok{+}\FunctionTok{ylim}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{10}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{1}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \SpecialCharTok{{-}}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-137-1} \end{center}
+
+We repeat the same plot with the simulated data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res.de.sim}\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{topgene=}\FunctionTok{ifelse}\NormalTok{(p.value.fdr}\SpecialCharTok{\textless{}}\FloatTok{0.05}\SpecialCharTok{\&}\FunctionTok{abs}\NormalTok{(magn)}\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{,}
+                               \StringTok{"top"}\NormalTok{,}
+                               \StringTok{"other"}\NormalTok{)}
+\NormalTok{                )}\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(.,}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{magn,}\AttributeTok{y=}\SpecialCharTok{{-}}\FunctionTok{log10}\NormalTok{(p.value),}\AttributeTok{col=}\NormalTok{topgene))}\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"top"}\OtherTok{=}\StringTok{"red"}\NormalTok{,}\StringTok{"other"}\OtherTok{=}\StringTok{"black"}\NormalTok{))}\SpecialCharTok{+}
+  \FunctionTok{theme\_bw}\NormalTok{()}\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{xlim}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{3}\NormalTok{,}\DecValTok{3}\NormalTok{)}\SpecialCharTok{+}\FunctionTok{ylim}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{10}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{1}\NormalTok{)}\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \SpecialCharTok{{-}}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{highdimstats_files/figure-latex/unnamed-chunk-138-1} \end{center}
+
+\hypertarget{variance-shrinkage-and-empirical-bayes}{%
+\section{Variance Shrinkage and Empirical Bayes}\label{variance-shrinkage-and-empirical-bayes}}
+
+The basis of the statistical analyses are the t-statistics
+
+\begin{align*}
+t_{j}&=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}.
+\end{align*}
+
+In a small sample size setting the estimated standard deviations exhibit high variability which can lead to large t-statistics. Extensive statistical methodology has been developed to counteract this challenge. The key idea of those methods is to \emph{shrink} the gene-wise variances \(\rm s^2_{j}\) towards a common variance \(s^2_0\) (\(s^2_0\) is estimated from the data)
+
+\begin{align*}
+\widetilde{s}_{j}^2&=\frac{d_0 s_0^2+d s^2_{j}}{d_0+d}.
+\end{align*}
+
+A so-called \emph{moderated} t-statistic is obtained by replacing in the denominator \(s_{j}\) with the ``shrunken'' \(\widetilde{s}_{j}\). The \emph{moderated} t-statistic has favourable statistical properties in the small \(n\) setting. The statistical methodology behind the approach is referred to as empirical Bayes and is implemented in the function \texttt{eBayes} of the \texttt{limma} package. Limma starts with running gene-wise linear regression using the \texttt{lmFit} function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(limma)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'limma'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:BiocGenerics':
+## 
+##     plotMA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# first argument: gene expression matrix with genes in rows and sample in columns}
+\CommentTok{\# second argument: design matrix}
+\NormalTok{fit }\OtherTok{\textless{}{-}} \FunctionTok{lmFit}\NormalTok{(}\FunctionTok{t}\NormalTok{(y), }\AttributeTok{design=}\FunctionTok{model.matrix}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ x)) }
+\FunctionTok{head}\NormalTok{(}\FunctionTok{coef}\NormalTok{(fit))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            (Intercept)           xB
+## 1367452_at   10.027453  0.092544985
+## 1367453_at   10.173732  0.026867630
+## 1367454_at   10.275137  0.003017421
+## 1367455_at   10.371786 -0.101727288
+## 1367456_at   10.815641 -0.006899555
+## 1367457_at    9.607297  0.038318498
+\end{verbatim}
+
+We can compare it with a standard \texttt{lm} fit.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{coef}\NormalTok{(}\FunctionTok{lm}\NormalTok{(y[,}\DecValTok{1}\NormalTok{]}\SpecialCharTok{\textasciitilde{}}\NormalTok{x)) }\CommentTok{\# gene 1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## (Intercept)          xB 
+## 10.02745295  0.09254499
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{coef}\NormalTok{(}\FunctionTok{lm}\NormalTok{(y[,}\DecValTok{2}\NormalTok{]}\SpecialCharTok{\textasciitilde{}}\NormalTok{x)) }\CommentTok{\# gene 2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## (Intercept)          xB 
+## 10.17373179  0.02686763
+\end{verbatim}
+
+Next, we use the \texttt{eBayes} function to calculate the moderated t statistics and p-values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ebfit }\OtherTok{\textless{}{-}} \FunctionTok{eBayes}\NormalTok{(fit)}
+\FunctionTok{head}\NormalTok{(ebfit}\SpecialCharTok{$}\NormalTok{t) }\CommentTok{\# moderated t statistics}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            (Intercept)          xB
+## 1367452_at    182.4496  1.19066640
+## 1367453_at    221.0103  0.41271149
+## 1367454_at    184.0507  0.03821825
+## 1367455_at    195.0270 -1.35258223
+## 1367456_at    257.5965 -0.11619667
+## 1367457_at    196.7628  0.55492613
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(ebfit}\SpecialCharTok{$}\NormalTok{p.value) }\CommentTok{\# p.values based on moderated t statistics}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##             (Intercept)        xB
+## 1367452_at 3.871319e-43 0.2441871
+## 1367453_at 2.236672e-45 0.6830894
+## 1367454_at 3.061059e-43 0.9697959
+## 1367455_at 6.452172e-44 0.1874515
+## 1367456_at 3.639411e-47 0.9083599
+## 1367457_at 5.084786e-44 0.5835310
+\end{verbatim}
+
+We can also retrieve the ``shrunken'' standard deviations
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(}\FunctionTok{sqrt}\NormalTok{(ebfit}\SpecialCharTok{$}\NormalTok{s2.post)) }\CommentTok{\# shrunken standard deviations}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
+##  0.1903875  0.1594624  0.1933930  0.1842254  0.1454464  0.1691410
+\end{verbatim}
+
+  \bibliography{book.bib,packages.bib}
+
+\end{document}

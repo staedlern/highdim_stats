@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title> Prediction and Feature Assessment</title>
+  <meta name="description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content=" Prediction and Feature Assessment" />
+  <meta property="og:type" content="book" />
+  <meta property="og:image" content="/logo2.jpg" />
+  <meta property="og:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="github-repo" content="staedlern/highdim_stats" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content=" Prediction and Feature Assessment" />
+  
+  <meta name="twitter:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="twitter:image" content="/logo2.jpg" />
+
+<meta name="author" content="Nicolas Städler" />
+
+
+<meta name="date" content="2022-09-20" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+
+<link rel="next" href="multiple-linear-regression.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Analysis of High-Dimensional Data</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a></li>
+<li class="chapter" data-level="2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html"><i class="fa fa-check"></i><b>2</b> Multiple Linear Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#notation"><i class="fa fa-check"></i><b>2.1</b> Notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#ordinary-least-squares"><i class="fa fa-check"></i><b>2.2</b> Ordinary Least Squares<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#overfitting"><i class="fa fa-check"></i><b>2.3</b> Overfitting<span></span></a></li>
+<li class="chapter" data-level="2.4" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#generalization-error"><i class="fa fa-check"></i><b>2.4</b> Generalization Error<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="regularization.html"><a href="regularization.html"><i class="fa fa-check"></i><b>3</b> Regularization<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="regularization.html"><a href="regularization.html#model-selection"><i class="fa fa-check"></i><b>3.1</b> Model Selection<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="regularization.html"><a href="regularization.html#subset--and-stepwise-regression"><i class="fa fa-check"></i><b>3.2</b> Subset- and Stepwise Regression<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="regularization.html"><a href="regularization.html#ridge-regression"><i class="fa fa-check"></i><b>3.3</b> Ridge Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.3.1" data-path="regularization.html"><a href="regularization.html#choice-of-penalty-parameter"><i class="fa fa-check"></i><b>3.3.1</b> Choice of penalty parameter<span></span></a></li>
+<li class="chapter" data-level="3.3.2" data-path="regularization.html"><a href="regularization.html#shrinkage-property"><i class="fa fa-check"></i><b>3.3.2</b> Shrinkage property<span></span></a></li>
+<li class="chapter" data-level="3.3.3" data-path="regularization.html"><a href="regularization.html#effective-degrees-of-freedom"><i class="fa fa-check"></i><b>3.3.3</b> Effective degrees of freedom<span></span></a></li>
+<li class="chapter" data-level="3.3.4" data-path="regularization.html"><a href="regularization.html#bayesian-interpretation"><i class="fa fa-check"></i><b>3.3.4</b> Bayesian interpretation<span></span></a></li>
+<li class="chapter" data-level="3.3.5" data-path="regularization.html"><a href="regularization.html#splines"><i class="fa fa-check"></i><b>3.3.5</b> Splines<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.4" data-path="regularization.html"><a href="regularization.html#lasso-regression"><i class="fa fa-check"></i><b>3.4</b> Lasso Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="regularization.html"><a href="regularization.html#numerical-optimization-and-soft-thresholding"><i class="fa fa-check"></i><b>3.4.1</b> Numerical optimization and soft thresholding<span></span></a></li>
+<li class="chapter" data-level="3.4.2" data-path="regularization.html"><a href="regularization.html#variable-selection"><i class="fa fa-check"></i><b>3.4.2</b> Variable selection<span></span></a></li>
+<li class="chapter" data-level="3.4.3" data-path="regularization.html"><a href="regularization.html#elasticnet-regression"><i class="fa fa-check"></i><b>3.4.3</b> Elasticnet Regression<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.5" data-path="regularization.html"><a href="regularization.html#diabetes-example"><i class="fa fa-check"></i><b>3.5</b> Diabetes example<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="classification.html"><a href="classification.html"><i class="fa fa-check"></i><b>4</b> Classification<span></span></a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="classification.html"><a href="classification.html#logistic-regression"><i class="fa fa-check"></i><b>4.1</b> Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.2" data-path="classification.html"><a href="classification.html#regularized-logistic-regression"><i class="fa fa-check"></i><b>4.2</b> Regularized Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.3" data-path="classification.html"><a href="classification.html#classification-trees-and-machine-learning"><i class="fa fa-check"></i><b>4.3</b> Classification Trees and Machine Learning<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="survival-analysis.html"><a href="survival-analysis.html"><i class="fa fa-check"></i><b>5</b> Survival Analysis<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="survival-analysis.html"><a href="survival-analysis.html#survival-endpoints-and-cox-regression"><i class="fa fa-check"></i><b>5.1</b> Survival Endpoints and Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.2" data-path="survival-analysis.html"><a href="survival-analysis.html#regularized-cox-regression"><i class="fa fa-check"></i><b>5.2</b> Regularized Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.3" data-path="survival-analysis.html"><a href="survival-analysis.html#brier-score"><i class="fa fa-check"></i><b>5.3</b> Brier Score<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html"><i class="fa fa-check"></i><b>6</b> High-Dimensional Feature Assessment<span></span></a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#gene-wise-two-sample-comparison"><i class="fa fa-check"></i><b>6.1</b> Gene-wise Two-sample Comparison<span></span></a></li>
+<li class="chapter" data-level="6.2" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#multiple-testing"><i class="fa fa-check"></i><b>6.2</b> Multiple Testing<span></span></a></li>
+<li class="chapter" data-level="6.3" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#p-value-adjustment"><i class="fa fa-check"></i><b>6.3</b> P-value Adjustment<span></span></a></li>
+<li class="chapter" data-level="6.4" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#volcano-plot"><i class="fa fa-check"></i><b>6.4</b> Volcano Plot<span></span></a></li>
+<li class="chapter" data-level="6.5" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#variance-shrinkage-and-empirical-bayes"><i class="fa fa-check"></i><b>6.5</b> Variance Shrinkage and Empirical Bayes<span></span></a></li>
+</ul></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"><p><img src="logo2.jpg" style="width:3.5in" /><br />
+Prediction and Feature Assessment</p></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="header">
+<h1 class="title"><p><img src="logo2.jpg" style="width:3.5in" /><br />
+Prediction and Feature Assessment</p></h1>
+<p class="author"><em>Nicolas Städler</em></p>
+<p class="date"><em>2022-09-20</em></p>
+</div>
+<div id="introduction" class="section level1 hasAnchor" number="1">
+<h1><span class="header-section-number">Chapter 1</span> Introduction<a href="index.html#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>This script was written for the course on <em>Analysis of High-Dimensional Data</em> of the CAS in Advanced Statistical Data Science (CAS ASDS) held at the University of Bern.
+Much of the content is based on the book from <span class="citation">Hastie, Tibshirani, and Friedman (<a href="#ref-elements" role="doc-biblioref">2001</a>)</span>. The course has a focus on applications using <strong>R</strong> <span class="citation">(<a href="#ref-R-base" role="doc-biblioref">R Core Team 2022</a>)</span>. All data sets used throughout the script can be downloaded from <a href="https://github.com/staedlern/highdim_stats">github</a>.</p>
+<p>What are high-dimensional data and what is high-dimensional statistics? The Statistics Department of the University of California, Berkeley summarizes it as follows:</p>
+<p><em>High-dimensional statistics focuses on data sets in which the number of features is of comparable size, or larger than the number of observations. Data sets of this type present a variety of new challenges, since classical theory and methodology can break down in surprising and unexpected ways.</em></p>
+<p>High-dimensional statistics is often paraphrased with the expression <span class="math inline">\(p&gt;&gt;n\)</span> which refers to a linear regression setting where the number of covariates <span class="math inline">\(p\)</span> is much larger than the number of samples <span class="math inline">\(n\)</span>. Nevertheless, challenges with standard statistical approaches already appear when <span class="math inline">\(p\)</span> is comparable to <span class="math inline">\(n\)</span> and we will see that in more complex models issues due to high-dimensionality often manifest itself in a more subtle manners.</p>
+<p>High-dimensional data are omnipresent and the approaches which we will discuss find applications in many disciplines. In this course we will explore examples from molecular biology, health care, speech recognition and finance.</p>
+<p>In this script we distinguish between two typical tasks of high-dimensional statistics. The first task considers many explanatory variables <span class="math inline">\(X_1,\ldots,X_p\)</span> and one response variable <span class="math inline">\(Y\)</span>. The goal is to predict the response and to identify the most relevant covariates. We refer to this task as <em>Prediction and Feature Selection</em>. The second task considers one (or few) explanatory variable <span class="math inline">\(X\)</span> and many response variables <span class="math inline">\(Y_1, \ldots, Y_p\)</span>. The aim is to identify those variables which differ with respect to <span class="math inline">\(X\)</span> (e.g. treatment groups A vs B). We refer to this task as <em>Feature Assessment</em>.</p>
+<div class="figure"><span style="display:block;" id="fig:twotasks"></span>
+<img src="twotasks.JPG" alt="Prediction and feature selection (left graph) and feature assessment (right graph)." width="90%" />
+<p class="caption">
+Figure 1.1: Prediction and feature selection (left graph) and feature assessment (right graph).
+</p>
+</div>
+<p>The script starts with the <em>multiple linear regression</em> model and the <em>least squares</em> estimator. We discuss the limitations of least squares in the <span class="math inline">\(p&gt;&gt;n\)</span> scenario, explain the challenge of <em>overfitting</em>, introduce the <em>generalization error</em> and elaborate on the <em>bias-variance dilemma</em>. We then discuss methods designed to overcome challenges in high dimensions. We start with <em>subset-</em> and <em>stepwise regression</em> and then discuss in more detail regularization methods, including <em>Ridge regression</em>, <em>Lasso regression</em> and <em>Elasticnet regression</em>. Next, we turn our attention to binary endpoints. In particular we discuss regularization in the context of the <em>logistic regression</em> model. We then talk about <em>classification trees</em>, <em>Random Forest</em> and <em>AdaBoost</em>. We then move to <em>time-to-event endpoints</em> and show how to extend the previously introduced methods to <em>survival data</em>. We introduce the <em>Brier score</em> to assess the generalization error in the survival context. The last section is devoted to <em>high-dimensional feature assessment</em>. Based on a <em>differential gene expression</em> example we will discuss the issue of <em>multiple testing</em>, introduce methods for <em>p-value adjustment</em>, and finally we will touch upon <em>variance shrinkage</em>.</p>
+
+</div>
+<h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-elements" class="csl-entry">
+Hastie, Trevor, Robert Tibshirani, and Jerome Friedman. 2001. <em>The Elements of Statistical Learning</em>. Springer Series in Statistics. New York, NY, USA: Springer New York Inc.
+</div>
+<div id="ref-R-base" class="csl-entry">
+R Core Team. 2022. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+<a href="multiple-linear-regression.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/staedlern/highdim_stats/edit/main/index.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["highdimstats.pdf", "highdimstats.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

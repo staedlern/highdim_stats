@@ -253,13 +253,13 @@ df_lambdaopt
 ### Bayesian interpretation
 
 
-We have introduced regularization by least-squares optimization with additional constraints on $\beta$. An alternative approach to regularization is based on Bayesian statistics. In a Bayesian setting the parameter $\beta=(\beta_1,\ldots,\beta_p)$ is itself a random variable with *prior* distribution $p(\beta)$. Bayesian inference is based on the *posterior* distribution $$p(\beta|D)=\frac{p(D|\beta)p(\beta)}{p(D)},$$
+We have introduced regularization by least-squares optimization with additional constraints on $\beta$. An alternative approach to regularization is based on Bayesian statistics. In a Bayesian setting the parameter $\beta=(\beta_1,\ldots,\beta_p)$ is itself a random variable with a *prior* distribution $p(\beta)$. Bayesian inference is based on the *posterior* distribution $$p(\beta|D)=\frac{p(D|\beta)p(\beta)}{p(D)},$$
 where $D$ denotes the data and $p(D|\beta)$ is the likelihood function. In the exercises we will show that the Ridge solution can be viewed as the maximum a posteriori (MAP) estimate of a hierarchical Bayesian model where the data follows a multivariate regression model
 \[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]
 and the regression coefficients are equipped with prior
 \[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p.\]
 
-For many practical problems the posterior distribution is analytically not tractable and inference is typically based on sampling from the posterior distribution using a procedure called Markov chain Monte Carlo (MCMC). The software packages BUGS and JAGS automatically build MCMC samplers for complex hierarchical models. We use `rjags` to illustrate the procedure for the Bayesian Ridge regression model (see Figure \@ref(fig:bayesianridge)). 
+In many Bayesian problems the posterior distribution is analytically not tractable and inference is typically based on sampling from the posterior distribution using a procedure called Markov chain Monte Carlo (MCMC). The software BUGS and JAGS automatically build MCMC samplers for complex hierarchical models. We now illustrate the use of `rjags` for the Bayesian Ridge regression model shown in Figure \@ref(fig:bayesianridge). 
 
 ```{r bayesianridge,echo=FALSE,out.width="80%",fig.cap="The Bayesian Ridge regression model."}
 knitr::include_graphics("bayesian_ridge.PNG")
@@ -295,7 +295,7 @@ inits <- function (){
 }
 ```
 
-We use the function `jags.model` to setup an MCMC sampler with `n.chains=3` chains (the number of samples, or MCMC iterations, used for adaptation is per default set to 1000).  
+We then use the function `jags.model` to setup an MCMC sampler with `n.chains=3` chains (the number of samples, or MCMC iterations, used for adaptation is per default set to 1000).  
 
 ```{r}
 # setup jags model
@@ -306,7 +306,7 @@ jags.m <- jags.model(textConnection(bayesian_ridge),
                      quiet=TRUE)
 ```
 
-After a burn-in period of $500$ steps we use `coda.samples` to generate the posterior samples. 
+After a burn-in period of $500$ steps we use `coda.samples` to generate the posterior samples (`n.iter=10000` with a thinning of `thin=10` results in a total of `1000` posterior samples per chain). 
 
 ```{r message=FALSE}
 # burn-in
@@ -328,7 +328,7 @@ MCMCsummary(posterior.samples,
   kable
 ```
 
-Or, we can use the package`ggmcmc` and produce a traceplot to check the representativeness of the MCMC samples. 
+Or, we can use the package`ggmcmc` and produce a traceplot ("ggplot-style") to check the representativeness of the MCMC samples. 
 
 ```{r}
 library(ggmcmc)
@@ -689,7 +689,7 @@ Shat
 
 An interesting question is whether the Lasso does a good or bad job in variable selection. That is, does $\hat S^{\rm Lasso}_{\lambda}$ tend to agree with the true set of active variables $S_0$? Or, does the Lasso typically under- or over-select covariates? These questions are an active field of statistical research. 
 
-### Elasticnet Regression
+### Elasticnet regression
 
 We have encountered the L1 and L2 penalty. The Lasso (L1) penalty
 has the nice property that it leads to sparse solutions, i.e. it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge (L2) penalty, on the other hand, tends
@@ -701,6 +701,16 @@ The second term encourages highly correlated features to be averaged, while
 the first term encourages a sparse solution in the coefficients of these averaged features.
 
 In `glmnet` the elastic net regression is implemented using the mixing parameter $\alpha$. The default is $\alpha=1$, i.e. the Lasso.
+
+### P-values for high-dimensional regression
+
+The Lasso is a very effective method in the $p>>n$ context. It avoids overfitting by shrinking the regression coefficient and eases interpretation by simultaneously performing variable selection. The Lasso has inspired many researcher which developed new statistical methods. One such approach uses the Lasso combined with the idea of "sample splitting" to obtain p-values in the high-dimensional regression context. The method proceed with the following steps:
+
+1. Sample splitting: Randomly divide the data into two parts, the *in-* and *out*-sample. 
+2. Screening: Use the Lasso to identify the key variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *in-* sample)
+3. P-value calculation: Obtain p-values using OLS regression on selected variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *out-*sample) 
+
+The p-values obtained in step 3 are sensitive to the random split chosen in step 1. Therefore, in order to avoid a "p-value lottery", the steps 1-3 are repeated many times and the results are aggregated. For more details we refer to @meinshausen_p_2009. The approach is implemented in the R package `hdi`.
 
 ## Diabetes example
 

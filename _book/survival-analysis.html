@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 5 Survival Analysis |  Prediction and Feature Assessment</title>
+  <meta name="description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 5 Survival Analysis |  Prediction and Feature Assessment" />
+  <meta property="og:type" content="book" />
+  <meta property="og:image" content="/logo2.jpg" />
+  <meta property="og:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="github-repo" content="staedlern/highdim_stats" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 5 Survival Analysis |  Prediction and Feature Assessment" />
+  
+  <meta name="twitter:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="twitter:image" content="/logo2.jpg" />
+
+<meta name="author" content="Nicolas Städler" />
+
+
+<meta name="date" content="2022-09-20" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="classification.html"/>
+<link rel="next" href="high-dimensional-feature-assessment.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Analysis of High-Dimensional Data</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a></li>
+<li class="chapter" data-level="2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html"><i class="fa fa-check"></i><b>2</b> Multiple Linear Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#notation"><i class="fa fa-check"></i><b>2.1</b> Notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#ordinary-least-squares"><i class="fa fa-check"></i><b>2.2</b> Ordinary Least Squares<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#overfitting"><i class="fa fa-check"></i><b>2.3</b> Overfitting<span></span></a></li>
+<li class="chapter" data-level="2.4" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#generalization-error"><i class="fa fa-check"></i><b>2.4</b> Generalization Error<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="regularization.html"><a href="regularization.html"><i class="fa fa-check"></i><b>3</b> Regularization<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="regularization.html"><a href="regularization.html#model-selection"><i class="fa fa-check"></i><b>3.1</b> Model Selection<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="regularization.html"><a href="regularization.html#subset--and-stepwise-regression"><i class="fa fa-check"></i><b>3.2</b> Subset- and Stepwise Regression<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="regularization.html"><a href="regularization.html#ridge-regression"><i class="fa fa-check"></i><b>3.3</b> Ridge Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.3.1" data-path="regularization.html"><a href="regularization.html#choice-of-penalty-parameter"><i class="fa fa-check"></i><b>3.3.1</b> Choice of penalty parameter<span></span></a></li>
+<li class="chapter" data-level="3.3.2" data-path="regularization.html"><a href="regularization.html#shrinkage-property"><i class="fa fa-check"></i><b>3.3.2</b> Shrinkage property<span></span></a></li>
+<li class="chapter" data-level="3.3.3" data-path="regularization.html"><a href="regularization.html#effective-degrees-of-freedom"><i class="fa fa-check"></i><b>3.3.3</b> Effective degrees of freedom<span></span></a></li>
+<li class="chapter" data-level="3.3.4" data-path="regularization.html"><a href="regularization.html#bayesian-interpretation"><i class="fa fa-check"></i><b>3.3.4</b> Bayesian interpretation<span></span></a></li>
+<li class="chapter" data-level="3.3.5" data-path="regularization.html"><a href="regularization.html#splines"><i class="fa fa-check"></i><b>3.3.5</b> Splines<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.4" data-path="regularization.html"><a href="regularization.html#lasso-regression"><i class="fa fa-check"></i><b>3.4</b> Lasso Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="regularization.html"><a href="regularization.html#numerical-optimization-and-soft-thresholding"><i class="fa fa-check"></i><b>3.4.1</b> Numerical optimization and soft thresholding<span></span></a></li>
+<li class="chapter" data-level="3.4.2" data-path="regularization.html"><a href="regularization.html#variable-selection"><i class="fa fa-check"></i><b>3.4.2</b> Variable selection<span></span></a></li>
+<li class="chapter" data-level="3.4.3" data-path="regularization.html"><a href="regularization.html#elasticnet-regression"><i class="fa fa-check"></i><b>3.4.3</b> Elasticnet Regression<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.5" data-path="regularization.html"><a href="regularization.html#diabetes-example"><i class="fa fa-check"></i><b>3.5</b> Diabetes example<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="classification.html"><a href="classification.html"><i class="fa fa-check"></i><b>4</b> Classification<span></span></a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="classification.html"><a href="classification.html#logistic-regression"><i class="fa fa-check"></i><b>4.1</b> Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.2" data-path="classification.html"><a href="classification.html#regularized-logistic-regression"><i class="fa fa-check"></i><b>4.2</b> Regularized Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.3" data-path="classification.html"><a href="classification.html#classification-trees-and-machine-learning"><i class="fa fa-check"></i><b>4.3</b> Classification Trees and Machine Learning<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="survival-analysis.html"><a href="survival-analysis.html"><i class="fa fa-check"></i><b>5</b> Survival Analysis<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="survival-analysis.html"><a href="survival-analysis.html#survival-endpoints-and-cox-regression"><i class="fa fa-check"></i><b>5.1</b> Survival Endpoints and Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.2" data-path="survival-analysis.html"><a href="survival-analysis.html#regularized-cox-regression"><i class="fa fa-check"></i><b>5.2</b> Regularized Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.3" data-path="survival-analysis.html"><a href="survival-analysis.html#brier-score"><i class="fa fa-check"></i><b>5.3</b> Brier Score<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html"><i class="fa fa-check"></i><b>6</b> High-Dimensional Feature Assessment<span></span></a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#gene-wise-two-sample-comparison"><i class="fa fa-check"></i><b>6.1</b> Gene-wise Two-sample Comparison<span></span></a></li>
+<li class="chapter" data-level="6.2" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#multiple-testing"><i class="fa fa-check"></i><b>6.2</b> Multiple Testing<span></span></a></li>
+<li class="chapter" data-level="6.3" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#p-value-adjustment"><i class="fa fa-check"></i><b>6.3</b> P-value Adjustment<span></span></a></li>
+<li class="chapter" data-level="6.4" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#volcano-plot"><i class="fa fa-check"></i><b>6.4</b> Volcano Plot<span></span></a></li>
+<li class="chapter" data-level="6.5" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#variance-shrinkage-and-empirical-bayes"><i class="fa fa-check"></i><b>6.5</b> Variance Shrinkage and Empirical Bayes<span></span></a></li>
+</ul></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"><p><img src="logo2.jpg" style="width:3.5in" /><br />
+Prediction and Feature Assessment</p></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="survival-analysis" class="section level1 hasAnchor" number="5">
+<h1><span class="header-section-number">Chapter 5</span> Survival Analysis<a href="survival-analysis.html#survival-analysis" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>We turn our attention to survival analysis which deals with so-called time-to-event endpoints. We will use the <em>lymphoma</em> data set to set the scene and explain the basics. In particular, we will discuss elastic net regularization in the context of cox regression, introduce the time-dependent Brier score as a measure of prediction accuracy, and we give an example on how to use the <code>pec</code> package to benchmark prediction algorithms.</p>
+<div id="survival-endpoints-and-cox-regression" class="section level2 hasAnchor" number="5.1">
+<h2><span class="header-section-number">5.1</span> Survival Endpoints and Cox Regression<a href="survival-analysis.html#survival-endpoints-and-cox-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>We start by reading the lymphoma data which consists of gene expression data for <span class="math inline">\(p=7399\)</span> genes measured on <span class="math inline">\(n=240\)</span> patients, as well as survival data, for these patients.</p>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="survival-analysis.html#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read gene expression matrix</span></span>
+<span id="cb80-2"><a href="survival-analysis.html#cb80-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;data/lymphx.txt&quot;</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb80-3"><a href="survival-analysis.html#cb80-3" aria-hidden="true" tabindex="-1"></a>  as.matrix</span>
+<span id="cb80-4"><a href="survival-analysis.html#cb80-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-5"><a href="survival-analysis.html#cb80-5" aria-hidden="true" tabindex="-1"></a><span class="co"># read survival data</span></span>
+<span id="cb80-6"><a href="survival-analysis.html#cb80-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;data/lymphtime.txt&quot;</span>,<span class="at">header =</span> <span class="cn">TRUE</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb80-7"><a href="survival-analysis.html#cb80-7" aria-hidden="true" tabindex="-1"></a>  as.matrix</span></code></pre></div>
+<p>The survival data consists of two variables <code>time</code> (the survival time) and <code>status</code> (event status, 1 in case of death, 0 in case of censoring).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">5.0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">5.9</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">6.6</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">13.1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">1.6</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">1.3</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p>The next plots shows the distribution of the survival times on a linear and log-scale.</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-92-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The distribution on the left is right skewed. However, after a log transformation the distribution looks near-to-symmetric. What makes this endpoint so special? Why can’t we just use (regularized) linear regression to predict the (log) survival time based on the gene expression features? Such an approach would be shortsighted the reason being that we so far did not take into account the event status. The following graph shows survival times along side with the event status for a few patients. For patients with an event (blue triangles) the survival time equals the time-to-event. However, for censored patients (red dots) the actual time-to-event is not observed and will be larger than the survival time.</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-93-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In survival analysis we denote the time-to-event with <span class="math inline">\(T\)</span>. As illustrated above we typically only partially observe <span class="math inline">\(T\)</span> as some subjects may be censored due to:</p>
+<ul>
+<li>Loss to follow-up</li>
+<li>Withdrawal from study</li>
+<li>No event by end of fixed study period.</li>
+</ul>
+<p>Therefore we observe the survival time <span class="math inline">\(Y\)</span> (which equals the event time or the censoring time whichever occurs earlier) and the event status <span class="math inline">\(D\)</span> (<span class="math inline">\(D=1\)</span> in case of event, <span class="math inline">\(D=0\)</span> in case of censoring).</p>
+<p>A fundamental quantity in survival analysis is the survival function</p>
+<p><span class="math display">\[S(t)=P(T&gt;t)=1-F(t)\]</span></p>
+<p>which can be estimated using the Kaplan-Meier method. In R we use <code>survfit</code> to invoke Kaplan-Meier and <code>ggsurvplot</code> to plot the estimated curve.</p>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="survival-analysis.html#cb81-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y)</span>
+<span id="cb81-2"><a href="survival-analysis.html#cb81-2" aria-hidden="true" tabindex="-1"></a>fit.surv <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb81-3"><a href="survival-analysis.html#cb81-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> dat)</span>
+<span id="cb81-4"><a href="survival-analysis.html#cb81-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsurvplot</span>(fit.surv,<span class="at">conf.int=</span><span class="cn">FALSE</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-94-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>More specific information on the estimated survival probabilities can be obtained using the <code>summary</code> function.</p>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="survival-analysis.html#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="co"># estimated probability of surviving beyond 10 years</span></span>
+<span id="cb82-2"><a href="survival-analysis.html#cb82-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">survfit</span>(<span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> dat), <span class="at">times =</span> <span class="dv">10</span>)</span></code></pre></div>
+<p>Now, how do we study the relationship between covariates and survival time? The solution is Cox regression! We introduce the hazard function defined as</p>
+<p><span class="math display">\[\begin{eqnarray*}
+h(t)&amp;=&amp;\lim_{dt\rightarrow 0}\frac{P(t\leq T &lt; t+dt|T\geq t)}{dt}\\
+&amp;=&amp;-S&#39;(t)/S(t).
+\end{eqnarray*}\]</span></p>
+<p>The Cox proportional hazards model then assumes a semi-parametric form for the hazard</p>
+<p><span class="math display">\[h(t|X)=h_0(t)\exp(X^T\beta),\]</span></p>
+<p>where <span class="math inline">\(h_0(t)\)</span> is the baseline hazard and <span class="math inline">\(\beta\)</span> are the regression coefficients. Cox regression estimates the regression coefficients by maximizing the so-called partial likelihood function (surprisingly this works without specifying the baseline hazard function). For illustration we fit a Cox regression model using the first 3 genes as predictors.</p>
+<!-- $\ell(\beta|\textbf{y},\textbf{d},\textbf{X})$  -->
+<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="survival-analysis.html#cb83-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">cbind</span>(y,x[,<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]))</span>
+<span id="cb83-2"><a href="survival-analysis.html#cb83-2" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span>.,<span class="at">data=</span>dat)</span>
+<span id="cb83-3"><a href="survival-analysis.html#cb83-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)</span></code></pre></div>
+<pre><code>## Call:
+## coxph(formula = Surv(time, status) ~ ., data = dat)
+## 
+##   n= 240, number of events= 138 
+## 
+##       coef exp(coef) se(coef)      z Pr(&gt;|z|)
+## V1  0.6382    1.8931   0.4504  1.417    0.156
+## V2 -0.5778    0.5611   0.4023 -1.436    0.151
+## V3 -0.1508    0.8600   0.3785 -0.398    0.690
+## 
+##    exp(coef) exp(-coef) lower .95 upper .95
+## V1    1.8931     0.5282    0.7831     4.577
+## V2    0.5611     1.7822    0.2551     1.234
+## V3    0.8600     1.1627    0.4095     1.806
+## 
+## Concordance= 0.559  (se = 0.028 )
+## Likelihood ratio test= 4.46  on 3 df,   p=0.2
+## Wald test            = 4.66  on 3 df,   p=0.2
+## Score (logrank) test = 4.66  on 3 df,   p=0.2</code></pre>
+<p>The (exponentiated) regression coefficients are interpreted as hazard-ratios. For example a unit change in the 3rd covariate accounts for a risk reduction of <span class="math inline">\(\exp(\beta_3)\)</span>=0.86 or <span class="math inline">\(14\%\)</span>. The results of Cox regression are often visualized using a forest plot.</p>
+<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb85-1"><a href="survival-analysis.html#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggforest</span>(fit)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-97-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="regularized-cox-regression" class="section level2 hasAnchor" number="5.2">
+<h2><span class="header-section-number">5.2</span> Regularized Cox Regression<a href="survival-analysis.html#regularized-cox-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The lymphoma data consists of <span class="math inline">\(p=\)</span> 7399 predictors. A truly high-dimensional example! Similar as for linear - and logistic regression we can build upon the Cox regression model and use subset selection or regularization. The R package <code>glmnet</code> implements elastic net penalized cox regression. For illustration we restrict ourselves to the top genes (highest variance) and we scale the features as part of the data preprocessing.</p>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="survival-analysis.html#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># filter for top genes (highest variance) and scale the input matrix</span></span>
+<span id="cb86-2"><a href="survival-analysis.html#cb86-2" aria-hidden="true" tabindex="-1"></a>topvar.genes <span class="ot">&lt;-</span> <span class="fu">order</span>(<span class="fu">apply</span>(x,<span class="dv">2</span>,var),<span class="at">decreasing=</span><span class="cn">TRUE</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">50</span>]</span>
+<span id="cb86-3"><a href="survival-analysis.html#cb86-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">scale</span>(x[,topvar.genes])</span></code></pre></div>
+<p>We split the data set into training and test data.</p>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="survival-analysis.html#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb87-2"><a href="survival-analysis.html#cb87-2" aria-hidden="true" tabindex="-1"></a>train_ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(x),<span class="at">size=</span><span class="fu">nrow</span>(x)<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb87-3"><a href="survival-analysis.html#cb87-3" aria-hidden="true" tabindex="-1"></a>xtrain <span class="ot">&lt;-</span> x[train_ind,]</span>
+<span id="cb87-4"><a href="survival-analysis.html#cb87-4" aria-hidden="true" tabindex="-1"></a>ytrain <span class="ot">&lt;-</span> y[train_ind,]</span>
+<span id="cb87-5"><a href="survival-analysis.html#cb87-5" aria-hidden="true" tabindex="-1"></a>xtest <span class="ot">&lt;-</span> x[<span class="sc">-</span>train_ind,]</span>
+<span id="cb87-6"><a href="survival-analysis.html#cb87-6" aria-hidden="true" tabindex="-1"></a>ytest <span class="ot">&lt;-</span> y[<span class="sc">-</span>train_ind,]</span></code></pre></div>
+<p>We invoke <code>glmnet</code> with argument <code>family="cox"</code> and set the mixing parameter to <span class="math inline">\(\alpha=0.95\)</span>.</p>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="survival-analysis.html#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb88-2"><a href="survival-analysis.html#cb88-2" aria-hidden="true" tabindex="-1"></a>ytrain.surv <span class="ot">&lt;-</span> <span class="fu">Surv</span>(ytrain[,<span class="st">&quot;time&quot;</span>],ytrain[,<span class="st">&quot;status&quot;</span>])</span>
+<span id="cb88-3"><a href="survival-analysis.html#cb88-3" aria-hidden="true" tabindex="-1"></a>fit.coxnet <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(xtrain, ytrain.surv, <span class="at">family =</span> <span class="st">&quot;cox&quot;</span>,<span class="at">alpha=</span><span class="fl">0.95</span>)</span>
+<span id="cb88-4"><a href="survival-analysis.html#cb88-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.coxnet,<span class="at">xvar=</span><span class="st">&quot;lambda&quot;</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-102-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We tune the amount of penalization by using cross-validation and take Harrel’s concordance index as a goodness of fit measure.</p>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="survival-analysis.html#cb89-1" aria-hidden="true" tabindex="-1"></a>cv.coxnet <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(xtrain,ytrain.surv,</span>
+<span id="cb89-2"><a href="survival-analysis.html#cb89-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">family=</span><span class="st">&quot;cox&quot;</span>,</span>
+<span id="cb89-3"><a href="survival-analysis.html#cb89-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type.measure=</span><span class="st">&quot;C&quot;</span>,</span>
+<span id="cb89-4"><a href="survival-analysis.html#cb89-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">nfolds =</span> <span class="dv">5</span>,</span>
+<span id="cb89-5"><a href="survival-analysis.html#cb89-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">alpha=</span><span class="fl">0.95</span>)</span>
+<span id="cb89-6"><a href="survival-analysis.html#cb89-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv.coxnet)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-103-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The C-index ranges from 0.5 to 1. A value of 0.5 indicates that the model is no better at predicting an outcome than random chance. The largest tuning parameter within 1se of the maximum C-index is <span class="math inline">\(\lambda_{\rm{opt}}=\)</span> 0.132. The next graphic shows the magnitude of the non-zero coefficients (note that we standardized the input covariates).</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-104-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We use the obtained model to make predictions on the test data. In particular we compute the linear predictor</p>
+<p><span class="math display">\[\hat{f}(X_{\textrm{new}})=X_{\textrm{new}}^T\hat{\beta}_{\lambda_{\rm opt}}.\]</span>
+We can now classify patients into good and poor prognosis based on thresholding the linear predictor at zero.</p>
+<div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="survival-analysis.html#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="co"># linear predictor</span></span>
+<span id="cb90-2"><a href="survival-analysis.html#cb90-2" aria-hidden="true" tabindex="-1"></a>lp <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit.coxnet,</span>
+<span id="cb90-3"><a href="survival-analysis.html#cb90-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">newx=</span>xtest,</span>
+<span id="cb90-4"><a href="survival-analysis.html#cb90-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">s=</span>cv.coxnet<span class="sc">$</span>lambda<span class="fl">.1</span>se,</span>
+<span id="cb90-5"><a href="survival-analysis.html#cb90-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">type=</span><span class="st">&quot;link&quot;</span>)</span>
+<span id="cb90-6"><a href="survival-analysis.html#cb90-6" aria-hidden="true" tabindex="-1"></a>dat.test <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(ytest)</span>
+<span id="cb90-7"><a href="survival-analysis.html#cb90-7" aria-hidden="true" tabindex="-1"></a>dat.test<span class="sc">$</span>prognosis <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(lp<span class="sc">&gt;</span><span class="dv">0</span>,<span class="st">&quot;poor&quot;</span>,<span class="st">&quot;good&quot;</span>)</span>
+<span id="cb90-8"><a href="survival-analysis.html#cb90-8" aria-hidden="true" tabindex="-1"></a>fit.surv <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(time, status) <span class="sc">~</span> prognosis, </span>
+<span id="cb90-9"><a href="survival-analysis.html#cb90-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> dat.test)</span>
+<span id="cb90-10"><a href="survival-analysis.html#cb90-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsurvplot</span>(fit.surv,<span class="at">conf.int =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-105-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The survival curves are reasonably well separated, which suggests we have derived a gene signature which deserves further investigation.</p>
+</div>
+<div id="brier-score" class="section level2 hasAnchor" number="5.3">
+<h2><span class="header-section-number">5.3</span> Brier Score<a href="survival-analysis.html#brier-score" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>We have seen how to evaluate the generalization error in the linear regression and classification context. For time-to-event data this is slightly more involved. A popular way to quantify the prediction accuracy is the time-dependent Brier score</p>
+<p><span class="math display">\[{\rm BS}(t,\hat{S})={\bf E}[(\Delta_{\rm{new}}(t)-\hat{S}(t|X_{\rm new}))^2] \]</span></p>
+<p>where <span class="math inline">\(\Delta_{\textrm{new}}(t)={\bf 1}(T_{\textrm{new}}\geq t)\)</span> is the true status of a new test subject and
+<span class="math inline">\(\hat{S}(t|X_{\rm new})\)</span> is the predicted survival probability. Calculation of the Brier score is complicated by the fact that we do not always observe the event time <span class="math inline">\(T\)</span> due to censoring. The R package <code>pec</code> estimates the Brier score using a technique called <em>Inverse Probability of Censoring Weighting (IPCW)</em>.</p>
+<p>We use forward selection on the training data to obtain a prediction model.</p>
+<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="survival-analysis.html#cb91-1" aria-hidden="true" tabindex="-1"></a>dtrain <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">cbind</span>(ytrain,xtrain))</span>
+<span id="cb91-2"><a href="survival-analysis.html#cb91-2" aria-hidden="true" tabindex="-1"></a>dtest <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">cbind</span>(ytest,xtest))</span>
+<span id="cb91-3"><a href="survival-analysis.html#cb91-3" aria-hidden="true" tabindex="-1"></a>fit.lo <span class="ot">&lt;-</span> <span class="fu">coxph</span>(<span class="fu">Surv</span>(time,status)<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>dtrain,</span>
+<span id="cb91-4"><a href="survival-analysis.html#cb91-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">x=</span><span class="cn">TRUE</span>,<span class="at">y=</span><span class="cn">TRUE</span>)</span>
+<span id="cb91-5"><a href="survival-analysis.html#cb91-5" aria-hidden="true" tabindex="-1"></a>up <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;~&quot;</span>, </span>
+<span id="cb91-6"><a href="survival-analysis.html#cb91-6" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">paste</span>(<span class="fu">colnames</span>(xtrain), </span>
+<span id="cb91-7"><a href="survival-analysis.html#cb91-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">collapse=</span><span class="st">&quot;+&quot;</span>)))</span>
+<span id="cb91-8"><a href="survival-analysis.html#cb91-8" aria-hidden="true" tabindex="-1"></a>fit.fw <span class="ot">&lt;-</span> <span class="fu">stepAIC</span>(fit.lo,</span>
+<span id="cb91-9"><a href="survival-analysis.html#cb91-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">scope=</span><span class="fu">list</span>(<span class="at">lower=</span>fit.lo,</span>
+<span id="cb91-10"><a href="survival-analysis.html#cb91-10" aria-hidden="true" tabindex="-1"></a>                             <span class="at">upper=</span>up),</span>
+<span id="cb91-11"><a href="survival-analysis.html#cb91-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">direction=</span><span class="st">&quot;both&quot;</span>,</span>
+<span id="cb91-12"><a href="survival-analysis.html#cb91-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">trace=</span><span class="cn">FALSE</span>)</span></code></pre></div>
+<p>The following table summarizes the variables added in each step of the forward selection approach.</p>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="survival-analysis.html#cb92-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">as.data.frame</span>(fit.fw<span class="sc">$</span>anova),<span class="at">digits=</span><span class="dv">3</span>,<span class="at">booktabs=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Step</th>
+<th align="right">Df</th>
+<th align="right">Deviance</th>
+<th align="right">Resid. Df</th>
+<th align="right">Resid. Dev</th>
+<th align="right">AIC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">67</td>
+<td align="right">587.326</td>
+<td align="right">587.326</td>
+</tr>
+<tr class="even">
+<td align="left">+ V4131</td>
+<td align="right">1</td>
+<td align="right">7.554</td>
+<td align="right">66</td>
+<td align="right">579.771</td>
+<td align="right">581.771</td>
+</tr>
+<tr class="odd">
+<td align="left">+ V4498</td>
+<td align="right">1</td>
+<td align="right">7.405</td>
+<td align="right">65</td>
+<td align="right">572.366</td>
+<td align="right">576.366</td>
+</tr>
+<tr class="even">
+<td align="left">+ V5172</td>
+<td align="right">1</td>
+<td align="right">5.272</td>
+<td align="right">64</td>
+<td align="right">567.094</td>
+<td align="right">573.094</td>
+</tr>
+<tr class="odd">
+<td align="left">+ V5254</td>
+<td align="right">1</td>
+<td align="right">7.388</td>
+<td align="right">63</td>
+<td align="right">559.706</td>
+<td align="right">567.706</td>
+</tr>
+<tr class="even">
+<td align="left">+ V5223</td>
+<td align="right">1</td>
+<td align="right">3.802</td>
+<td align="right">62</td>
+<td align="right">555.903</td>
+<td align="right">565.903</td>
+</tr>
+<tr class="odd">
+<td align="left">+ V4356</td>
+<td align="right">1</td>
+<td align="right">3.766</td>
+<td align="right">61</td>
+<td align="right">552.138</td>
+<td align="right">564.138</td>
+</tr>
+<tr class="even">
+<td align="left">+ V4341</td>
+<td align="right">1</td>
+<td align="right">3.311</td>
+<td align="right">60</td>
+<td align="right">548.826</td>
+<td align="right">562.826</td>
+</tr>
+</tbody>
+</table>
+<p>We further run a Cox regression model based on the predictors selected by <code>glmnet</code>.</p>
+<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="survival-analysis.html#cb93-1" aria-hidden="true" tabindex="-1"></a>beta<span class="fl">.1</span>se <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit.coxnet,<span class="at">s=</span>cv.coxnet<span class="sc">$</span>lambda<span class="fl">.1</span>se)</span>
+<span id="cb93-2"><a href="survival-analysis.html#cb93-2" aria-hidden="true" tabindex="-1"></a>vars<span class="fl">.1</span>se <span class="ot">&lt;-</span> <span class="fu">rownames</span>(beta<span class="fl">.1</span>se)[<span class="fu">as.numeric</span>(beta<span class="fl">.1</span>se)<span class="sc">!=</span><span class="dv">0</span>]</span>
+<span id="cb93-3"><a href="survival-analysis.html#cb93-3" aria-hidden="true" tabindex="-1"></a>fm<span class="fl">.1</span>se <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste0</span>(<span class="st">&quot;Surv(time,status)~&quot;</span>,</span>
+<span id="cb93-4"><a href="survival-analysis.html#cb93-4" aria-hidden="true" tabindex="-1"></a>                            <span class="fu">paste0</span>(vars<span class="fl">.1</span>se,<span class="at">collapse=</span><span class="st">&quot;+&quot;</span>)))</span>
+<span id="cb93-5"><a href="survival-analysis.html#cb93-5" aria-hidden="true" tabindex="-1"></a>fit<span class="fl">.1</span>se <span class="ot">&lt;-</span> <span class="fu">coxph</span>(fm<span class="fl">.1</span>se,<span class="at">data=</span>dtrain,<span class="at">x=</span><span class="cn">TRUE</span>,<span class="at">y=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p>Finally we use the <code>pec</code> package to calculate Brier scores for both models on the training and test data.</p>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb94-1"><a href="survival-analysis.html#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pec)</span>
+<span id="cb94-2"><a href="survival-analysis.html#cb94-2" aria-hidden="true" tabindex="-1"></a>fit.pec.train <span class="ot">&lt;-</span> pec<span class="sc">::</span><span class="fu">pec</span>(</span>
+<span id="cb94-3"><a href="survival-analysis.html#cb94-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">object=</span><span class="fu">list</span>(<span class="st">&quot;cox.fw&quot;</span><span class="ot">=</span>fit.fw,</span>
+<span id="cb94-4"><a href="survival-analysis.html#cb94-4" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;cox.1se&quot;</span><span class="ot">=</span>fit<span class="fl">.1</span>se), </span>
+<span id="cb94-5"><a href="survival-analysis.html#cb94-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dtrain, </span>
+<span id="cb94-6"><a href="survival-analysis.html#cb94-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb94-7"><a href="survival-analysis.html#cb94-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">splitMethod =</span> <span class="st">&quot;none&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning in .recacheSubclasses(def@className, def, env): undefined subclass
+## &quot;packedMatrix&quot; of class &quot;replValueSp&quot;; definition not updated</code></pre>
+<pre><code>## Warning in .recacheSubclasses(def@className, def, env): undefined subclass
+## &quot;packedMatrix&quot; of class &quot;mMatrix&quot;; definition not updated</code></pre>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="survival-analysis.html#cb97-1" aria-hidden="true" tabindex="-1"></a>fit.pec.test <span class="ot">&lt;-</span> pec<span class="sc">::</span><span class="fu">pec</span>(</span>
+<span id="cb97-2"><a href="survival-analysis.html#cb97-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">object=</span><span class="fu">list</span>(<span class="st">&quot;cox.fw&quot;</span><span class="ot">=</span>fit.fw,</span>
+<span id="cb97-3"><a href="survival-analysis.html#cb97-3" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;cox.1se&quot;</span><span class="ot">=</span>fit<span class="fl">.1</span>se), </span>
+<span id="cb97-4"><a href="survival-analysis.html#cb97-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dtest, </span>
+<span id="cb97-5"><a href="survival-analysis.html#cb97-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb97-6"><a href="survival-analysis.html#cb97-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">splitMethod =</span> <span class="st">&quot;none&quot;</span>)</span></code></pre></div>
+<p>The following figure shows the Brier scores evaluated on training and test data.</p>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb98-1"><a href="survival-analysis.html#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb98-2"><a href="survival-analysis.html#cb98-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.pec.train,<span class="at">main=</span><span class="st">&quot;training data&quot;</span>)</span>
+<span id="cb98-3"><a href="survival-analysis.html#cb98-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.pec.test,<span class="at">main=</span><span class="st">&quot;test data&quot;</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-112-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The plot on the right shows the Brier score on the test data and indicates that the glmnet selected model performs slightly better than the reference model (no covariates, Kaplan-Meier estimate only).</p>
+<p>The <code>pec</code> package can also be used to benchmark different prediction models. We illustrate this based on random forest and forward selection. In this illustration we do not split the data into training and test. Instead we use cross-validation to compare the two prediction approaches.</p>
+<p>We start by writing a small wrapper function to use forward selection in <code>pec</code>. (A detailed description on the <code>pec</code> package and on how to set up wrapper functions is provided <a href="https://pubmed.ncbi.nlm.nih.gov/25317082/">here</a>.)</p>
+<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="survival-analysis.html#cb99-1" aria-hidden="true" tabindex="-1"></a>selectCoxfw <span class="ot">&lt;-</span> <span class="cf">function</span>(formula,data,<span class="at">steps=</span><span class="dv">100</span>,<span class="at">direction=</span><span class="st">&quot;both&quot;</span>)</span>
+<span id="cb99-2"><a href="survival-analysis.html#cb99-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb99-3"><a href="survival-analysis.html#cb99-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">require</span>(prodlim)</span>
+<span id="cb99-4"><a href="survival-analysis.html#cb99-4" aria-hidden="true" tabindex="-1"></a>  fmlo <span class="ot">&lt;-</span> <span class="fu">reformulate</span>(<span class="st">&quot;1&quot;</span>,formula[[<span class="dv">2</span>]])</span>
+<span id="cb99-5"><a href="survival-analysis.html#cb99-5" aria-hidden="true" tabindex="-1"></a>  fitlo <span class="ot">&lt;-</span> <span class="fu">coxph</span>(fmlo,<span class="at">data=</span>data,<span class="at">x=</span><span class="cn">TRUE</span>,<span class="at">y=</span><span class="cn">TRUE</span>)</span>
+<span id="cb99-6"><a href="survival-analysis.html#cb99-6" aria-hidden="true" tabindex="-1"></a>  fwfit <span class="ot">&lt;-</span> <span class="fu">stepAIC</span>(fitlo,</span>
+<span id="cb99-7"><a href="survival-analysis.html#cb99-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">scope=</span><span class="fu">list</span>(<span class="at">lower=</span>fitlo,</span>
+<span id="cb99-8"><a href="survival-analysis.html#cb99-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">upper=</span>formula),</span>
+<span id="cb99-9"><a href="survival-analysis.html#cb99-9" aria-hidden="true" tabindex="-1"></a>                   <span class="at">direction=</span>direction,</span>
+<span id="cb99-10"><a href="survival-analysis.html#cb99-10" aria-hidden="true" tabindex="-1"></a>                   <span class="at">steps=</span>steps,</span>
+<span id="cb99-11"><a href="survival-analysis.html#cb99-11" aria-hidden="true" tabindex="-1"></a>                   <span class="at">trace=</span><span class="cn">FALSE</span>)</span>
+<span id="cb99-12"><a href="survival-analysis.html#cb99-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (fwfit<span class="sc">$</span>formula[[<span class="dv">3</span>]]<span class="sc">==</span><span class="dv">1</span>){</span>
+<span id="cb99-13"><a href="survival-analysis.html#cb99-13" aria-hidden="true" tabindex="-1"></a>    newform <span class="ot">&lt;-</span> <span class="fu">reformulate</span>(<span class="st">&quot;1&quot;</span>,formula[[<span class="dv">2</span>]])</span>
+<span id="cb99-14"><a href="survival-analysis.html#cb99-14" aria-hidden="true" tabindex="-1"></a>    newfit <span class="ot">&lt;-</span> <span class="fu">prodlim</span>(newform,</span>
+<span id="cb99-15"><a href="survival-analysis.html#cb99-15" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data=</span>data)</span>
+<span id="cb99-16"><a href="survival-analysis.html#cb99-16" aria-hidden="true" tabindex="-1"></a>  }<span class="cf">else</span>{</span>
+<span id="cb99-17"><a href="survival-analysis.html#cb99-17" aria-hidden="true" tabindex="-1"></a>    newform <span class="ot">&lt;-</span>fwfit<span class="sc">$</span>formula</span>
+<span id="cb99-18"><a href="survival-analysis.html#cb99-18" aria-hidden="true" tabindex="-1"></a>    newfit <span class="ot">&lt;-</span> <span class="fu">coxph</span>(newform,<span class="at">data=</span>data,<span class="at">x=</span><span class="cn">TRUE</span>,<span class="at">y=</span><span class="cn">TRUE</span>)</span>
+<span id="cb99-19"><a href="survival-analysis.html#cb99-19" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb99-20"><a href="survival-analysis.html#cb99-20" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">fit=</span>newfit,</span>
+<span id="cb99-21"><a href="survival-analysis.html#cb99-21" aria-hidden="true" tabindex="-1"></a>              <span class="at">In=</span><span class="fu">attr</span>(<span class="fu">terms</span>(newfit<span class="sc">$</span>formula),<span class="at">which =</span> <span class="st">&quot;term.labels&quot;</span>))</span>
+<span id="cb99-22"><a href="survival-analysis.html#cb99-22" aria-hidden="true" tabindex="-1"></a>  out<span class="sc">$</span>call <span class="ot">&lt;-</span><span class="fu">match.call</span>()</span>
+<span id="cb99-23"><a href="survival-analysis.html#cb99-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">class</span>(out) <span class="ot">&lt;-</span> <span class="st">&quot;selectCoxfw&quot;</span></span>
+<span id="cb99-24"><a href="survival-analysis.html#cb99-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb99-25"><a href="survival-analysis.html#cb99-25" aria-hidden="true" tabindex="-1"></a>  out</span>
+<span id="cb99-26"><a href="survival-analysis.html#cb99-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb99-27"><a href="survival-analysis.html#cb99-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb99-28"><a href="survival-analysis.html#cb99-28" aria-hidden="true" tabindex="-1"></a>predictSurvProb.selectCoxfw <span class="ot">&lt;-</span> <span class="cf">function</span>(object,newdata,times,...){</span>
+<span id="cb99-29"><a href="survival-analysis.html#cb99-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predictSurvProb</span>(object[[<span class="dv">1</span>]],<span class="at">newdata=</span>newdata,<span class="at">times=</span>times,...)</span>
+<span id="cb99-30"><a href="survival-analysis.html#cb99-30" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>We run forward selection.</p>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb100-1"><a href="survival-analysis.html#cb100-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">cbind</span>(y,x))</span>
+<span id="cb100-2"><a href="survival-analysis.html#cb100-2" aria-hidden="true" tabindex="-1"></a>fm <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;Surv(time, status) ~ &quot;</span>, </span>
+<span id="cb100-3"><a href="survival-analysis.html#cb100-3" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">paste</span>(<span class="fu">colnames</span>(dat[,<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)]), </span>
+<span id="cb100-4"><a href="survival-analysis.html#cb100-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">collapse=</span><span class="st">&quot;+&quot;</span>)))</span>
+<span id="cb100-5"><a href="survival-analysis.html#cb100-5" aria-hidden="true" tabindex="-1"></a>fit.coxfw <span class="ot">&lt;-</span> <span class="fu">selectCoxfw</span>(fm,<span class="at">data=</span>dat,</span>
+<span id="cb100-6"><a href="survival-analysis.html#cb100-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">direction=</span><span class="st">&quot;forward&quot;</span>)</span></code></pre></div>
+<p>We fit a random forest using <code>cforest</code> from the <code>party</code> package.</p>
+<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="survival-analysis.html#cb101-1" aria-hidden="true" tabindex="-1"></a>fit.cforest <span class="ot">&lt;-</span> pec<span class="sc">::</span><span class="fu">pecCforest</span>(fm, <span class="at">data =</span>dat, </span>
+<span id="cb101-2"><a href="survival-analysis.html#cb101-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">control =</span> party<span class="sc">::</span><span class="fu">cforest_classical</span>(<span class="at">ntree =</span> <span class="dv">100</span>))</span></code></pre></div>
+<p>We random forest we can obtain a measure of variable importance using the function <code>varimp</code>.</p>
+<pre><code>## 
+## Variable importance for survival forests; this feature is _experimental_</code></pre>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-116-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Finally we compare the two approaches using the cross-validated Brier score.</p>
+<div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="survival-analysis.html#cb103-1" aria-hidden="true" tabindex="-1"></a>pec.cv <span class="ot">&lt;-</span> pec<span class="sc">::</span><span class="fu">pec</span>(</span>
+<span id="cb103-2"><a href="survival-analysis.html#cb103-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">object=</span><span class="fu">list</span>(<span class="st">&quot;cox.fw&quot;</span><span class="ot">=</span>fit.coxfw,<span class="st">&quot;cforest&quot;</span><span class="ot">=</span>fit.cforest), </span>
+<span id="cb103-3"><a href="survival-analysis.html#cb103-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dat, </span>
+<span id="cb103-4"><a href="survival-analysis.html#cb103-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb103-5"><a href="survival-analysis.html#cb103-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">splitMethod =</span> <span class="st">&quot;cv5&quot;</span>)</span>
+<span id="cb103-6"><a href="survival-analysis.html#cb103-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pec.cv)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-117-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We conclude that forward selection and random forest do not outperform the reference model.</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="classification.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="high-dimensional-feature-assessment.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/staedlern/highdim_stats/edit/main/05-survival.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["highdimstats.pdf", "highdimstats.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

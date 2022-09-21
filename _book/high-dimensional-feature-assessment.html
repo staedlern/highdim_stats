@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 6 High-Dimensional Feature Assessment |  Prediction and Feature Assessment</title>
+  <meta name="description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 6 High-Dimensional Feature Assessment |  Prediction and Feature Assessment" />
+  <meta property="og:type" content="book" />
+  <meta property="og:image" content="/logo2.jpg" />
+  <meta property="og:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="github-repo" content="staedlern/highdim_stats" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 6 High-Dimensional Feature Assessment |  Prediction and Feature Assessment" />
+  
+  <meta name="twitter:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="twitter:image" content="/logo2.jpg" />
+
+<meta name="author" content="Nicolas Städler" />
+
+
+<meta name="date" content="2022-09-20" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="survival-analysis.html"/>
+<link rel="next" href="references.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Analysis of High-Dimensional Data</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a></li>
+<li class="chapter" data-level="2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html"><i class="fa fa-check"></i><b>2</b> Multiple Linear Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#notation"><i class="fa fa-check"></i><b>2.1</b> Notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#ordinary-least-squares"><i class="fa fa-check"></i><b>2.2</b> Ordinary Least Squares<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#overfitting"><i class="fa fa-check"></i><b>2.3</b> Overfitting<span></span></a></li>
+<li class="chapter" data-level="2.4" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#generalization-error"><i class="fa fa-check"></i><b>2.4</b> Generalization Error<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="regularization.html"><a href="regularization.html"><i class="fa fa-check"></i><b>3</b> Regularization<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="regularization.html"><a href="regularization.html#model-selection"><i class="fa fa-check"></i><b>3.1</b> Model Selection<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="regularization.html"><a href="regularization.html#subset--and-stepwise-regression"><i class="fa fa-check"></i><b>3.2</b> Subset- and Stepwise Regression<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="regularization.html"><a href="regularization.html#ridge-regression"><i class="fa fa-check"></i><b>3.3</b> Ridge Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.3.1" data-path="regularization.html"><a href="regularization.html#choice-of-penalty-parameter"><i class="fa fa-check"></i><b>3.3.1</b> Choice of penalty parameter<span></span></a></li>
+<li class="chapter" data-level="3.3.2" data-path="regularization.html"><a href="regularization.html#shrinkage-property"><i class="fa fa-check"></i><b>3.3.2</b> Shrinkage property<span></span></a></li>
+<li class="chapter" data-level="3.3.3" data-path="regularization.html"><a href="regularization.html#effective-degrees-of-freedom"><i class="fa fa-check"></i><b>3.3.3</b> Effective degrees of freedom<span></span></a></li>
+<li class="chapter" data-level="3.3.4" data-path="regularization.html"><a href="regularization.html#bayesian-interpretation"><i class="fa fa-check"></i><b>3.3.4</b> Bayesian interpretation<span></span></a></li>
+<li class="chapter" data-level="3.3.5" data-path="regularization.html"><a href="regularization.html#splines"><i class="fa fa-check"></i><b>3.3.5</b> Splines<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.4" data-path="regularization.html"><a href="regularization.html#lasso-regression"><i class="fa fa-check"></i><b>3.4</b> Lasso Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="regularization.html"><a href="regularization.html#numerical-optimization-and-soft-thresholding"><i class="fa fa-check"></i><b>3.4.1</b> Numerical optimization and soft thresholding<span></span></a></li>
+<li class="chapter" data-level="3.4.2" data-path="regularization.html"><a href="regularization.html#variable-selection"><i class="fa fa-check"></i><b>3.4.2</b> Variable selection<span></span></a></li>
+<li class="chapter" data-level="3.4.3" data-path="regularization.html"><a href="regularization.html#elasticnet-regression"><i class="fa fa-check"></i><b>3.4.3</b> Elasticnet Regression<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.5" data-path="regularization.html"><a href="regularization.html#diabetes-example"><i class="fa fa-check"></i><b>3.5</b> Diabetes example<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="classification.html"><a href="classification.html"><i class="fa fa-check"></i><b>4</b> Classification<span></span></a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="classification.html"><a href="classification.html#logistic-regression"><i class="fa fa-check"></i><b>4.1</b> Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.2" data-path="classification.html"><a href="classification.html#regularized-logistic-regression"><i class="fa fa-check"></i><b>4.2</b> Regularized Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.3" data-path="classification.html"><a href="classification.html#classification-trees-and-machine-learning"><i class="fa fa-check"></i><b>4.3</b> Classification Trees and Machine Learning<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="survival-analysis.html"><a href="survival-analysis.html"><i class="fa fa-check"></i><b>5</b> Survival Analysis<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="survival-analysis.html"><a href="survival-analysis.html#survival-endpoints-and-cox-regression"><i class="fa fa-check"></i><b>5.1</b> Survival Endpoints and Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.2" data-path="survival-analysis.html"><a href="survival-analysis.html#regularized-cox-regression"><i class="fa fa-check"></i><b>5.2</b> Regularized Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.3" data-path="survival-analysis.html"><a href="survival-analysis.html#brier-score"><i class="fa fa-check"></i><b>5.3</b> Brier Score<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html"><i class="fa fa-check"></i><b>6</b> High-Dimensional Feature Assessment<span></span></a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#gene-wise-two-sample-comparison"><i class="fa fa-check"></i><b>6.1</b> Gene-wise Two-sample Comparison<span></span></a></li>
+<li class="chapter" data-level="6.2" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#multiple-testing"><i class="fa fa-check"></i><b>6.2</b> Multiple Testing<span></span></a></li>
+<li class="chapter" data-level="6.3" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#p-value-adjustment"><i class="fa fa-check"></i><b>6.3</b> P-value Adjustment<span></span></a></li>
+<li class="chapter" data-level="6.4" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#volcano-plot"><i class="fa fa-check"></i><b>6.4</b> Volcano Plot<span></span></a></li>
+<li class="chapter" data-level="6.5" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#variance-shrinkage-and-empirical-bayes"><i class="fa fa-check"></i><b>6.5</b> Variance Shrinkage and Empirical Bayes<span></span></a></li>
+</ul></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"><p><img src="logo2.jpg" style="width:3.5in" /><br />
+Prediction and Feature Assessment</p></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="high-dimensional-feature-assessment" class="section level1 hasAnchor" number="6">
+<h1><span class="header-section-number">Chapter 6</span> High-Dimensional Feature Assessment<a href="high-dimensional-feature-assessment.html#high-dimensional-feature-assessment" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>A frequent task is to find features which differ with respect to one or more experimental factors.
+We illustrate this type of analysis using a gene expression experiment (<span class="math inline">\(p=15923\)</span> genes) performed with <span class="math inline">\(12\)</span> randomly selected mice from two strains. The features are the <span class="math inline">\(p=15923\)</span> genes and the strain (A vs B) is the experimental factor.</p>
+<p>A commonly used format for gene expression data is the <code>ExpressionSet</code> class from the <code>Biobase</code> package. The actual expressions are retrieved using the function <code>exprs</code>. Information on the phenotypes is obtained using <code>pData</code> and with <code>fData</code> we get more information on the genes (“features”).</p>
+<p>We load the <code>ExpressionSet</code>.</p>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="high-dimensional-feature-assessment.html#cb104-1" aria-hidden="true" tabindex="-1"></a>esetmouse <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file=</span><span class="st">&quot;data/esetmouse.rds&quot;</span>)</span>
+<span id="cb104-2"><a href="high-dimensional-feature-assessment.html#cb104-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(esetmouse)</span></code></pre></div>
+<pre><code>## [1] &quot;ExpressionSet&quot;
+## attr(,&quot;package&quot;)
+## [1] &quot;Biobase&quot;</code></pre>
+<div class="sourceCode" id="cb106"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb106-1"><a href="high-dimensional-feature-assessment.html#cb106-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(esetmouse)</span></code></pre></div>
+<pre><code>## Features  Samples 
+##    15923       24</code></pre>
+<p>We can look at the expression values of the first sample and the first 6 genes.</p>
+<div class="sourceCode" id="cb108"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb108-1"><a href="high-dimensional-feature-assessment.html#cb108-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exprs</span>(esetmouse)[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,<span class="dv">1</span>]</span></code></pre></div>
+<pre><code>## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
+##  10.051651  10.163334  10.211724  10.334899  10.889349   9.666755</code></pre>
+<p>An overview on the phenotype data can be obtained using the following commands.</p>
+<div class="sourceCode" id="cb110"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb110-1"><a href="high-dimensional-feature-assessment.html#cb110-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">pData</span>(esetmouse)<span class="sc">$</span>strain)</span></code></pre></div>
+<pre><code>## 
+##  A  B 
+## 12 12</code></pre>
+<div id="gene-wise-two-sample-comparison" class="section level2 hasAnchor" number="6.1">
+<h2><span class="header-section-number">6.1</span> Gene-wise Two-sample Comparison<a href="high-dimensional-feature-assessment.html#gene-wise-two-sample-comparison" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>We are interested in comparing gene expression between the
+mice strains A and B.</p>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="high-dimensional-feature-assessment.html#cb112-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> esetmouse<span class="sc">$</span>strain <span class="co"># strain information</span></span>
+<span id="cb112-2"><a href="high-dimensional-feature-assessment.html#cb112-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">exprs</span>(esetmouse)) <span class="co"># gene expressions matrix (columns refer to genes)</span></span></code></pre></div>
+<p>We start by visualizing the expression of gene <span class="math inline">\(j=11425\)</span>.</p>
+<div class="sourceCode" id="cb113"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb113-1"><a href="high-dimensional-feature-assessment.html#cb113-1" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(y[,<span class="dv">11425</span>]<span class="sc">~</span>x)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-124-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>This gene seems to be higher expressed in A. To nail down this observeration we can do a more formal hypothesis test. We build the ordinary t-statistic</p>
+<p><span class="math display">\[\begin{align*}
+t_{j}&amp;=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}.
+\end{align*}\]</span></p>
+<p>We can calculate the two-sided p-value</p>
+<p><span class="math display">\[\begin{align*}
+q_j&amp;=2\left(1-F(|t_j|,\nu=n_A+n_B-2)\right).
+\end{align*}\]</span></p>
+<p>In R we can perform a two-sample t-test using the function <code>t.test</code>.</p>
+<div class="sourceCode" id="cb114"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb114-1"><a href="high-dimensional-feature-assessment.html#cb114-1" aria-hidden="true" tabindex="-1"></a>ttest <span class="ot">&lt;-</span> <span class="fu">t.test</span>(y[,<span class="dv">11425</span>]<span class="sc">~</span>x,<span class="at">var.equal=</span><span class="cn">TRUE</span>)</span>
+<span id="cb114-2"><a href="high-dimensional-feature-assessment.html#cb114-2" aria-hidden="true" tabindex="-1"></a>ttest<span class="sc">$</span>statistic <span class="co">#tscore</span></span></code></pre></div>
+<pre><code>##        t 
+## 1.774198</code></pre>
+<div class="sourceCode" id="cb116"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb116-1"><a href="high-dimensional-feature-assessment.html#cb116-1" aria-hidden="true" tabindex="-1"></a>ttest<span class="sc">$</span>p.value</span></code></pre></div>
+<pre><code>## [1] 0.0898726</code></pre>
+<p>We obtain <span class="math inline">\(q_{11425}\)</span>=0.09 and based on that we would not reject the null-hypothesis for this specific gene at the <span class="math inline">\(\alpha=0.05\)</span> level. What about the other genes? We continue by repeating the analysis for all <span class="math inline">\(p=\)</span> 15923 genes. We save the results in a data frame.</p>
+<div class="sourceCode" id="cb118"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb118-1"><a href="high-dimensional-feature-assessment.html#cb118-1" aria-hidden="true" tabindex="-1"></a>pvals <span class="ot">&lt;-</span> <span class="fu">apply</span>(y,<span class="dv">2</span>,<span class="at">FUN=</span></span>
+<span id="cb118-2"><a href="high-dimensional-feature-assessment.html#cb118-2" aria-hidden="true" tabindex="-1"></a>                 <span class="cf">function</span>(y){</span>
+<span id="cb118-3"><a href="high-dimensional-feature-assessment.html#cb118-3" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">t.test</span>(y<span class="sc">~</span>x,<span class="at">var.equal=</span><span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb118-4"><a href="high-dimensional-feature-assessment.html#cb118-4" aria-hidden="true" tabindex="-1"></a>                 })</span>
+<span id="cb118-5"><a href="high-dimensional-feature-assessment.html#cb118-5" aria-hidden="true" tabindex="-1"></a>tscore <span class="ot">&lt;-</span> <span class="fu">apply</span>(y,<span class="dv">2</span>,<span class="at">FUN=</span></span>
+<span id="cb118-6"><a href="high-dimensional-feature-assessment.html#cb118-6" aria-hidden="true" tabindex="-1"></a>                  <span class="cf">function</span>(y){</span>
+<span id="cb118-7"><a href="high-dimensional-feature-assessment.html#cb118-7" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">t.test</span>(y<span class="sc">~</span>x,<span class="at">var.equal=</span><span class="cn">TRUE</span>)<span class="sc">$</span>statistic</span>
+<span id="cb118-8"><a href="high-dimensional-feature-assessment.html#cb118-8" aria-hidden="true" tabindex="-1"></a>                  })</span>
+<span id="cb118-9"><a href="high-dimensional-feature-assessment.html#cb118-9" aria-hidden="true" tabindex="-1"></a>res.de <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">p.value=</span>pvals,</span>
+<span id="cb118-10"><a href="high-dimensional-feature-assessment.html#cb118-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">t.score=</span>tscore,</span>
+<span id="cb118-11"><a href="high-dimensional-feature-assessment.html#cb118-11" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geneid=</span><span class="fu">names</span>(tscore))</span></code></pre></div>
+<p>Next we count the number of significant genes.</p>
+<div class="sourceCode" id="cb119"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb119-1"><a href="high-dimensional-feature-assessment.html#cb119-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(res.de<span class="sc">$</span>p.value<span class="sc">&lt;</span><span class="fl">0.05</span>)</span></code></pre></div>
+<pre><code>## [1] 2908</code></pre>
+<p>According to this analysis 2908 genes are differentially expressed between strains A and B. This is 18.3% of all genes. In the next section we will explain that this analysis misses an important point, namely it neglects the issue of multiple testing.</p>
+</div>
+<div id="multiple-testing" class="section level2 hasAnchor" number="6.2">
+<h2><span class="header-section-number">6.2</span> Multiple Testing<a href="high-dimensional-feature-assessment.html#multiple-testing" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>To illustrate the multiple testing problem we create an artificial gene expression data set where we are certain that none of the genes is differentially expressed.</p>
+<div class="sourceCode" id="cb121"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb121-1"><a href="high-dimensional-feature-assessment.html#cb121-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb121-2"><a href="high-dimensional-feature-assessment.html#cb121-2" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ncol</span>(y)</span>
+<span id="cb121-3"><a href="high-dimensional-feature-assessment.html#cb121-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(y)</span>
+<span id="cb121-4"><a href="high-dimensional-feature-assessment.html#cb121-4" aria-hidden="true" tabindex="-1"></a>ysim <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p),n,p)</span></code></pre></div>
+<p>Now we repeat the gene-wise two-sample comparisons for the artificial data set.</p>
+<div class="sourceCode" id="cb122"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb122-1"><a href="high-dimensional-feature-assessment.html#cb122-1" aria-hidden="true" tabindex="-1"></a>pvals.sim <span class="ot">&lt;-</span> <span class="fu">apply</span>(ysim,<span class="dv">2</span>,<span class="at">FUN=</span></span>
+<span id="cb122-2"><a href="high-dimensional-feature-assessment.html#cb122-2" aria-hidden="true" tabindex="-1"></a>                 <span class="cf">function</span>(y){</span>
+<span id="cb122-3"><a href="high-dimensional-feature-assessment.html#cb122-3" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">t.test</span>(y<span class="sc">~</span>x,<span class="at">var.equal=</span><span class="cn">TRUE</span>)<span class="sc">$</span>p.value</span>
+<span id="cb122-4"><a href="high-dimensional-feature-assessment.html#cb122-4" aria-hidden="true" tabindex="-1"></a>                 })</span>
+<span id="cb122-5"><a href="high-dimensional-feature-assessment.html#cb122-5" aria-hidden="true" tabindex="-1"></a>tscore.sim <span class="ot">&lt;-</span> <span class="fu">apply</span>(ysim,<span class="dv">2</span>,<span class="at">FUN=</span></span>
+<span id="cb122-6"><a href="high-dimensional-feature-assessment.html#cb122-6" aria-hidden="true" tabindex="-1"></a>                  <span class="cf">function</span>(y){</span>
+<span id="cb122-7"><a href="high-dimensional-feature-assessment.html#cb122-7" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">t.test</span>(y<span class="sc">~</span>x,<span class="at">var.equal=</span><span class="cn">TRUE</span>)<span class="sc">$</span>statistic</span>
+<span id="cb122-8"><a href="high-dimensional-feature-assessment.html#cb122-8" aria-hidden="true" tabindex="-1"></a>                  })</span>
+<span id="cb122-9"><a href="high-dimensional-feature-assessment.html#cb122-9" aria-hidden="true" tabindex="-1"></a>res.de.sim <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">p.value=</span>pvals.sim,<span class="at">t.score=</span>tscore.sim)</span></code></pre></div>
+<p>We count the number of significant genes.</p>
+<div class="sourceCode" id="cb123"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb123-1"><a href="high-dimensional-feature-assessment.html#cb123-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(res.de.sim<span class="sc">$</span>p.value<span class="sc">&lt;</span><span class="fl">0.05</span>)</span></code></pre></div>
+<pre><code>## [1] 773</code></pre>
+<p>This is a surprise! According to the analysis 773 genes are differentially expressed. However, we know that this cannot be true. What did we miss? The reason for the large number of falsely declared significant genes is that we performed multiple significance tests simultaneously. Each test is associated with an error which accumulate over the various test. In particular, we re-call that the probability of falsely rejecting the null-hypothesis (=Type-I error) is
+<span class="math display">\[
+{\rm Prob}(q_j&lt;\alpha)\leq \alpha.
+\]</span></p>
+<p>We performed a significance test for each gene which makes the expected number of falsely rejected null-hypotheses <span class="math inline">\(p\times\alpha\)</span>=796.15. Under the null hypothesis we would expect the p-values to follow a uniform distribution. Indeed, that is what we observe in our simulation example.</p>
+<div class="sourceCode" id="cb125"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb125-1"><a href="high-dimensional-feature-assessment.html#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(res.de.sim<span class="sc">$</span>p.value)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-131-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The distribution of p-values obtained from the real example has a peak near zero which indicates that some genes are truly differentially expressed between strains A and B.</p>
+<div class="sourceCode" id="cb126"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb126-1"><a href="high-dimensional-feature-assessment.html#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(res.de<span class="sc">$</span>p.value)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-132-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In the next section we will discuss <em>p-value adjustment</em> which is a method to counteract the issue of multiple testing.</p>
+</div>
+<div id="p-value-adjustment" class="section level2 hasAnchor" number="6.3">
+<h2><span class="header-section-number">6.3</span> P-value Adjustment<a href="high-dimensional-feature-assessment.html#p-value-adjustment" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Our previous consideration suggest that we could adjust the p-values by multiplying with the number <span class="math inline">\(p\)</span> of performed tests, i.e.</p>
+<p><span class="math display">\[q_{j}^{\rm adjust}=p\times q_j.\]</span></p>
+<p>This adjustment method is known as the Bonferroni correction. The method has the property that it controls the so-called family-wise-error rate (FWER). Let’s assume that <span class="math inline">\(p_0\)</span> is the number of <em>true</em> null hypotheses (unknown to the researcher), then we can show</p>
+<p><span class="math display">\[\begin{align*}
+{\rm FWER}&amp;={\rm Prob}({\rm at\;least\;one\;false\;positive})\\
+&amp;={\rm Prob}(\min_{j=1..p_0} q^{\rm adjust}_j\leq \alpha)\\
+&amp;={\rm Prob}(\min_{j=1..p_0} q_j\leq \alpha/p)\\
+&amp;\leq \sum_{j=1}^{p_0} {\rm Prob}(q_j\leq \alpha/p)\\
+&amp;={p_0}\frac{\alpha}{p}\leq\alpha.
+\end{align*}\]</span></p>
+<p>In our example we calculate the Bonferroni adjusted p-values.</p>
+<div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb127-1"><a href="high-dimensional-feature-assessment.html#cb127-1" aria-hidden="true" tabindex="-1"></a>res.de<span class="sc">$</span>p.value.bf <span class="ot">&lt;-</span> p<span class="sc">*</span>res.de<span class="sc">$</span>p.value</span>
+<span id="cb127-2"><a href="high-dimensional-feature-assessment.html#cb127-2" aria-hidden="true" tabindex="-1"></a>res.de.sim<span class="sc">$</span>p.value.bf <span class="ot">&lt;-</span> p<span class="sc">*</span>res.de.sim<span class="sc">$</span>p.value</span></code></pre></div>
+<p>The number of significant genes in the real and simulated data are provided next. Note that none of the genes is significant in the simulated data which is in line with our expectations.</p>
+<div class="sourceCode" id="cb128"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb128-1"><a href="high-dimensional-feature-assessment.html#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(res.de<span class="sc">$</span>p.value.bf<span class="sc">&lt;</span><span class="fl">0.05</span>)</span></code></pre></div>
+<pre><code>## [1] 82</code></pre>
+<div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="high-dimensional-feature-assessment.html#cb130-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(res.de.sim<span class="sc">$</span>p.value.bf<span class="sc">&lt;</span><span class="fl">0.05</span>)</span></code></pre></div>
+<pre><code>## [1] 0</code></pre>
+<p>The R function <code>p.adjust</code> offers various adjustment procedures. The different methods are based on different assumptions and/or they control a different error measure. The Bonferroni correction is the most conservative approach and often leads to too few significant result (loss of statistical power). Less conservative is the so-called FDR approach which controls the False Discovery Rate (instead of FWER). We calculate the FDR adjusted p-values and print the number of significant genes.</p>
+<div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="high-dimensional-feature-assessment.html#cb132-1" aria-hidden="true" tabindex="-1"></a>res.de<span class="sc">$</span>p.value.fdr <span class="ot">&lt;-</span> <span class="fu">p.adjust</span>(res.de<span class="sc">$</span>p.value,<span class="at">method=</span><span class="st">&quot;fdr&quot;</span>)</span>
+<span id="cb132-2"><a href="high-dimensional-feature-assessment.html#cb132-2" aria-hidden="true" tabindex="-1"></a>res.de.sim<span class="sc">$</span>p.value.fdr <span class="ot">&lt;-</span> <span class="fu">p.adjust</span>(res.de.sim<span class="sc">$</span>p.value,<span class="at">method=</span><span class="st">&quot;fdr&quot;</span>)</span>
+<span id="cb132-3"><a href="high-dimensional-feature-assessment.html#cb132-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(res.de<span class="sc">$</span>p.value.fdr<span class="sc">&lt;</span><span class="fl">0.05</span>)</span></code></pre></div>
+<pre><code>## [1] 1123</code></pre>
+<div class="sourceCode" id="cb134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb134-1"><a href="high-dimensional-feature-assessment.html#cb134-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(res.de.sim<span class="sc">$</span>p.value.fdr<span class="sc">&lt;</span><span class="fl">0.05</span>)</span></code></pre></div>
+<pre><code>## [1] 0</code></pre>
+</div>
+<div id="volcano-plot" class="section level2 hasAnchor" number="6.4">
+<h2><span class="header-section-number">6.4</span> Volcano Plot<a href="high-dimensional-feature-assessment.html#volcano-plot" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>It is important to effectively display statistical results obtained from high-dimensional data. We have discussed how to calculate p-values and how to adjust them for multiplicity. However, the p-value is often not the only quantity of interest. In differential gene expression analysis we are also interested in the magnitude of change in expression.</p>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb136-1"><a href="high-dimensional-feature-assessment.html#cb136-1" aria-hidden="true" tabindex="-1"></a>magn<span class="ot">&lt;-</span> <span class="fu">apply</span>(y,<span class="dv">2</span>,<span class="at">FUN=</span></span>
+<span id="cb136-2"><a href="high-dimensional-feature-assessment.html#cb136-2" aria-hidden="true" tabindex="-1"></a>             <span class="cf">function</span>(y){</span>
+<span id="cb136-3"><a href="high-dimensional-feature-assessment.html#cb136-3" aria-hidden="true" tabindex="-1"></a>               mba <span class="ot">&lt;-</span> <span class="fu">tapply</span>(y,x,mean)</span>
+<span id="cb136-4"><a href="high-dimensional-feature-assessment.html#cb136-4" aria-hidden="true" tabindex="-1"></a>               <span class="fu">return</span>(mba[<span class="dv">2</span>]<span class="sc">-</span>mba[<span class="dv">1</span>])</span>
+<span id="cb136-5"><a href="high-dimensional-feature-assessment.html#cb136-5" aria-hidden="true" tabindex="-1"></a>             })</span>
+<span id="cb136-6"><a href="high-dimensional-feature-assessment.html#cb136-6" aria-hidden="true" tabindex="-1"></a>magn.sim <span class="ot">&lt;-</span> <span class="fu">apply</span>(ysim,<span class="dv">2</span>,<span class="at">FUN=</span></span>
+<span id="cb136-7"><a href="high-dimensional-feature-assessment.html#cb136-7" aria-hidden="true" tabindex="-1"></a>                  <span class="cf">function</span>(y){</span>
+<span id="cb136-8"><a href="high-dimensional-feature-assessment.html#cb136-8" aria-hidden="true" tabindex="-1"></a>                    mba <span class="ot">&lt;-</span> <span class="fu">tapply</span>(y,x,mean)</span>
+<span id="cb136-9"><a href="high-dimensional-feature-assessment.html#cb136-9" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">return</span>(mba[<span class="dv">2</span>]<span class="sc">-</span>mba[<span class="dv">1</span>])</span>
+<span id="cb136-10"><a href="high-dimensional-feature-assessment.html#cb136-10" aria-hidden="true" tabindex="-1"></a>                  })</span>
+<span id="cb136-11"><a href="high-dimensional-feature-assessment.html#cb136-11" aria-hidden="true" tabindex="-1"></a>res.de<span class="sc">$</span>magn <span class="ot">&lt;-</span> magn</span>
+<span id="cb136-12"><a href="high-dimensional-feature-assessment.html#cb136-12" aria-hidden="true" tabindex="-1"></a>res.de.sim<span class="sc">$</span>magn <span class="ot">&lt;-</span> magn.sim</span></code></pre></div>
+<p>A frequently used display is the volcano plot which shows on the y-axis the <span class="math inline">\(-\log_{10}\)</span> p-values and on the x-axis the magnitude of change. By using <span class="math inline">\(-\log_{10}\)</span>, the “highly significant” features appear at the top of the plot. Using log also permits us to better distinguish between small and very small p-values. We can further highlight the “top genes” as those with adjusted p-value &lt;0.05 and magnitude of change <span class="math inline">\(&gt;1\)</span>.</p>
+<div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb137-1"><a href="high-dimensional-feature-assessment.html#cb137-1" aria-hidden="true" tabindex="-1"></a>res.de<span class="sc">%&gt;%</span></span>
+<span id="cb137-2"><a href="high-dimensional-feature-assessment.html#cb137-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">topgene=</span><span class="fu">ifelse</span>(p.value.fdr<span class="sc">&lt;</span><span class="fl">0.05</span><span class="sc">&amp;</span><span class="fu">abs</span>(magn)<span class="sc">&gt;</span><span class="dv">1</span>,</span>
+<span id="cb137-3"><a href="high-dimensional-feature-assessment.html#cb137-3" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;top&quot;</span>,</span>
+<span id="cb137-4"><a href="high-dimensional-feature-assessment.html#cb137-4" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;other&quot;</span>)</span>
+<span id="cb137-5"><a href="high-dimensional-feature-assessment.html#cb137-5" aria-hidden="true" tabindex="-1"></a>                )<span class="sc">%&gt;%</span></span>
+<span id="cb137-6"><a href="high-dimensional-feature-assessment.html#cb137-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>magn,<span class="at">y=</span><span class="sc">-</span><span class="fu">log10</span>(p.value),<span class="at">col=</span>topgene))<span class="sc">+</span></span>
+<span id="cb137-7"><a href="high-dimensional-feature-assessment.html#cb137-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb137-8"><a href="high-dimensional-feature-assessment.html#cb137-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;top&quot;</span><span class="ot">=</span><span class="st">&quot;red&quot;</span>,<span class="st">&quot;other&quot;</span><span class="ot">=</span><span class="st">&quot;black&quot;</span>))<span class="sc">+</span></span>
+<span id="cb137-9"><a href="high-dimensional-feature-assessment.html#cb137-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
+<span id="cb137-10"><a href="high-dimensional-feature-assessment.html#cb137-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>)<span class="sc">+</span></span>
+<span id="cb137-11"><a href="high-dimensional-feature-assessment.html#cb137-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="dv">3</span>)<span class="sc">+</span><span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">10</span>)<span class="sc">+</span></span>
+<span id="cb137-12"><a href="high-dimensional-feature-assessment.html#cb137-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb137-13"><a href="high-dimensional-feature-assessment.html#cb137-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="sc">-</span><span class="dv">1</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-137-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We repeat the same plot with the simulated data.</p>
+<div class="sourceCode" id="cb138"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb138-1"><a href="high-dimensional-feature-assessment.html#cb138-1" aria-hidden="true" tabindex="-1"></a>res.de.sim<span class="sc">%&gt;%</span></span>
+<span id="cb138-2"><a href="high-dimensional-feature-assessment.html#cb138-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">topgene=</span><span class="fu">ifelse</span>(p.value.fdr<span class="sc">&lt;</span><span class="fl">0.05</span><span class="sc">&amp;</span><span class="fu">abs</span>(magn)<span class="sc">&gt;</span><span class="dv">1</span>,</span>
+<span id="cb138-3"><a href="high-dimensional-feature-assessment.html#cb138-3" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;top&quot;</span>,</span>
+<span id="cb138-4"><a href="high-dimensional-feature-assessment.html#cb138-4" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;other&quot;</span>)</span>
+<span id="cb138-5"><a href="high-dimensional-feature-assessment.html#cb138-5" aria-hidden="true" tabindex="-1"></a>                )<span class="sc">%&gt;%</span></span>
+<span id="cb138-6"><a href="high-dimensional-feature-assessment.html#cb138-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>magn,<span class="at">y=</span><span class="sc">-</span><span class="fu">log10</span>(p.value),<span class="at">col=</span>topgene))<span class="sc">+</span></span>
+<span id="cb138-7"><a href="high-dimensional-feature-assessment.html#cb138-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb138-8"><a href="high-dimensional-feature-assessment.html#cb138-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;top&quot;</span><span class="ot">=</span><span class="st">&quot;red&quot;</span>,<span class="st">&quot;other&quot;</span><span class="ot">=</span><span class="st">&quot;black&quot;</span>))<span class="sc">+</span></span>
+<span id="cb138-9"><a href="high-dimensional-feature-assessment.html#cb138-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
+<span id="cb138-10"><a href="high-dimensional-feature-assessment.html#cb138-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>)<span class="sc">+</span></span>
+<span id="cb138-11"><a href="high-dimensional-feature-assessment.html#cb138-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="dv">3</span>)<span class="sc">+</span><span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">10</span>)<span class="sc">+</span></span>
+<span id="cb138-12"><a href="high-dimensional-feature-assessment.html#cb138-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb138-13"><a href="high-dimensional-feature-assessment.html#cb138-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="sc">-</span><span class="dv">1</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-138-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="variance-shrinkage-and-empirical-bayes" class="section level2 hasAnchor" number="6.5">
+<h2><span class="header-section-number">6.5</span> Variance Shrinkage and Empirical Bayes<a href="high-dimensional-feature-assessment.html#variance-shrinkage-and-empirical-bayes" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The basis of the statistical analyses are the t-statistics</p>
+<p><span class="math display">\[\begin{align*}
+t_{j}&amp;=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}.
+\end{align*}\]</span></p>
+<p>In a small sample size setting the estimated standard deviations exhibit high variability which can lead to large t-statistics. Extensive statistical methodology has been developed to counteract this challenge. The key idea of those methods is to <em>shrink</em> the gene-wise variances <span class="math inline">\(\rm s^2_{j}\)</span> towards a common variance <span class="math inline">\(s^2_0\)</span> (<span class="math inline">\(s^2_0\)</span> is estimated from the data)</p>
+<p><span class="math display">\[\begin{align*}
+\widetilde{s}_{j}^2&amp;=\frac{d_0 s_0^2+d s^2_{j}}{d_0+d}.
+\end{align*}\]</span></p>
+<p>A so-called <em>moderated</em> t-statistic is obtained by replacing in the denominator <span class="math inline">\(s_{j}\)</span> with the “shrunken” <span class="math inline">\(\widetilde{s}_{j}\)</span>. The <em>moderated</em> t-statistic has favourable statistical properties in the small <span class="math inline">\(n\)</span> setting. The statistical methodology behind the approach is referred to as empirical Bayes and is implemented in the function <code>eBayes</code> of the <code>limma</code> package. Limma starts with running gene-wise linear regression using the <code>lmFit</code> function.</p>
+<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="high-dimensional-feature-assessment.html#cb139-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(limma)</span></code></pre></div>
+<pre><code>## 
+## Attaching package: &#39;limma&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:BiocGenerics&#39;:
+## 
+##     plotMA</code></pre>
+<div class="sourceCode" id="cb142"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb142-1"><a href="high-dimensional-feature-assessment.html#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first argument: gene expression matrix with genes in rows and sample in columns</span></span>
+<span id="cb142-2"><a href="high-dimensional-feature-assessment.html#cb142-2" aria-hidden="true" tabindex="-1"></a><span class="co"># second argument: design matrix</span></span>
+<span id="cb142-3"><a href="high-dimensional-feature-assessment.html#cb142-3" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">lmFit</span>(<span class="fu">t</span>(y), <span class="at">design=</span><span class="fu">model.matrix</span>(<span class="sc">~</span> x)) </span>
+<span id="cb142-4"><a href="high-dimensional-feature-assessment.html#cb142-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">coef</span>(fit))</span></code></pre></div>
+<pre><code>##            (Intercept)           xB
+## 1367452_at   10.027453  0.092544985
+## 1367453_at   10.173732  0.026867630
+## 1367454_at   10.275137  0.003017421
+## 1367455_at   10.371786 -0.101727288
+## 1367456_at   10.815641 -0.006899555
+## 1367457_at    9.607297  0.038318498</code></pre>
+<p>We can compare it with a standard <code>lm</code> fit.</p>
+<div class="sourceCode" id="cb144"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb144-1"><a href="high-dimensional-feature-assessment.html#cb144-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">lm</span>(y[,<span class="dv">1</span>]<span class="sc">~</span>x)) <span class="co"># gene 1</span></span></code></pre></div>
+<pre><code>## (Intercept)          xB 
+## 10.02745295  0.09254499</code></pre>
+<div class="sourceCode" id="cb146"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb146-1"><a href="high-dimensional-feature-assessment.html#cb146-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(<span class="fu">lm</span>(y[,<span class="dv">2</span>]<span class="sc">~</span>x)) <span class="co"># gene 2</span></span></code></pre></div>
+<pre><code>## (Intercept)          xB 
+## 10.17373179  0.02686763</code></pre>
+<p>Next, we use the <code>eBayes</code> function to calculate the moderated t statistics and p-values.</p>
+<div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="high-dimensional-feature-assessment.html#cb148-1" aria-hidden="true" tabindex="-1"></a>ebfit <span class="ot">&lt;-</span> <span class="fu">eBayes</span>(fit)</span>
+<span id="cb148-2"><a href="high-dimensional-feature-assessment.html#cb148-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ebfit<span class="sc">$</span>t) <span class="co"># moderated t statistics</span></span></code></pre></div>
+<pre><code>##            (Intercept)          xB
+## 1367452_at    182.4496  1.19066640
+## 1367453_at    221.0103  0.41271149
+## 1367454_at    184.0507  0.03821825
+## 1367455_at    195.0270 -1.35258223
+## 1367456_at    257.5965 -0.11619667
+## 1367457_at    196.7628  0.55492613</code></pre>
+<div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="high-dimensional-feature-assessment.html#cb150-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ebfit<span class="sc">$</span>p.value) <span class="co"># p.values based on moderated t statistics</span></span></code></pre></div>
+<pre><code>##             (Intercept)        xB
+## 1367452_at 3.871319e-43 0.2441871
+## 1367453_at 2.236672e-45 0.6830894
+## 1367454_at 3.061059e-43 0.9697959
+## 1367455_at 6.452172e-44 0.1874515
+## 1367456_at 3.639411e-47 0.9083599
+## 1367457_at 5.084786e-44 0.5835310</code></pre>
+<p>We can also retrieve the “shrunken” standard deviations</p>
+<div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="high-dimensional-feature-assessment.html#cb152-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">sqrt</span>(ebfit<span class="sc">$</span>s2.post)) <span class="co"># shrunken standard deviations</span></span></code></pre></div>
+<pre><code>## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
+##  0.1903875  0.1594624  0.1933930  0.1842254  0.1454464  0.1691410</code></pre>
+<!-- ```{r include=FALSE} -->
+<!-- library(tidyverse) -->
+<!-- library(devtools) -->
+<!-- install_github("genomicsclass/GSE5859Subset") -->
+<!-- library("GSE5859Subset") -->
+<!-- ``` -->
+<!-- We have RNA expression measurements for 8793 genes from blood taken from 24 individuals (the experimental units). For most statistical analyses, we will also need information about the individuals. For example, in this case the data was originally collected to compare gene expression across ethnic groups. However, we have created a subset of this dataset for illustration and separated the data into two groups: -->
+<!-- ```{r} -->
+<!-- library(GSE5859Subset) -->
+<!-- data(GSE5859Subset) ##this loads the three tables -->
+<!-- dim(geneExpression) -->
+<!-- head(sampleInfo) -->
+<!-- head(geneAnnotation) -->
+<!-- g <- factor(sampleInfo$group) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- t.d <- data.frame(y=geneExpression[25,],x=g) -->
+<!-- t.d%>% -->
+<!--   ggplot(.,aes(x=x,y=y))+ -->
+<!--   geom_boxplot()+ -->
+<!--   geom_jitter(width=0.25)+ -->
+<!--   theme_bw()+ -->
+<!--   ylab("Gene25")+ -->
+<!--   xlab("") -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- myttest <- function(x) t.test(x[g==1],x[g==0],var.equal=TRUE)$p.value -->
+<!-- pvals <- apply(geneExpression,1,myttest) -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- library(Biobase) -->
+<!-- library(maPooling) -->
+<!-- data(maPooling) ##this loads the three tables -->
+<!-- pd <- pData(maPooling) -->
+<!-- individuals <- which(rowSums(pd)==1) -->
+<!-- geneexpr <- exprs(maPooling)[,individuals] -->
+<!-- g <- factor(as.numeric(grepl("b",names(individuals)))) -->
+<!-- levels(g) <- c("Stamm 1","Stamm 2") -->
+<!-- boxplot(geneexpr[11425,]~g) -->
+<!-- t.test(geneexpr[11425,]~x,var.equal=TRUE)$p.value -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- boxplot(geneexpr[11878,]~g) -->
+<!-- t.test(geneexpr[11878,]~g,var.equal=TRUE)$p.value -->
+<!-- ``` -->
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="survival-analysis.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/staedlern/highdim_stats/edit/main/06_multipletesting.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["highdimstats.pdf", "highdimstats.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

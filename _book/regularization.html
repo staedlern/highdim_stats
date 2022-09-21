@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 3 Regularization |  Prediction and Feature Assessment</title>
+  <meta name="description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 3 Regularization |  Prediction and Feature Assessment" />
+  <meta property="og:type" content="book" />
+  <meta property="og:image" content="/logo2.jpg" />
+  <meta property="og:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="github-repo" content="staedlern/highdim_stats" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 3 Regularization |  Prediction and Feature Assessment" />
+  
+  <meta name="twitter:description" content="Script for Analysis of High-Dimensional Data" />
+  <meta name="twitter:image" content="/logo2.jpg" />
+
+<meta name="author" content="Nicolas Städler" />
+
+
+<meta name="date" content="2022-09-20" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="multiple-linear-regression.html"/>
+<link rel="next" href="classification.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Analysis of High-Dimensional Data</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a></li>
+<li class="chapter" data-level="2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html"><i class="fa fa-check"></i><b>2</b> Multiple Linear Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#notation"><i class="fa fa-check"></i><b>2.1</b> Notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#ordinary-least-squares"><i class="fa fa-check"></i><b>2.2</b> Ordinary Least Squares<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#overfitting"><i class="fa fa-check"></i><b>2.3</b> Overfitting<span></span></a></li>
+<li class="chapter" data-level="2.4" data-path="multiple-linear-regression.html"><a href="multiple-linear-regression.html#generalization-error"><i class="fa fa-check"></i><b>2.4</b> Generalization Error<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="regularization.html"><a href="regularization.html"><i class="fa fa-check"></i><b>3</b> Regularization<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="regularization.html"><a href="regularization.html#model-selection"><i class="fa fa-check"></i><b>3.1</b> Model Selection<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="regularization.html"><a href="regularization.html#subset--and-stepwise-regression"><i class="fa fa-check"></i><b>3.2</b> Subset- and Stepwise Regression<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="regularization.html"><a href="regularization.html#ridge-regression"><i class="fa fa-check"></i><b>3.3</b> Ridge Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.3.1" data-path="regularization.html"><a href="regularization.html#choice-of-penalty-parameter"><i class="fa fa-check"></i><b>3.3.1</b> Choice of penalty parameter<span></span></a></li>
+<li class="chapter" data-level="3.3.2" data-path="regularization.html"><a href="regularization.html#shrinkage-property"><i class="fa fa-check"></i><b>3.3.2</b> Shrinkage property<span></span></a></li>
+<li class="chapter" data-level="3.3.3" data-path="regularization.html"><a href="regularization.html#effective-degrees-of-freedom"><i class="fa fa-check"></i><b>3.3.3</b> Effective degrees of freedom<span></span></a></li>
+<li class="chapter" data-level="3.3.4" data-path="regularization.html"><a href="regularization.html#bayesian-interpretation"><i class="fa fa-check"></i><b>3.3.4</b> Bayesian interpretation<span></span></a></li>
+<li class="chapter" data-level="3.3.5" data-path="regularization.html"><a href="regularization.html#splines"><i class="fa fa-check"></i><b>3.3.5</b> Splines<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.4" data-path="regularization.html"><a href="regularization.html#lasso-regression"><i class="fa fa-check"></i><b>3.4</b> Lasso Regression<span></span></a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="regularization.html"><a href="regularization.html#numerical-optimization-and-soft-thresholding"><i class="fa fa-check"></i><b>3.4.1</b> Numerical optimization and soft thresholding<span></span></a></li>
+<li class="chapter" data-level="3.4.2" data-path="regularization.html"><a href="regularization.html#variable-selection"><i class="fa fa-check"></i><b>3.4.2</b> Variable selection<span></span></a></li>
+<li class="chapter" data-level="3.4.3" data-path="regularization.html"><a href="regularization.html#elasticnet-regression"><i class="fa fa-check"></i><b>3.4.3</b> Elasticnet Regression<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3.5" data-path="regularization.html"><a href="regularization.html#diabetes-example"><i class="fa fa-check"></i><b>3.5</b> Diabetes example<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="classification.html"><a href="classification.html"><i class="fa fa-check"></i><b>4</b> Classification<span></span></a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="classification.html"><a href="classification.html#logistic-regression"><i class="fa fa-check"></i><b>4.1</b> Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.2" data-path="classification.html"><a href="classification.html#regularized-logistic-regression"><i class="fa fa-check"></i><b>4.2</b> Regularized Logistic Regression<span></span></a></li>
+<li class="chapter" data-level="4.3" data-path="classification.html"><a href="classification.html#classification-trees-and-machine-learning"><i class="fa fa-check"></i><b>4.3</b> Classification Trees and Machine Learning<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="survival-analysis.html"><a href="survival-analysis.html"><i class="fa fa-check"></i><b>5</b> Survival Analysis<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="survival-analysis.html"><a href="survival-analysis.html#survival-endpoints-and-cox-regression"><i class="fa fa-check"></i><b>5.1</b> Survival Endpoints and Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.2" data-path="survival-analysis.html"><a href="survival-analysis.html#regularized-cox-regression"><i class="fa fa-check"></i><b>5.2</b> Regularized Cox Regression<span></span></a></li>
+<li class="chapter" data-level="5.3" data-path="survival-analysis.html"><a href="survival-analysis.html#brier-score"><i class="fa fa-check"></i><b>5.3</b> Brier Score<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html"><i class="fa fa-check"></i><b>6</b> High-Dimensional Feature Assessment<span></span></a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#gene-wise-two-sample-comparison"><i class="fa fa-check"></i><b>6.1</b> Gene-wise Two-sample Comparison<span></span></a></li>
+<li class="chapter" data-level="6.2" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#multiple-testing"><i class="fa fa-check"></i><b>6.2</b> Multiple Testing<span></span></a></li>
+<li class="chapter" data-level="6.3" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#p-value-adjustment"><i class="fa fa-check"></i><b>6.3</b> P-value Adjustment<span></span></a></li>
+<li class="chapter" data-level="6.4" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#volcano-plot"><i class="fa fa-check"></i><b>6.4</b> Volcano Plot<span></span></a></li>
+<li class="chapter" data-level="6.5" data-path="high-dimensional-feature-assessment.html"><a href="high-dimensional-feature-assessment.html#variance-shrinkage-and-empirical-bayes"><i class="fa fa-check"></i><b>6.5</b> Variance Shrinkage and Empirical Bayes<span></span></a></li>
+</ul></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./"><p><img src="logo2.jpg" style="width:3.5in" /><br />
+Prediction and Feature Assessment</p></a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="regularization" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">Chapter 3</span> Regularization<a href="regularization.html#regularization" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>We have seen that multiple regression falls short in the high-dimensional context. It leads to overfitting and as a result in large estimates of regression coefficients. Augmentation of the least-squares optimization with constraints on the regression coefficients can decrease the risk of overfitting. In the following we will discuss methods which minimize the residual sum of squares, <span class="math inline">\(\rm{RSS}(\beta)\)</span>, under some constraints on the parameter <span class="math inline">\(\beta\)</span>.</p>
+<div id="model-selection" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> Model Selection<a href="regularization.html#model-selection" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>We will shortly see that the approaches which we introduce do not only fit one single model but they explore a whole series of models (indexed as <span class="math inline">\(m=1,\ldots,M\)</span>). Model selection refers to the choice of an optimal model achieving a low generalization error. A plausible approach would be to fit the different models to the training data and then select the model with smallest error on the test data. However, this is an illegitimate approach as the test data has to be kept untouched for the final evaluation of the selected model. Therefore we guide model selection by approximating the generalization error using training data only. We review now two such approximations, namely, cross-validation and the Akaike information criterion (AIC).</p>
+<p>K-fold cross-validation approximates the prediction error by splitting the training data into K chunks as illustrated below (here <span class="math inline">\(K=5\)</span>).</p>
+<p><img src="crossvalidation.JPG" width="80%" style="display: block; margin: auto;" /></p>
+<p>Each chunk is then used as “hold-out” validation data to estimate the error of <span class="math inline">\(m\)</span>th model trained on the other <span class="math inline">\(K-1\)</span> data chunks. In that way we obtain <span class="math inline">\(K\)</span> error estimates and we typically take the average as the cross-validation error of model <span class="math inline">\(m\)</span> (denoted by <span class="math inline">\({\rm CV}_m\)</span>). The next plot shows a typical cross-validation error plot. This curve attains its minimum at a model with <span class="math inline">\(p_m=4\)</span> (<span class="math inline">\(p_m\)</span> is the number of included predictors in model <span class="math inline">\(m\)</span>).</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The AIC approach is founded in information theory and selects the model with smallest AIC</p>
+<p><span class="math display">\[
+{\rm AIC}_m=-2\;{\rm loglik}+2\;p_{m}.
+\]</span>
+Thus, AIC rewards goodness of fit (as assessed by the likelihood function <em>loglik</em>) and penalizes model complexity (by the term <span class="math inline">\(2 p_m\)</span>). The figure below shows for the same example the AIC curve. Also the AIC approaches suggests to use a model with <span class="math inline">\(p_m=4\)</span> predictors.</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="subset--and-stepwise-regression" class="section level2 hasAnchor" number="3.2">
+<h2><span class="header-section-number">3.2</span> Subset- and Stepwise Regression<a href="regularization.html#subset--and-stepwise-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The most common approach to impose constraints is subset selection. In this approach we retain only a subset of the variables, and eliminate the rest from the model. OLS is used to estimate the coefficients of the inputs that are retained. More formally, given a subset <span class="math inline">\(S\subset\{1,\ldots,p\}\)</span> we solve the optimization problem</p>
+<p><span class="math display">\[
+\hat{\beta}_{S}=\text{arg}\!\!\!\!\!\min\limits_{\beta_j=0\;\forall j\notin S}\!\!\!\textrm{RSS}(\beta).
+\]</span></p>
+<p>It is easy to show that this is equivalent to OLS regression based on subset <span class="math inline">\(S\)</span> covariates, i.e.</p>
+<p><span class="math display">\[
+\hat{\beta}_{S}=(\textbf{X}_S^T \textbf{X}_S)^{-1}\textbf{X}_S^T \textbf{y}.
+\]</span></p>
+<p>In practice we need to explore a sequence of subsets <span class="math inline">\(S_1,\ldots,S_M\)</span> and choose an optimal subset by either a re-sampling approach or by using an information criterion (see Section <a href="regularization.html#model-selection">3.1</a>). There are a number of different strategies available. <em>Best subsets regression</em> consists of looking at all possible combinations of covariates. Rather than search though all possible subsets, we can seek a good path through them. Two popular approaches are <em>backward stepwise</em> regression which starts with the full model and sequentially deletes covariates, whereas <em>forward stepwise</em> regression starts with the intercept, and then sequentially adds into the model the covariate that most improves the fit.</p>
+<p>In <code>R</code> we can use <code>regsubsets</code> from the <code>leaps</code> package or <code>stepAIC</code> from the <code>MASS</code> package to perform subset- and stepwise regression. For example to perform forward stepwise regression based on AIC we proceed as follows.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="regularization.html#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Forward regression</span></span>
+<span id="cb12-2"><a href="regularization.html#cb12-2" aria-hidden="true" tabindex="-1"></a>fit0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>dtrain)</span>
+<span id="cb12-3"><a href="regularization.html#cb12-3" aria-hidden="true" tabindex="-1"></a>up.model <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;~&quot;</span>, <span class="fu">paste</span>(<span class="fu">colnames</span>(dtrain[,<span class="sc">-</span>(p<span class="sc">+</span><span class="dv">1</span>)]), <span class="at">collapse=</span><span class="st">&quot; + &quot;</span>))</span>
+<span id="cb12-4"><a href="regularization.html#cb12-4" aria-hidden="true" tabindex="-1"></a>fit.fw <span class="ot">&lt;-</span> <span class="fu">stepAIC</span>(fit0,</span>
+<span id="cb12-5"><a href="regularization.html#cb12-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">direction=</span><span class="st">&quot;forward&quot;</span>,</span>
+<span id="cb12-6"><a href="regularization.html#cb12-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">scope=</span></span>
+<span id="cb12-7"><a href="regularization.html#cb12-7" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">list</span>(<span class="at">lower=</span>fit0,</span>
+<span id="cb12-8"><a href="regularization.html#cb12-8" aria-hidden="true" tabindex="-1"></a>                         <span class="at">upper=</span>up.model)</span>
+<span id="cb12-9"><a href="regularization.html#cb12-9" aria-hidden="true" tabindex="-1"></a>                    ,</span>
+<span id="cb12-10"><a href="regularization.html#cb12-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">trace =</span> <span class="cn">FALSE</span></span>
+<span id="cb12-11"><a href="regularization.html#cb12-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>We can summarize the stepwise process.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="regularization.html#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">as.data.frame</span>(fit.fw<span class="sc">$</span>anova),<span class="at">digits=</span><span class="dv">3</span>,<span class="at">booktabs=</span><span class="cn">TRUE</span></span>
+<span id="cb13-2"><a href="regularization.html#cb13-2" aria-hidden="true" tabindex="-1"></a>      ,<span class="at">caption=</span><span class="st">&quot;Inclusion of covariates in forward stepwise regression.&quot;</span>)</span></code></pre></div>
+<table>
+<caption><span id="tab:unnamed-chunk-23">Table 3.1: </span>Inclusion of covariates in forward stepwise regression.</caption>
+<thead>
+<tr class="header">
+<th align="left">Step</th>
+<th align="right">Df</th>
+<th align="right">Deviance</th>
+<th align="right">Resid. Df</th>
+<th align="right">Resid. Dev</th>
+<th align="right">AIC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">9</td>
+<td align="right">22.468</td>
+<td align="right">10.095</td>
+</tr>
+<tr class="even">
+<td align="left">+ X1</td>
+<td align="right">1</td>
+<td align="right">20.017</td>
+<td align="right">8</td>
+<td align="right">2.450</td>
+<td align="right">-10.064</td>
+</tr>
+<tr class="odd">
+<td align="left">+ X4</td>
+<td align="right">1</td>
+<td align="right">0.883</td>
+<td align="right">7</td>
+<td align="right">1.567</td>
+<td align="right">-12.535</td>
+</tr>
+<tr class="even">
+<td align="left">+ X9</td>
+<td align="right">1</td>
+<td align="right">0.376</td>
+<td align="right">6</td>
+<td align="right">1.191</td>
+<td align="right">-13.277</td>
+</tr>
+</tbody>
+</table>
+<p>Finally we can retrieve the regression coefficients of the optimal model.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="regularization.html#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(broom<span class="sc">::</span><span class="fu">tidy</span>(fit.fw),<span class="at">digits=</span><span class="dv">3</span>,<span class="at">booktabs=</span><span class="cn">TRUE</span>,</span>
+<span id="cb14-2"><a href="regularization.html#cb14-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption=</span><span class="st">&quot;Regression coefficients of the optimal model.&quot;</span>)</span></code></pre></div>
+<table>
+<caption><span id="tab:unnamed-chunk-24">Table 3.2: </span>Regression coefficients of the optimal model.</caption>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">0.210</td>
+<td align="right">0.157</td>
+<td align="right">1.334</td>
+<td align="right">0.231</td>
+</tr>
+<tr class="even">
+<td align="left">X1</td>
+<td align="right">1.611</td>
+<td align="right">0.243</td>
+<td align="right">6.624</td>
+<td align="right">0.001</td>
+</tr>
+<tr class="odd">
+<td align="left">X4</td>
+<td align="right">-0.508</td>
+<td align="right">0.205</td>
+<td align="right">-2.475</td>
+<td align="right">0.048</td>
+</tr>
+<tr class="even">
+<td align="left">X9</td>
+<td align="right">-0.322</td>
+<td align="right">0.234</td>
+<td align="right">-1.376</td>
+<td align="right">0.218</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="ridge-regression" class="section level2 hasAnchor" number="3.3">
+<h2><span class="header-section-number">3.3</span> Ridge Regression<a href="regularization.html#ridge-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Subset selection as outlined above works by either including or
+excluding covariates, i.e. constrain specific regression coefficients to be zero.</p>
+<p>An alternative is <em>Ridge regression</em>, which regularizes the optimization problem by shrinking regression coefficients towards zero. This discourages complex models because
+models that overfit tend to have larger coefficients. Ridge regression can be formulated as a constrained optimization problem</p>
+<p><span class="math display">\[
+\hat{\beta}^{\rm Ridge}_{c}=\text{arg}\min\limits_{\|\beta\|_2^2\leq c}\textrm{RSS}(\beta).
+\]</span></p>
+<p>The geometry of the optimization problem is illustrated in Figure <a href="regularization.html#fig:ridgegeom">3.1</a>. It shows the levels sets of <span class="math inline">\({\rm RSS}(\beta)\)</span>, ellipsoids centered around the OLS estimate, and the circular ridge
+parameter constraint, centered around zero with radius <span class="math inline">\(c &gt; 0\)</span>. The Ridge estimator
+is the point where the smallest level set hits the constraint. Exactly at that point the <span class="math inline">\(\rm{RSS}(\beta)\)</span> is
+minimized over those <span class="math inline">\(\beta\)</span>’s that “live” inside the constraint.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:ridgegeom"></span>
+<img src="ridge_geometry.JPG" alt="Geometry of Ridge regression." width="70%" />
+<p class="caption">
+Figure 3.1: Geometry of Ridge regression.
+</p>
+</div>
+<p>Alternatively, Ridge regression can be cast as the optimization of the penalised residual sum of squares with a <em>penalty</em> on the magnitude of the coefficients, i.e. </p>
+<p><span class="math display">\[\hat{\beta}^{\rm Ridge}_{\lambda}=\textrm{arg}\min\limits_{\beta}\textrm{RSS}(\beta)+\lambda\|\beta\|^2_2.\]</span></p>
+<p>Both formulations are equivalent in the sense that there is a one-to-one relationship between the tuning parameters <span class="math inline">\(c\)</span> and <span class="math inline">\(\lambda\)</span>. We will use more often the latter “penalisation” formulation. The parameter <span class="math inline">\(\lambda\)</span> is the amount of penalisation. Note that with no penalization, <span class="math inline">\(\lambda=0\)</span>, Ridge regression coincides with OLS. Increasing <span class="math inline">\(\lambda\)</span> has the effect of shrinking the regression coefficients to zero.</p>
+<p>The Ridge optimization problem has the closed form solution (see exercises)</p>
+<p><span class="math display">\[\begin{align*}
+\hat{\beta}^{\rm Ridge}_{\lambda}&amp;=(\textbf{X}^T \textbf{X}+\lambda \textbf{I})^{-1}\textbf{X}^T \textbf{y}.
+\end{align*}\]</span></p>
+<p>Note that for <span class="math inline">\(\lambda&gt;0\)</span> the matrix <span class="math inline">\(\textbf{X}^T \textbf{X}+\lambda \textbf{I}\)</span> has always full rank and therefore Ridge regression is well defined even in the high-dimensional context (in contrast to OLS).</p>
+<p>Ridge regression is implemented in the package <code>glmnet</code>. We use <code>alpha=0</code> and can call</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="regularization.html#cb15-1" aria-hidden="true" tabindex="-1"></a>fit.ridge.glmnet <span class="ot">&lt;-</span><span class="fu">glmnet</span>(<span class="at">x=</span>xtrain,<span class="at">y=</span>ytrain,<span class="at">alpha=</span><span class="dv">0</span>) </span>
+<span id="cb15-2"><a href="regularization.html#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.ridge.glmnet,<span class="at">xvar=</span><span class="st">&quot;lambda&quot;</span>,<span class="at">label=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="choice-of-penalty-parameter" class="section level3 hasAnchor" number="3.3.1">
+<h3><span class="header-section-number">3.3.1</span> Choice of penalty parameter<a href="regularization.html#choice-of-penalty-parameter" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>In subset- and stepwise regression we had to identify the optimal subset. Similarly, for Ridge regression model selection consists of selecting the tuning parameter <span class="math inline">\(\lambda\)</span>. We proceed by choosing a grid of values <span class="math inline">\(0&lt;\lambda_1&lt;\lambda_2&lt;\ldots&lt;\lambda_M&lt;\infty\)</span> and proceed as explained in Section <a href="regularization.html#model-selection">3.1</a>, that is we choose the optimal <span class="math inline">\(\lambda_{\rm opt}\)</span> by either re-sampling or information criteria. In <code>glmnet</code> we use cross-validation using the command <code>cv.glmnet</code>.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="regularization.html#cb16-1" aria-hidden="true" tabindex="-1"></a>cv.ridge.glmnet <span class="ot">&lt;-</span><span class="fu">cv.glmnet</span>(<span class="at">x=</span>xtrain,<span class="at">y=</span>ytrain,<span class="at">alpha=</span><span class="dv">0</span>) </span></code></pre></div>
+<p>The next plot shows the cross-validation error with upper and lower standard deviations as a function of the lambda values (note the log scale for the lambdas).</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="regularization.html#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv.ridge.glmnet)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The tuning parameter with the smallest cross-validation error is stored in the argument <code>lambda.min</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="regularization.html#cb18-1" aria-hidden="true" tabindex="-1"></a>cv.ridge.glmnet<span class="sc">$</span>lambda.min</span></code></pre></div>
+<pre><code>## [1] 0.8286695</code></pre>
+<p>Another choice is <code>lambda.1se</code> which denotes the largest <span class="math inline">\(\lambda\)</span> within 1 standard error of the smallest cross-validation error.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="regularization.html#cb20-1" aria-hidden="true" tabindex="-1"></a>cv.ridge.glmnet<span class="sc">$</span>lambda<span class="fl">.1</span>se</span></code></pre></div>
+<pre><code>## [1] 3.671521</code></pre>
+</div>
+<div id="shrinkage-property" class="section level3 hasAnchor" number="3.3.2">
+<h3><span class="header-section-number">3.3.2</span> Shrinkage property<a href="regularization.html#shrinkage-property" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The OLS estimator becomes unstable (high variance) in presence of collinearity. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components.</p>
+<p>This can be best understood by rotating the data using a principle component analysis (see Figure <a href="regularization.html#fig:principlecomponent">3.2</a>). In particular, we consider the singular value decomposition</p>
+<p><span class="math display">\[\textbf{X}=\textbf{U}\textbf{D}\textbf{V}^T,\]</span></p>
+<p>where the columns of <span class="math inline">\(\textbf{U}\)</span> form an orthonormal basis of the column space of <span class="math inline">\(\textbf{X}\)</span>, <span class="math inline">\(\textbf{D}\)</span> is a diagonal matrix with entries <span class="math inline">\(d_1\geq d_2\geq\ldots\geq d_p \geq 0\)</span> called the singular values, and the columns of <span class="math inline">\(\textbf{V}\)</span> represent the principle component directions. For OLS the vector of fitted values <span class="math inline">\({\bf \hat y}^{\rm OLS}\)</span> is the orthogonal projection of <span class="math inline">\({\bf y}\)</span> onto the column space of <span class="math inline">\(\bf X\)</span>. Therefore, in terms of rotated data we have</p>
+<p><span class="math display">\[\hat{\textbf{y}}^{\rm OLS}=\sum_{j=1}^{p}\textbf{u}_j \textbf{u}_j^T \textbf{y}.\]</span></p>
+<p>Similarly, we can represent the fitted values from Ridge regression as</p>
+<p><span class="math display">\[\hat{\textbf{y}}^{\rm Ridge}=\sum_{j=1}^{p}\textbf{u}_j \frac{d_j^2}{d_j^2+\lambda}\textbf{u}_j^T\textbf{y}.\]</span></p>
+<p>This shows that the level of shrinkage <span class="math inline">\(\frac{d_j^2}{d_j^2+\lambda}\)</span> is largest in the direction of the last principle component, which in return is the direction where the data exhibits smallest variance.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:principlecomponent"></span>
+<img src="highdimstats_files/figure-html/principlecomponent-1.png" alt="Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis." width="960" />
+<p class="caption">
+Figure 3.2: Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis.
+</p>
+</div>
+</div>
+<div id="effective-degrees-of-freedom" class="section level3 hasAnchor" number="3.3.3">
+<h3><span class="header-section-number">3.3.3</span> Effective degrees of freedom<a href="regularization.html#effective-degrees-of-freedom" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Although Ridge regression involves all <span class="math inline">\(p\)</span> covariates the <em>effective degrees of freedom</em> are smaller than <span class="math inline">\(p\)</span> as we have imposed constraints through the penalty. In the book <span class="citation">Hastie, Tibshirani, and Friedman (<a href="#ref-elements" role="doc-biblioref">2001</a>)</span> it is shown that the effective degrees of freedom for Ridge regression, <span class="math inline">\(\nu^{\rm ridge}_{\lambda}\)</span>, are given by</p>
+<p><span class="math display">\[\nu^{\rm ridge}_{\lambda}=\sum_{j=1}^{p}\frac{d_j^2}{d_j^2+\lambda},\]</span>
+where <span class="math inline">\(d_1,\ldots,d_p\)</span> are the singular values of <span class="math inline">\(\bf X\)</span>.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="regularization.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get singular values</span></span>
+<span id="cb22-2"><a href="regularization.html#cb22-2" aria-hidden="true" tabindex="-1"></a>fit.svd <span class="ot">&lt;-</span> <span class="fu">svd</span>(xtrain) <span class="co">#fit.svd$d</span></span>
+<span id="cb22-3"><a href="regularization.html#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="regularization.html#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ridge degree of freedom for lambdaopt</span></span>
+<span id="cb22-5"><a href="regularization.html#cb22-5" aria-hidden="true" tabindex="-1"></a>df_lambdaopt <span class="ot">&lt;-</span> <span class="fu">sum</span>(fit.svd<span class="sc">$</span>d<span class="sc">^</span><span class="dv">2</span><span class="sc">/</span>(fit.svd<span class="sc">$</span>d<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>cv.ridge.glmnet<span class="sc">$</span>lambda.min))</span>
+<span id="cb22-6"><a href="regularization.html#cb22-6" aria-hidden="true" tabindex="-1"></a>df_lambdaopt</span></code></pre></div>
+<pre><code>## [1] 6.167042</code></pre>
+</div>
+<div id="bayesian-interpretation" class="section level3 hasAnchor" number="3.3.4">
+<h3><span class="header-section-number">3.3.4</span> Bayesian interpretation<a href="regularization.html#bayesian-interpretation" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We have introduced regularization by least-squares optimization with additional constraints on <span class="math inline">\(\beta\)</span>. An alternative approach to regularization is based on Bayesian statistics. In a Bayesian setting the parameter <span class="math inline">\(\beta=(\beta_1,\ldots,\beta_p)\)</span> is itself a random variable with <em>prior</em> distribution <span class="math inline">\(p(\beta)\)</span>. Bayesian inference is based on the <em>posterior</em> distribution <span class="math display">\[p(\beta|D)=\frac{p(D|\beta)p(\beta)}{p(D)},\]</span>
+where <span class="math inline">\(D\)</span> denotes the data and <span class="math inline">\(p(D|\beta)\)</span> is the likelihood function. In the exercises we will show that the Ridge solution can be viewed as the maximum a posteriori (MAP) estimate of a hierarchical Bayesian model where the data follows a multivariate regression model
+<span class="math display">\[Y_i|X_i,\beta\sim N(X_i^T\beta,\sigma^2),\; i=1,\ldots,n\]</span>
+and the regression coefficients are equipped with prior
+<span class="math display">\[\beta_j \sim N(0,\tau^2),\; j=1,\ldots,p.\]</span></p>
+<p>For many practical problems the posterior distribution is analytically not tractable and inference is typically based on sampling from the posterior distribution using a procedure called Markov chain Monte Carlo (MCMC). The software packages BUGS and JAGS automatically build MCMC samplers for complex hierarchical models. We use <code>rjags</code> to illustrate the procedure for the Bayesian Ridge regression model (see Figure <a href="regularization.html#fig:bayesianridge">3.3</a>).</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:bayesianridge"></span>
+<img src="bayesian_ridge.PNG" alt="The Bayesian Ridge regression model." width="80%" />
+<p class="caption">
+Figure 3.3: The Bayesian Ridge regression model.
+</p>
+</div>
+<p>First we specify the model, prepare the input data and provide initial values.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="regularization.html#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rjags)</span>
+<span id="cb24-2"><a href="regularization.html#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="regularization.html#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"># model</span></span>
+<span id="cb24-4"><a href="regularization.html#cb24-4" aria-hidden="true" tabindex="-1"></a>bayesian_ridge <span class="ot">&lt;-</span><span class="st">&quot;model{</span></span>
+<span id="cb24-5"><a href="regularization.html#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="st">  for (i in 1:n){</span></span>
+<span id="cb24-6"><a href="regularization.html#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="st">    y[i] ~ dnorm (mu[i], 1/sig^2)</span></span>
+<span id="cb24-7"><a href="regularization.html#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="st">    mu[i] &lt;- inprod(b,x[i,])</span></span>
+<span id="cb24-8"><a href="regularization.html#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb24-9"><a href="regularization.html#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="st">  for (j in 1:p){</span></span>
+<span id="cb24-10"><a href="regularization.html#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="st">    b[j] ~ dnorm (0, 1/tau^2)</span></span>
+<span id="cb24-11"><a href="regularization.html#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb24-12"><a href="regularization.html#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="st">  sig~dunif(0,100)</span></span>
+<span id="cb24-13"><a href="regularization.html#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="st">  tau~dunif(0,100)</span></span>
+<span id="cb24-14"><a href="regularization.html#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb24-15"><a href="regularization.html#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb24-16"><a href="regularization.html#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="regularization.html#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="co"># data</span></span>
+<span id="cb24-18"><a href="regularization.html#cb24-18" aria-hidden="true" tabindex="-1"></a>dat.jags <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">x=</span>xtrain,<span class="at">y=</span>ytrain,<span class="at">p=</span><span class="fu">ncol</span>(xtrain),<span class="at">n=</span><span class="fu">nrow</span>(xtrain))</span>
+<span id="cb24-19"><a href="regularization.html#cb24-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-20"><a href="regularization.html#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="co"># initial values</span></span>
+<span id="cb24-21"><a href="regularization.html#cb24-21" aria-hidden="true" tabindex="-1"></a>inits <span class="ot">&lt;-</span> <span class="cf">function</span> (){</span>
+<span id="cb24-22"><a href="regularization.html#cb24-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-23"><a href="regularization.html#cb24-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span> (<span class="at">b=</span><span class="fu">rnorm</span>(dat.jags<span class="sc">$</span>p),<span class="at">sig=</span><span class="fu">runif</span>(<span class="dv">1</span>),<span class="at">tau=</span><span class="fu">runif</span>(<span class="dv">1</span>))</span>
+<span id="cb24-24"><a href="regularization.html#cb24-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb24-25"><a href="regularization.html#cb24-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>We use the function <code>jags.model</code> to setup an MCMC sampler with <code>n.chains=3</code> chains (the number of samples, or MCMC iterations, used for adaptation is per default set to 1000).</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="regularization.html#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># setup jags model</span></span>
+<span id="cb25-2"><a href="regularization.html#cb25-2" aria-hidden="true" tabindex="-1"></a>jags.m <span class="ot">&lt;-</span> <span class="fu">jags.model</span>(<span class="fu">textConnection</span>(bayesian_ridge),</span>
+<span id="cb25-3"><a href="regularization.html#cb25-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data=</span>dat.jags,</span>
+<span id="cb25-4"><a href="regularization.html#cb25-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">inits=</span>inits,</span>
+<span id="cb25-5"><a href="regularization.html#cb25-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">n.chains=</span><span class="dv">3</span>,</span>
+<span id="cb25-6"><a href="regularization.html#cb25-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">quiet=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p>After a burn-in period of <span class="math inline">\(500\)</span> steps we use <code>coda.samples</code> to generate the posterior samples.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="regularization.html#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># burn-in</span></span>
+<span id="cb26-2"><a href="regularization.html#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">update</span>(jags.m, <span class="at">n.iter=</span><span class="dv">500</span>) </span>
+<span id="cb26-3"><a href="regularization.html#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="regularization.html#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># mcmc samples for inference</span></span>
+<span id="cb26-5"><a href="regularization.html#cb26-5" aria-hidden="true" tabindex="-1"></a>posterior.samples <span class="ot">&lt;-</span> <span class="fu">coda.samples</span>( jags.m,</span>
+<span id="cb26-6"><a href="regularization.html#cb26-6" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">variable.names =</span> <span class="fu">c</span>(<span class="st">&quot;b&quot;</span>,<span class="st">&quot;sig&quot;</span>,<span class="st">&quot;tau&quot;</span>), </span>
+<span id="cb26-7"><a href="regularization.html#cb26-7" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">n.iter=</span><span class="dv">10000</span>,<span class="at">thin=</span><span class="dv">10</span>) <span class="co"># thinning=10 </span></span></code></pre></div>
+<p>There are several R packages to investigate the posterior distribution. For example with <code>MCMCsummary</code> we can extract key summary information, i.e. mean, median, quantiles, Gelman-Rubin convergence statistic and the number of effective samples.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="regularization.html#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MCMCvis)</span>
+<span id="cb27-2"><a href="regularization.html#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">MCMCsummary</span>(posterior.samples,</span>
+<span id="cb27-3"><a href="regularization.html#cb27-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">round=</span><span class="dv">2</span>,</span>
+<span id="cb27-4"><a href="regularization.html#cb27-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">params=</span><span class="fu">c</span>(<span class="st">&quot;sig&quot;</span>,<span class="st">&quot;tau&quot;</span>,<span class="st">&quot;b&quot;</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb27-5"><a href="regularization.html#cb27-5" aria-hidden="true" tabindex="-1"></a>  kable</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">2.5%</th>
+<th align="right">50%</th>
+<th align="right">97.5%</th>
+<th align="right">Rhat</th>
+<th align="right">n.eff</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">sig</td>
+<td align="right">0.85</td>
+<td align="right">0.40</td>
+<td align="right">0.34</td>
+<td align="right">0.75</td>
+<td align="right">1.84</td>
+<td align="right">1.01</td>
+<td align="right">1942</td>
+</tr>
+<tr class="even">
+<td align="left">tau</td>
+<td align="right">0.59</td>
+<td align="right">0.28</td>
+<td align="right">0.20</td>
+<td align="right">0.54</td>
+<td align="right">1.31</td>
+<td align="right">1.00</td>
+<td align="right">1720</td>
+</tr>
+<tr class="odd">
+<td align="left">b[1]</td>
+<td align="right">0.75</td>
+<td align="right">0.57</td>
+<td align="right">-0.20</td>
+<td align="right">0.70</td>
+<td align="right">2.07</td>
+<td align="right">1.00</td>
+<td align="right">1685</td>
+</tr>
+<tr class="even">
+<td align="left">b[2]</td>
+<td align="right">-0.09</td>
+<td align="right">0.30</td>
+<td align="right">-0.70</td>
+<td align="right">-0.09</td>
+<td align="right">0.49</td>
+<td align="right">1.00</td>
+<td align="right">2486</td>
+</tr>
+<tr class="odd">
+<td align="left">b[3]</td>
+<td align="right">-0.29</td>
+<td align="right">0.37</td>
+<td align="right">-1.03</td>
+<td align="right">-0.28</td>
+<td align="right">0.46</td>
+<td align="right">1.00</td>
+<td align="right">2202</td>
+</tr>
+<tr class="even">
+<td align="left">b[4]</td>
+<td align="right">-0.18</td>
+<td align="right">0.36</td>
+<td align="right">-0.89</td>
+<td align="right">-0.18</td>
+<td align="right">0.54</td>
+<td align="right">1.00</td>
+<td align="right">2858</td>
+</tr>
+<tr class="odd">
+<td align="left">b[5]</td>
+<td align="right">-0.13</td>
+<td align="right">0.53</td>
+<td align="right">-1.28</td>
+<td align="right">-0.10</td>
+<td align="right">0.92</td>
+<td align="right">1.00</td>
+<td align="right">2261</td>
+</tr>
+<tr class="even">
+<td align="left">b[6]</td>
+<td align="right">-0.15</td>
+<td align="right">0.32</td>
+<td align="right">-0.77</td>
+<td align="right">-0.15</td>
+<td align="right">0.50</td>
+<td align="right">1.00</td>
+<td align="right">2601</td>
+</tr>
+<tr class="odd">
+<td align="left">b[7]</td>
+<td align="right">-0.05</td>
+<td align="right">0.31</td>
+<td align="right">-0.62</td>
+<td align="right">-0.06</td>
+<td align="right">0.60</td>
+<td align="right">1.00</td>
+<td align="right">2227</td>
+</tr>
+<tr class="even">
+<td align="left">b[8]</td>
+<td align="right">-0.53</td>
+<td align="right">0.43</td>
+<td align="right">-1.39</td>
+<td align="right">-0.52</td>
+<td align="right">0.25</td>
+<td align="right">1.00</td>
+<td align="right">2535</td>
+</tr>
+<tr class="odd">
+<td align="left">b[9]</td>
+<td align="right">-0.16</td>
+<td align="right">0.40</td>
+<td align="right">-0.94</td>
+<td align="right">-0.16</td>
+<td align="right">0.68</td>
+<td align="right">1.00</td>
+<td align="right">2337</td>
+</tr>
+</tbody>
+</table>
+<p>Or, we can use the package<code>ggmcmc</code> and produce a traceplot to check the representativeness of the MCMC samples.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="regularization.html#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggmcmc)</span>
+<span id="cb28-2"><a href="regularization.html#cb28-2" aria-hidden="true" tabindex="-1"></a>ggs.mcmc <span class="ot">&lt;-</span> <span class="fu">ggs</span>(posterior.samples)</span>
+<span id="cb28-3"><a href="regularization.html#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggs_traceplot</span>(ggs.mcmc,<span class="at">family=</span><span class="st">&quot;tau&quot;</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-36-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Alternatively, we can directly access the posterior samples and calculate any summary statistics of interest.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="regularization.html#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior samples as matrix</span></span>
+<span id="cb29-2"><a href="regularization.html#cb29-2" aria-hidden="true" tabindex="-1"></a>matrix.postsamples <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(posterior.samples)</span>
+<span id="cb29-3"><a href="regularization.html#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(matrix.postsamples)</span></code></pre></div>
+<pre><code>## [1] 3000   11</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="regularization.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># histogram of posterior</span></span>
+<span id="cb31-2"><a href="regularization.html#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(matrix.postsamples[,<span class="st">&quot;tau&quot;</span>])</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="regularization.html#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior mean</span></span>
+<span id="cb32-2"><a href="regularization.html#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colMeans</span>(matrix.postsamples) <span class="co"># posterior mean</span></span></code></pre></div>
+<pre><code>##        b[1]        b[2]        b[3]        b[4]        b[5]        b[6] 
+##  0.75353972 -0.09379089 -0.28809773 -0.17838102 -0.13035813 -0.14808744 
+##        b[7]        b[8]        b[9]         sig         tau 
+## -0.04902422 -0.52832755 -0.16481996  0.84774078  0.59421872</code></pre>
+<p>Finally, we compare the regression coefficients from OLS, Ridge regression (<span class="math inline">\(\lambda\)</span> obtained using cross-validation) and Bayesian Ridge regression.</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The coefficients obtained from Ridge regression and Bayesian Ridge regression are almost identical.</p>
+</div>
+<div id="splines" class="section level3 hasAnchor" number="3.3.5">
+<h3><span class="header-section-number">3.3.5</span> Splines<a href="regularization.html#splines" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Ridge regression and high-dimensionality play a role in many subfields of statistics. We illustrate this with the example of smoothing splines for univariate non-parametric regression.</p>
+<p>Sometimes it is extremely unlikely that the true function <span class="math inline">\(f(X)\)</span> is actually linear in <span class="math inline">\(X\)</span>. Consider the following example.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-40"></span>
+<img src="highdimstats_files/figure-html/unnamed-chunk-40-1.png" alt="Non-linear (sinusoidal) relationship between Y and X." width="672" />
+<p class="caption">
+Figure 3.4: Non-linear (sinusoidal) relationship between Y and X.
+</p>
+</div>
+<p>How can we approximate the relationship between Y and X?
+The most simple approximation is a straight horizontal line (dashed blue line; the true sinusoidal function is depicted in black).</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-41"></span>
+<img src="highdimstats_files/figure-html/unnamed-chunk-41-1.png" alt="Approximation by a constant." width="672" />
+<p class="caption">
+Figure 3.5: Approximation by a constant.
+</p>
+</div>
+<p>Clearly this approximation is too rigid. Next, we try a piecewise constant approximation with two inner “knots”.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-42"></span>
+<img src="highdimstats_files/figure-html/unnamed-chunk-42-1.png" alt="Piecewise constant approximation." width="672" />
+<p class="caption">
+Figure 3.6: Piecewise constant approximation.
+</p>
+</div>
+<p>Finally, we use a piecewise linear function.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-43"></span>
+<img src="highdimstats_files/figure-html/unnamed-chunk-43-1.png" alt="Piecewise linear approximation." width="672" />
+<p class="caption">
+Figure 3.7: Piecewise linear approximation.
+</p>
+</div>
+<p>The approximation improves. Nevertheless it would be nice if the different line segments would line up. What we need are piecewise polynomials which are “smooth” at the knots. Such functions are called “splines”. We assume that <span class="math inline">\(f\)</span> can be expressed by a set of basis functions</p>
+<p><span class="math display">\[ f(X)=\sum_{j=1}^{p}\beta_j B_j(X).\]</span>
+For example for a cubic spline with <span class="math inline">\(K\)</span> fixed knots and fixed polynomial degree <span class="math inline">\(d=3\)</span> (“cubic”) we have <span class="math inline">\(p=K+d+1\)</span> and the <span class="math inline">\(B_j(x)\)</span>’s form a B-spline basis (one could also use the truncated-power basis). The coefficients <span class="math inline">\(\beta_m\)</span> are estimated using OLS. Although we have only one single variable <span class="math inline">\(X\)</span>, the design matrix consists of <span class="math inline">\(p=K+d+1\)</span> features and we quickly run into issues due to overfitting. In <code>R</code> we obtain a B-spline basis with <code>bs</code> and we can plot the basis functions <span class="math inline">\(B_j(x)\)</span> as follows.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="regularization.html#cb34-1" aria-hidden="true" tabindex="-1"></a>spl <span class="ot">&lt;-</span> <span class="fu">bs</span>(x,<span class="at">df=</span><span class="dv">10</span>) <span class="co"># cubic spline with p=10 degrees of freedom</span></span>
+<span id="cb34-2"><a href="regularization.html#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(spl[,<span class="dv">1</span>]<span class="sc">~</span>x, <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fu">max</span>(spl)), <span class="at">type=</span><span class="st">&#39;l&#39;</span>, <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">col=</span><span class="dv">1</span>, </span>
+<span id="cb34-3"><a href="regularization.html#cb34-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">&quot;Cubic B-spline basis&quot;</span>, <span class="at">ylab=</span><span class="st">&quot;&quot;</span>)</span>
+<span id="cb34-4"><a href="regularization.html#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(spl)) <span class="fu">lines</span>(spl[,j]<span class="sc">~</span>x, <span class="at">lwd=</span><span class="dv">2</span>, <span class="at">col=</span>j)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-44-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The estimated coefficients <span class="math inline">\(\hat \beta_j\)</span> are obtain using <code>lm</code>.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="regularization.html#cb35-1" aria-hidden="true" tabindex="-1"></a>fit.csp <span class="ot">&lt;-</span> <span class="fu">lm</span>(y<span class="sc">~</span>spl)</span>
+<span id="cb35-2"><a href="regularization.html#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">#fit.csp &lt;- lm(y~bs(x,df=10))</span></span>
+<span id="cb35-3"><a href="regularization.html#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit.csp)</span></code></pre></div>
+<pre><code>## (Intercept)        spl1        spl2        spl3        spl4        spl5 
+##  -0.1664090   0.6710022   1.0956429   1.2056968   0.9713568   0.2323033 
+##        spl6        spl7        spl8        spl9       spl10 
+##  -0.2876482  -1.2456044  -0.3914716   0.2894841  -0.4376537</code></pre>
+<p>The cubic spline with <span class="math inline">\(p=10\)</span> degrees of freedom fits the data well as shown in the next plot (in dashed violet).</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="regularization.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x, y)</span>
+<span id="cb37-2"><a href="regularization.html#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, fx, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb37-3"><a href="regularization.html#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, <span class="fu">predict</span>(fit.csp), <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;violet&quot;</span>,<span class="at">lwd=</span><span class="dv">3</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-46-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>An alternative approach are so-called <em>smoothing splines</em>, where we take <span class="math inline">\(p=n\)</span> and the <span class="math inline">\(B_j(x)\)</span>’s are an n-dimensional set of basis functions representing the family of natural cubic splines with knots at the unique values of <span class="math inline">\(x_i\)</span>, <span class="math inline">\(i=1,\ldots,n\)</span>. The coefficients <span class="math inline">\(\beta_j\)</span> cannot be estimated using OLS as the number <span class="math inline">\(p\)</span> of basis functions (columns of the design matrix) equals the number of observations <span class="math inline">\(n\)</span>. Smoothing splines overcome this hurdle by imposing a generalized ridge penalty on the spline coefficients <span class="math inline">\(\beta_j\)</span>, i.e.</p>
+<p><span class="math display">\[\hat{\beta}_{\lambda}=\textrm{arg}\min\limits_{\beta}\;\|\textbf{y}- \textbf{B} \beta\|^2+\lambda \beta^T\Omega\beta,\]</span></p>
+<p>where <span class="math inline">\(\bf B\)</span> is the design matrix with <span class="math inline">\(jth\)</span> column <span class="math inline">\((B_j(x_1),\ldots,B_j(x_n))^T\)</span>. In practice we can fit
+smoothing splines using the function <code>smooth.spline</code>. The penalty term is specified by setting the effective degrees of freedom <span class="math inline">\(\nu\)</span> or by selecting <span class="math inline">\(\lambda\)</span> using cross-validation (see Section <a href="regularization.html#choice-of-penalty-parameter">3.3.1</a>).</p>
+<p>We fit smoothing splines to our simulation example.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="regularization.html#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothing spline with 10 effective degrees of freedom</span></span>
+<span id="cb38-2"><a href="regularization.html#cb38-2" aria-hidden="true" tabindex="-1"></a>fit.smsp.df10 <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">df =</span> <span class="dv">10</span>) </span>
+<span id="cb38-3"><a href="regularization.html#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="regularization.html#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothing spline with 30 effective degrees of freedom</span></span>
+<span id="cb38-5"><a href="regularization.html#cb38-5" aria-hidden="true" tabindex="-1"></a>fit.smsp.df30 <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y, <span class="at">df =</span> <span class="dv">30</span>) </span>
+<span id="cb38-6"><a href="regularization.html#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="regularization.html#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co"># smoothing spline with effective degrees of freedom estimated by cv</span></span>
+<span id="cb38-8"><a href="regularization.html#cb38-8" aria-hidden="true" tabindex="-1"></a>fit.smsp.cv <span class="ot">&lt;-</span> <span class="fu">smooth.spline</span>(x, y) </span>
+<span id="cb38-9"><a href="regularization.html#cb38-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-10"><a href="regularization.html#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x, y)</span>
+<span id="cb38-11"><a href="regularization.html#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, fx, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb38-12"><a href="regularization.html#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, fit.smsp.df10<span class="sc">$</span>y, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>,<span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb38-13"><a href="regularization.html#cb38-13" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, fit.smsp.df30<span class="sc">$</span>y, <span class="at">lty =</span> <span class="dv">3</span>, <span class="at">col =</span> <span class="st">&quot;green&quot;</span>,<span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb38-14"><a href="regularization.html#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, fit.smsp.cv<span class="sc">$</span>y, <span class="at">lty =</span> <span class="dv">4</span>, <span class="at">col=</span><span class="st">&quot;red&quot;</span>,<span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb38-15"><a href="regularization.html#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="fl">0.7</span>,<span class="fl">1.5</span>,</span>
+<span id="cb38-16"><a href="regularization.html#cb38-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">lty=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>,</span>
+<span id="cb38-17"><a href="regularization.html#cb38-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">3</span>,</span>
+<span id="cb38-18"><a href="regularization.html#cb38-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">&quot;black&quot;</span>,<span class="st">&quot;blue&quot;</span>,<span class="st">&quot;green&quot;</span>,<span class="st">&quot;red&quot;</span>),</span>
+<span id="cb38-19"><a href="regularization.html#cb38-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend=</span><span class="fu">c</span>(<span class="st">&quot;truth&quot;</span>,<span class="st">&quot;cubic p=10&quot;</span>,<span class="st">&quot;cubic p=30&quot;</span>,<span class="st">&quot;smoothing&quot;</span>))</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-48-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The smoothing spline with <span class="math inline">\(\nu=30\)</span> (in green) leads to overfitting. The smoothing splines obtained by cross-validation (in red) or by fixing <span class="math inline">\(\nu=10\)</span> (in blue) are both good approximation of the truth. The corresponding effective degrees of freedom of the cross-validation solution can be retrieved from the model fit.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="regularization.html#cb39-1" aria-hidden="true" tabindex="-1"></a>fit.smsp.cv<span class="sc">$</span>df</span></code></pre></div>
+<pre><code>## [1] 6.458247</code></pre>
+</div>
+</div>
+<div id="lasso-regression" class="section level2 hasAnchor" number="3.4">
+<h2><span class="header-section-number">3.4</span> Lasso Regression<a href="regularization.html#lasso-regression" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>We have discussed Ridge regression and discussed its properties. Although Ridge regression can deal with high-dimensional data a disadvantage compared to subset- and stepwise regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging.</p>
+<p>In Ridge regression we minimize <span class="math inline">\(\rm RSS(\beta)\)</span> given constraints on the so-called <em>L2-norm</em> of the regression coefficients</p>
+<p><span class="math display">\[\|\beta\|^2_2=\sum_{j=1}^p \beta^2_j \leq c.\]</span></p>
+<p>Another very popular approach in high-dimensional statistics is <em>Lasso regression</em> (Lasso=least absolute shrinkage and selection operator). The Lasso works very similarly. The only difference is that constraints are imposed on the <em>L1-norm</em> of the coefficients</p>
+<p><span class="math display">\[\|\beta\|_1=\sum_{j=1}^p |\beta_j| \leq c.\]</span></p>
+<p>Therefore the Lasso is referred to as L1 regularization. The change in the form of the constraints (L2 vs L1) has important implications. Figure <a href="regularization.html#fig:lassogeom">3.8</a> illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with “corners” (the Ridge constraint is a circle). If the sum of squares “hits” one of these corners then the coefficient corresponding to the axis is shrunk to zero. As <span class="math inline">\(p\)</span> increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the “diamond” geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:lassogeom"></span>
+<img src="lasso_geometry.JPG" alt="Geometry of Lasso regression." width="80%" />
+<p class="caption">
+Figure 3.8: Geometry of Lasso regression.
+</p>
+</div>
+<p>Similar to Ridge regression the Lasso can be formulated as a penalisation problem</p>
+<p><span class="math display">\[
+\hat{\beta}^{\rm Lasso}_{\lambda}=\text{arg}\min\limits_{\beta}\;\textrm{RSS}(\beta)+\lambda\|\beta\|_1.
+\]</span></p>
+<p>To fit the Lasso we use <code>glmnet</code> (with <span class="math inline">\(\alpha=1\)</span>).</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="regularization.html#cb41-1" aria-hidden="true" tabindex="-1"></a>fit.lasso.glmnet <span class="ot">&lt;-</span><span class="fu">glmnet</span>(<span class="at">x=</span>xtrain,<span class="at">y=</span>ytrain,<span class="at">alpha=</span><span class="dv">1</span>) </span></code></pre></div>
+<p>The following figure shows the Lasso solution for a grid of <span class="math inline">\(\lambda\)</span> values. We note that the Lasso shrinks some coefficients to exactly zero.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="regularization.html#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.lasso.glmnet,<span class="at">xvar=</span><span class="st">&quot;lambda&quot;</span>,<span class="at">label=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-51-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We choose the optimal tuning parameter <span class="math inline">\(\lambda_{\rm opt}\)</span> by cross-validation.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="regularization.html#cb43-1" aria-hidden="true" tabindex="-1"></a>cv.lasso.glmnet <span class="ot">&lt;-</span><span class="fu">cv.glmnet</span>(<span class="at">x=</span>xtrain,<span class="at">y=</span>ytrain,<span class="at">alpha=</span><span class="dv">1</span>) </span>
+<span id="cb43-2"><a href="regularization.html#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv.lasso.glmnet)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-52-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="regularization.html#cb44-1" aria-hidden="true" tabindex="-1"></a>cv.lasso.glmnet<span class="sc">$</span>lambda.min</span></code></pre></div>
+<pre><code>## [1] 0.2201019</code></pre>
+<p>The coefficient for the optimal model can be extracted using the <code>coef</code> function.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="regularization.html#cb46-1" aria-hidden="true" tabindex="-1"></a>beta.lasso <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit.lasso.glmnet, <span class="at">s =</span> cv.lasso.glmnet<span class="sc">$</span>lambda.min)</span>
+<span id="cb46-2"><a href="regularization.html#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(beta.lasso) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(xtrain)</span>
+<span id="cb46-3"><a href="regularization.html#cb46-3" aria-hidden="true" tabindex="-1"></a>beta.lasso</span></code></pre></div>
+<pre><code>## 10 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                      s1
+## (Intercept)  0.08727244
+## V1           1.44830414
+## V2          -0.04302609
+## V3           .         
+## V4          -0.07325330
+## V5           .         
+## V6           .         
+## V7           .         
+## V8          -0.24778236
+## V9           .</code></pre>
+<p>We now discuss some properties of the Lasso.</p>
+<div id="numerical-optimization-and-soft-thresholding" class="section level3 hasAnchor" number="3.4.1">
+<h3><span class="header-section-number">3.4.1</span> Numerical optimization and soft thresholding<a href="regularization.html#numerical-optimization-and-soft-thresholding" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>In general there is no closed-form solution for the Lasso. The optimization has to be performed numerically. An efficient algorithm is implemented in <code>glmnet</code> and is referred to as “Pathwise Coordinate Optimization”. The algorithm updates one regression coefficient at a time using the so-called soft-thresholding function. This is done iteratively until some convergence criterion is met.</p>
+<p>An exception is the case with an orthonormal design matrix <span class="math inline">\(\bf X\)</span>, i.e. <span class="math inline">\(\bf X^T\bf X=\bf I\)</span>. Under this assumption we have</p>
+<p><span class="math display">\[\begin{align*}
+\textrm{RSS}(\beta)&amp;=(\textbf{y}-\textbf{X}\beta)^T(\textbf{y}-\textbf{X}\beta)\\
+&amp;=\textbf{y}^T\textbf{y}-2\beta^T\hat\beta^{\rm OLS}+\beta^T\hat\beta
+\end{align*}\]</span></p>
+<p>and therefore the Lasso optimization reduces to <span class="math inline">\(j=1,\ldots,p\)</span> univariate problems</p>
+<p><span class="math display">\[\textrm{minimize}\; -\hat\beta_j^{\rm OLS}\beta_j+0.5\beta_j^2+0.5\lambda |\beta_j|.\]</span></p>
+<p>In the exercises we will show that the solution is</p>
+<p><span class="math display">\[\begin{align*}
+\hat{\beta}_{\lambda,j}^{\textrm{Lasso}}&amp;=\textrm{sign}(\hat{\beta}_j^{\rm OLS})\left(|\hat{\beta}_j^{\rm OLS}|-0.5\lambda\right)_{+}\\
+&amp;=\left\{\begin{array}{ll}
+      \hat\beta^{\rm OLS}_j-0.5\lambda &amp; {\rm if}\;\hat\beta^{\rm OLS}_j&gt;0.5\lambda\\
+      0 &amp; {\rm if}\;|\hat\beta^{\rm OLS}_j|\leq 0.5\lambda\\
+\hat\beta^{\rm OLS}_j+0.5\lambda &amp; {\rm if}\;\hat\beta^{\rm OLS}_j&lt;-0.5\lambda
+    \end{array}
+  \right.
+\end{align*}\]</span></p>
+<p>That is, in the orthonormal case, the Lasso is a function of the OLS estimator. This function, depicted in the next figure, is referred to as <em>soft-thresholding</em>.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-54"></span>
+<img src="highdimstats_files/figure-html/unnamed-chunk-54-1.png" alt="Soft-thresholding function." width="672" />
+<p class="caption">
+Figure 3.9: Soft-thresholding function.
+</p>
+</div>
+<p>The soft-thresholding function is not only used for numerical optimization of the Lasso but also plays a role in wavelet thresholding used for signal and image denoising.</p>
+</div>
+<div id="variable-selection" class="section level3 hasAnchor" number="3.4.2">
+<h3><span class="header-section-number">3.4.2</span> Variable selection<a href="regularization.html#variable-selection" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We have seen that the Lasso simultaneously shrinks coefficients and sets some of them to zero. Therefore the Lasso performs variable selection which leads to more interpretabel models (compared to Ridge regression). For the Lasso we can define the set of selected variables</p>
+<p><span class="math display">\[\hat S^{\rm Lasso}_{\lambda}=\{j\in (1,\ldots,p); \hat\beta^{\rm Lasso}_{\lambda,j}\neq 0\}\]</span></p>
+<p>In our example this set can be obtained as follows.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="regularization.html#cb48-1" aria-hidden="true" tabindex="-1"></a>Shat <span class="ot">&lt;-</span> <span class="fu">rownames</span>(beta.lasso)[<span class="fu">which</span>(beta.lasso <span class="sc">!=</span> <span class="dv">0</span>)]</span>
+<span id="cb48-2"><a href="regularization.html#cb48-2" aria-hidden="true" tabindex="-1"></a>Shat</span></code></pre></div>
+<pre><code>## [1] &quot;(Intercept)&quot; &quot;V1&quot;          &quot;V2&quot;          &quot;V4&quot;          &quot;V8&quot;</code></pre>
+<p>An interesting question is whether the Lasso does a good or bad job in variable selection. That is, does <span class="math inline">\(\hat S^{\rm Lasso}_{\lambda}\)</span> tend to agree with the true set of active variables <span class="math inline">\(S_0\)</span>? Or, does the Lasso typically under- or over-select covariates? These questions are an active field of statistical research.</p>
+</div>
+<div id="elasticnet-regression" class="section level3 hasAnchor" number="3.4.3">
+<h3><span class="header-section-number">3.4.3</span> Elasticnet Regression<a href="regularization.html#elasticnet-regression" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We have encountered the L1 and L2 penalty. The Lasso (L1) penalty
+has the nice property that it leads to sparse solutions, i.e. it simultaneously performs variable selection. A disadvantage is that the Lasso penalty is somewhat indifferent to the choice among a set of strong but correlated variables. The Ridge (L2) penalty, on the other hand, tends
+to shrink the coefficients of correlated variables toward each other. An attempt to take the best of both worlds is the <em>elastic net</em> penalty which has the form</p>
+<p><span class="math display">\[\lambda \Big(\alpha \|\beta\|_1+(1-\alpha)\|\beta\|_2^2\Big).\]</span></p>
+<p>The second term encourages highly correlated features to be averaged, while
+the first term encourages a sparse solution in the coefficients of these averaged features.</p>
+<p>In <code>glmnet</code> the elastic net regression is implemented using the mixing parameter <span class="math inline">\(\alpha\)</span>. The default is <span class="math inline">\(\alpha=1\)</span>, i.e. the Lasso.</p>
+</div>
+</div>
+<div id="diabetes-example" class="section level2 hasAnchor" number="3.5">
+<h2><span class="header-section-number">3.5</span> Diabetes example<a href="regularization.html#diabetes-example" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>We now review what we have learned with an example. The data that we consider consist of
+observations on 442 patients, with the response of interest being a quantitative
+measure of disease progression one year after baseline. There are ten baseline
+variables — age, sex, body-mass index, average blood pressure, and six blood
+serum measurements — plus quadratic terms, giving a total of <span class="math inline">\(p=64\)</span> features. The task for a statistician is to construct a model that predicts the response <span class="math inline">\(Y\)</span> from the covariates. The two hopes are, that the model would produce accurate baseline
+predictions of response for future patients, and also that the form of the model would suggest
+which covariates were important factors in disease progression.</p>
+<p>We start by splitting the data into training and test data.</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="regularization.html#cb50-1" aria-hidden="true" tabindex="-1"></a>diabetes <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file=</span><span class="st">&quot;data/diabetes.rds&quot;</span>)</span>
+<span id="cb50-2"><a href="regularization.html#cb50-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">cbind</span>(<span class="at">y=</span>diabetes<span class="sc">$</span>y,diabetes<span class="sc">$</span>x2))</span>
+<span id="cb50-3"><a href="regularization.html#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;:&quot;</span>,<span class="st">&quot;.&quot;</span>,<span class="fu">colnames</span>(data))</span>
+<span id="cb50-4"><a href="regularization.html#cb50-4" aria-hidden="true" tabindex="-1"></a>train_ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq</span>(<span class="fu">nrow</span>(data)),<span class="at">size=</span><span class="fu">nrow</span>(data)<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb50-5"><a href="regularization.html#cb50-5" aria-hidden="true" tabindex="-1"></a>data_train <span class="ot">&lt;-</span> data[train_ind,]</span>
+<span id="cb50-6"><a href="regularization.html#cb50-6" aria-hidden="true" tabindex="-1"></a>xtrain <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data_train[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb50-7"><a href="regularization.html#cb50-7" aria-hidden="true" tabindex="-1"></a>ytrain <span class="ot">&lt;-</span> data_train[,<span class="dv">1</span>]</span>
+<span id="cb50-8"><a href="regularization.html#cb50-8" aria-hidden="true" tabindex="-1"></a>data_test <span class="ot">&lt;-</span> data[<span class="sc">-</span>train_ind,]</span>
+<span id="cb50-9"><a href="regularization.html#cb50-9" aria-hidden="true" tabindex="-1"></a>xtest <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data_test[,<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb50-10"><a href="regularization.html#cb50-10" aria-hidden="true" tabindex="-1"></a>ytest <span class="ot">&lt;-</span> data_test[,<span class="dv">1</span>]</span></code></pre></div>
+<p>We perform forward stepwise regression.</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="regularization.html#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Forward regression</span></span>
+<span id="cb51-2"><a href="regularization.html#cb51-2" aria-hidden="true" tabindex="-1"></a>fit0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y<span class="sc">~</span><span class="dv">1</span>,<span class="at">data=</span>data_train)</span>
+<span id="cb51-3"><a href="regularization.html#cb51-3" aria-hidden="true" tabindex="-1"></a>up.model <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;~&quot;</span>, </span>
+<span id="cb51-4"><a href="regularization.html#cb51-4" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">paste</span>(</span>
+<span id="cb51-5"><a href="regularization.html#cb51-5" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">colnames</span>(data_train[,<span class="sc">-</span><span class="dv">1</span>]),<span class="at">collapse=</span><span class="st">&quot; + &quot;</span>)</span>
+<span id="cb51-6"><a href="regularization.html#cb51-6" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="cb51-7"><a href="regularization.html#cb51-7" aria-hidden="true" tabindex="-1"></a>fit.fw <span class="ot">&lt;-</span> <span class="fu">stepAIC</span>(fit0,<span class="at">direction=</span><span class="st">&quot;forward&quot;</span>,</span>
+<span id="cb51-8"><a href="regularization.html#cb51-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">scope=</span><span class="fu">list</span>(<span class="at">lower=</span>fit0,</span>
+<span id="cb51-9"><a href="regularization.html#cb51-9" aria-hidden="true" tabindex="-1"></a>                             <span class="at">upper=</span>up.model</span>
+<span id="cb51-10"><a href="regularization.html#cb51-10" aria-hidden="true" tabindex="-1"></a>                             </span>
+<span id="cb51-11"><a href="regularization.html#cb51-11" aria-hidden="true" tabindex="-1"></a>                  ),</span>
+<span id="cb51-12"><a href="regularization.html#cb51-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">trace =</span> <span class="cn">FALSE</span></span>
+<span id="cb51-13"><a href="regularization.html#cb51-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb51-14"><a href="regularization.html#cb51-14" aria-hidden="true" tabindex="-1"></a><span class="co">#summary(fit.fw)</span></span></code></pre></div>
+<p>The selection process is depicted in the following table.</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="regularization.html#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">as.data.frame</span>(fit.fw<span class="sc">$</span>anova),<span class="at">digits=</span><span class="dv">2</span>,</span>
+<span id="cb52-2"><a href="regularization.html#cb52-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">booktabs=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Step</th>
+<th align="right">Df</th>
+<th align="right">Deviance</th>
+<th align="right">Resid. Df</th>
+<th align="right">Resid. Dev</th>
+<th align="right">AIC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">220</td>
+<td align="right">1262297.5</td>
+<td align="right">1913.71</td>
+</tr>
+<tr class="even">
+<td align="left">+ bmi</td>
+<td align="right">1</td>
+<td align="right">434735.33</td>
+<td align="right">219</td>
+<td align="right">827562.1</td>
+<td align="right">1822.40</td>
+</tr>
+<tr class="odd">
+<td align="left">+ ltg</td>
+<td align="right">1</td>
+<td align="right">155835.95</td>
+<td align="right">218</td>
+<td align="right">671726.2</td>
+<td align="right">1778.30</td>
+</tr>
+<tr class="even">
+<td align="left">+ age.sex</td>
+<td align="right">1</td>
+<td align="right">47106.62</td>
+<td align="right">217</td>
+<td align="right">624619.6</td>
+<td align="right">1764.23</td>
+</tr>
+<tr class="odd">
+<td align="left">+ map</td>
+<td align="right">1</td>
+<td align="right">29740.28</td>
+<td align="right">216</td>
+<td align="right">594879.3</td>
+<td align="right">1755.45</td>
+</tr>
+<tr class="even">
+<td align="left">+ bmi.glu</td>
+<td align="right">1</td>
+<td align="right">22952.37</td>
+<td align="right">215</td>
+<td align="right">571926.9</td>
+<td align="right">1748.75</td>
+</tr>
+<tr class="odd">
+<td align="left">+ hdl</td>
+<td align="right">1</td>
+<td align="right">19077.03</td>
+<td align="right">214</td>
+<td align="right">552849.9</td>
+<td align="right">1743.25</td>
+</tr>
+<tr class="even">
+<td align="left">+ sex</td>
+<td align="right">1</td>
+<td align="right">15702.72</td>
+<td align="right">213</td>
+<td align="right">537147.2</td>
+<td align="right">1738.89</td>
+</tr>
+<tr class="odd">
+<td align="left">+ hdl.tch</td>
+<td align="right">1</td>
+<td align="right">9543.83</td>
+<td align="right">212</td>
+<td align="right">527603.3</td>
+<td align="right">1736.92</td>
+</tr>
+<tr class="even">
+<td align="left">+ sex.ldl</td>
+<td align="right">1</td>
+<td align="right">5735.62</td>
+<td align="right">211</td>
+<td align="right">521867.7</td>
+<td align="right">1736.51</td>
+</tr>
+<tr class="odd">
+<td align="left">+ tch.ltg</td>
+<td align="right">1</td>
+<td align="right">6279.00</td>
+<td align="right">210</td>
+<td align="right">515588.7</td>
+<td align="right">1735.83</td>
+</tr>
+<tr class="even">
+<td align="left">+ age.map</td>
+<td align="right">1</td>
+<td align="right">5342.10</td>
+<td align="right">209</td>
+<td align="right">510246.6</td>
+<td align="right">1735.53</td>
+</tr>
+</tbody>
+</table>
+<p>The regression coefficients and the corresponding statistics of the AIC-optimal model are shown next.</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="regularization.html#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(broom<span class="sc">::</span><span class="fu">tidy</span>(fit.fw),<span class="at">digits=</span><span class="dv">2</span>,</span>
+<span id="cb53-2"><a href="regularization.html#cb53-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">booktabs=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">155.72</td>
+<td align="right">3.36</td>
+<td align="right">46.29</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">bmi</td>
+<td align="right">466.07</td>
+<td align="right">81.82</td>
+<td align="right">5.70</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">ltg</td>
+<td align="right">497.33</td>
+<td align="right">94.05</td>
+<td align="right">5.29</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">age.sex</td>
+<td align="right">274.22</td>
+<td align="right">76.35</td>
+<td align="right">3.59</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">map</td>
+<td align="right">315.78</td>
+<td align="right">80.98</td>
+<td align="right">3.90</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">bmi.glu</td>
+<td align="right">206.59</td>
+<td align="right">74.57</td>
+<td align="right">2.77</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="odd">
+<td align="left">hdl</td>
+<td align="right">-392.14</td>
+<td align="right">94.40</td>
+<td align="right">-4.15</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">sex</td>
+<td align="right">-201.94</td>
+<td align="right">80.87</td>
+<td align="right">-2.50</td>
+<td align="right">0.01</td>
+</tr>
+<tr class="odd">
+<td align="left">hdl.tch</td>
+<td align="right">-210.17</td>
+<td align="right">87.81</td>
+<td align="right">-2.39</td>
+<td align="right">0.02</td>
+</tr>
+<tr class="even">
+<td align="left">sex.ldl</td>
+<td align="right">118.77</td>
+<td align="right">74.81</td>
+<td align="right">1.59</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="odd">
+<td align="left">tch.ltg</td>
+<td align="right">-146.12</td>
+<td align="right">89.83</td>
+<td align="right">-1.63</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="even">
+<td align="left">age.map</td>
+<td align="right">119.49</td>
+<td align="right">80.78</td>
+<td align="right">1.48</td>
+<td align="right">0.14</td>
+</tr>
+</tbody>
+</table>
+<p>We continue by fitting Ridge regression. We show the trace plot and the cross-validation plot.</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="regularization.html#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ridge</span></span>
+<span id="cb54-2"><a href="regularization.html#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1515</span>)</span>
+<span id="cb54-3"><a href="regularization.html#cb54-3" aria-hidden="true" tabindex="-1"></a>fit.ridge <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(xtrain,ytrain,<span class="at">alpha=</span><span class="dv">0</span>)</span>
+<span id="cb54-4"><a href="regularization.html#cb54-4" aria-hidden="true" tabindex="-1"></a>fit.ridge.cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(xtrain,ytrain,<span class="at">alpha=</span><span class="dv">0</span>)</span>
+<span id="cb54-5"><a href="regularization.html#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.ridge,<span class="at">xvar=</span><span class="st">&quot;lambda&quot;</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-61-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="regularization.html#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.ridge.cv)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-61-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Finally, we run the Lasso approach and show the trace and the cross-validation plots.</p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="regularization.html#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Lasso</span></span>
+<span id="cb56-2"><a href="regularization.html#cb56-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1515</span>)</span>
+<span id="cb56-3"><a href="regularization.html#cb56-3" aria-hidden="true" tabindex="-1"></a>fit.lasso <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(xtrain,ytrain,<span class="at">alpha=</span><span class="dv">1</span>)</span>
+<span id="cb56-4"><a href="regularization.html#cb56-4" aria-hidden="true" tabindex="-1"></a>fit.lasso.cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(xtrain,ytrain,<span class="at">alpha=</span><span class="dv">1</span>)</span>
+<span id="cb56-5"><a href="regularization.html#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.lasso,<span class="at">xvar=</span><span class="st">&quot;lambda&quot;</span>)</span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-62-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="regularization.html#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.lasso.cv)<span class="co">#fit.lasso.cv$lambda.1se</span></span></code></pre></div>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-62-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We calculate the root-mean-square errors (RMSE) on the test data and compare with the full model.</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="regularization.html#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Full model</span></span>
+<span id="cb58-2"><a href="regularization.html#cb58-2" aria-hidden="true" tabindex="-1"></a>fit.full <span class="ot">&lt;-</span> <span class="fu">lm</span>(y<span class="sc">~</span>.,<span class="at">data=</span>data_train)</span>
+<span id="cb58-3"><a href="regularization.html#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="co"># RMSE</span></span>
+<span id="cb58-4"><a href="regularization.html#cb58-4" aria-hidden="true" tabindex="-1"></a>pred.full <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit.full,<span class="at">newdata=</span>data_test)</span>
+<span id="cb58-5"><a href="regularization.html#cb58-5" aria-hidden="true" tabindex="-1"></a>pred.fw <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit.fw,<span class="at">newdata=</span>data_test)</span>
+<span id="cb58-6"><a href="regularization.html#cb58-6" aria-hidden="true" tabindex="-1"></a>pred.ridge <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">predict</span>(fit.ridge,<span class="at">newx=</span>xtest,<span class="at">s=</span>fit.ridge.cv<span class="sc">$</span>lambda<span class="fl">.1</span>se))</span>
+<span id="cb58-7"><a href="regularization.html#cb58-7" aria-hidden="true" tabindex="-1"></a>pred.lasso <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">predict</span>(fit.lasso,<span class="at">newx=</span>xtest,<span class="at">s=</span>fit.lasso.cv<span class="sc">$</span>lambda<span class="fl">.1</span>se))</span>
+<span id="cb58-8"><a href="regularization.html#cb58-8" aria-hidden="true" tabindex="-1"></a>res.rmse <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb58-9"><a href="regularization.html#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">method=</span><span class="fu">c</span>(<span class="st">&quot;full&quot;</span>,<span class="st">&quot;forward&quot;</span>,<span class="st">&quot;ridge&quot;</span>,<span class="st">&quot;lasso&quot;</span>),</span>
+<span id="cb58-10"><a href="regularization.html#cb58-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">rmse=</span><span class="fu">c</span>(<span class="fu">RMSE</span>(pred.full,ytest),<span class="fu">RMSE</span>(pred.fw,ytest),</span>
+<span id="cb58-11"><a href="regularization.html#cb58-11" aria-hidden="true" tabindex="-1"></a>         <span class="fu">RMSE</span>(pred.ridge,ytest),<span class="fu">RMSE</span>(pred.lasso,ytest)))</span>
+<span id="cb58-12"><a href="regularization.html#cb58-12" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(res.rmse,<span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb58-13"><a href="regularization.html#cb58-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">booktabs=</span><span class="cn">TRUE</span>)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">method</th>
+<th align="right">rmse</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">full</td>
+<td align="right">84.51</td>
+</tr>
+<tr class="even">
+<td align="left">forward</td>
+<td align="right">59.89</td>
+</tr>
+<tr class="odd">
+<td align="left">ridge</td>
+<td align="right">62.63</td>
+</tr>
+<tr class="even">
+<td align="left">lasso</td>
+<td align="right">58.47</td>
+</tr>
+</tbody>
+</table>
+<p>The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.</p>
+<p><img src="highdimstats_files/figure-html/unnamed-chunk-64-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We point out that the same analysis can be conducted with the <code>caret</code> package. The code to do so is provided next.</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="regularization.html#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Setup trainControl: 10-fold cross-validation</span></span>
+<span id="cb59-2"><a href="regularization.html#cb59-2" aria-hidden="true" tabindex="-1"></a>tc <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method =</span> <span class="st">&quot;cv&quot;</span>, <span class="at">number =</span> <span class="dv">10</span>)</span>
+<span id="cb59-3"><a href="regularization.html#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-4"><a href="regularization.html#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="do">## Ridge</span></span>
+<span id="cb59-5"><a href="regularization.html#cb59-5" aria-hidden="true" tabindex="-1"></a>lambda.grid <span class="ot">&lt;-</span> fit.ridge.cv<span class="sc">$</span>lambda</span>
+<span id="cb59-6"><a href="regularization.html#cb59-6" aria-hidden="true" tabindex="-1"></a>fit.ridge.caret<span class="ot">&lt;-</span><span class="fu">train</span>(<span class="at">x=</span>xtrain,</span>
+<span id="cb59-7"><a href="regularization.html#cb59-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">y=</span>ytrain, </span>
+<span id="cb59-8"><a href="regularization.html#cb59-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">method =</span> <span class="st">&quot;glmnet&quot;</span>,</span>
+<span id="cb59-9"><a href="regularization.html#cb59-9" aria-hidden="true" tabindex="-1"></a>                       <span class="at">tuneGrid =</span> <span class="fu">expand.grid</span>(<span class="at">alpha =</span> <span class="dv">0</span>,</span>
+<span id="cb59-10"><a href="regularization.html#cb59-10" aria-hidden="true" tabindex="-1"></a>                                              <span class="at">lambda=</span>lambda.grid),</span>
+<span id="cb59-11"><a href="regularization.html#cb59-11" aria-hidden="true" tabindex="-1"></a>                       <span class="at">trControl =</span> tc</span>
+<span id="cb59-12"><a href="regularization.html#cb59-12" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb59-13"><a href="regularization.html#cb59-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-14"><a href="regularization.html#cb59-14" aria-hidden="true" tabindex="-1"></a><span class="co"># CV curve</span></span>
+<span id="cb59-15"><a href="regularization.html#cb59-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.ridge.caret)</span>
+<span id="cb59-16"><a href="regularization.html#cb59-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Best lambda</span></span>
+<span id="cb59-17"><a href="regularization.html#cb59-17" aria-hidden="true" tabindex="-1"></a>fit.ridge.caret<span class="sc">$</span>bestTune<span class="sc">$</span>lambda</span>
+<span id="cb59-18"><a href="regularization.html#cb59-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Model coefficients</span></span>
+<span id="cb59-19"><a href="regularization.html#cb59-19" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit.ridge.caret<span class="sc">$</span>finalModel,fit.ridge.cv<span class="sc">$</span>lambda<span class="fl">.1</span>se)<span class="sc">%&gt;%</span>head</span>
+<span id="cb59-20"><a href="regularization.html#cb59-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Make predictions</span></span>
+<span id="cb59-21"><a href="regularization.html#cb59-21" aria-hidden="true" tabindex="-1"></a>fit.ridge.caret <span class="sc">%&gt;%</span> <span class="fu">predict</span>(xtest,<span class="at">s=</span>fit.ridge.cv<span class="sc">$</span>lambda<span class="fl">.1</span>se)<span class="sc">%&gt;%</span>head</span>
+<span id="cb59-22"><a href="regularization.html#cb59-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-23"><a href="regularization.html#cb59-23" aria-hidden="true" tabindex="-1"></a><span class="do">## Lasso</span></span>
+<span id="cb59-24"><a href="regularization.html#cb59-24" aria-hidden="true" tabindex="-1"></a>lambda.grid <span class="ot">&lt;-</span> fit.lasso.cv<span class="sc">$</span>lambda</span>
+<span id="cb59-25"><a href="regularization.html#cb59-25" aria-hidden="true" tabindex="-1"></a>fit.lasso.caret<span class="ot">&lt;-</span><span class="fu">train</span>(<span class="at">x=</span>xtrain,</span>
+<span id="cb59-26"><a href="regularization.html#cb59-26" aria-hidden="true" tabindex="-1"></a>                       <span class="at">y=</span>ytrain, </span>
+<span id="cb59-27"><a href="regularization.html#cb59-27" aria-hidden="true" tabindex="-1"></a>                       <span class="at">method =</span> <span class="st">&quot;glmnet&quot;</span>,</span>
+<span id="cb59-28"><a href="regularization.html#cb59-28" aria-hidden="true" tabindex="-1"></a>                       <span class="at">tuneGrid =</span> <span class="fu">expand.grid</span>(<span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb59-29"><a href="regularization.html#cb59-29" aria-hidden="true" tabindex="-1"></a>                                              <span class="at">lambda=</span>lambda.grid),</span>
+<span id="cb59-30"><a href="regularization.html#cb59-30" aria-hidden="true" tabindex="-1"></a>                       <span class="at">trControl =</span> tc</span>
+<span id="cb59-31"><a href="regularization.html#cb59-31" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb59-32"><a href="regularization.html#cb59-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-33"><a href="regularization.html#cb59-33" aria-hidden="true" tabindex="-1"></a><span class="co"># CV curve</span></span>
+<span id="cb59-34"><a href="regularization.html#cb59-34" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit.lasso.caret)</span>
+<span id="cb59-35"><a href="regularization.html#cb59-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Best lambda</span></span>
+<span id="cb59-36"><a href="regularization.html#cb59-36" aria-hidden="true" tabindex="-1"></a>fit.lasso.caret<span class="sc">$</span>bestTune<span class="sc">$</span>lambda</span>
+<span id="cb59-37"><a href="regularization.html#cb59-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Model coefficients</span></span>
+<span id="cb59-38"><a href="regularization.html#cb59-38" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit.lasso.caret<span class="sc">$</span>finalModel,</span>
+<span id="cb59-39"><a href="regularization.html#cb59-39" aria-hidden="true" tabindex="-1"></a>     fit.lasso.caret<span class="sc">$</span>bestTune<span class="sc">$</span>lambda)<span class="sc">%&gt;%</span>head</span>
+<span id="cb59-40"><a href="regularization.html#cb59-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Make predictions</span></span>
+<span id="cb59-41"><a href="regularization.html#cb59-41" aria-hidden="true" tabindex="-1"></a>fit.lasso.caret<span class="sc">%&gt;%</span><span class="fu">predict</span>(xtest,</span>
+<span id="cb59-42"><a href="regularization.html#cb59-42" aria-hidden="true" tabindex="-1"></a>                          <span class="at">s=</span>fit.ridge.cv<span class="sc">$</span>lambda<span class="fl">.1</span>se)<span class="sc">%&gt;%</span>head</span>
+<span id="cb59-43"><a href="regularization.html#cb59-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-44"><a href="regularization.html#cb59-44" aria-hidden="true" tabindex="-1"></a><span class="do">## Compare Ridge and Lasso</span></span>
+<span id="cb59-45"><a href="regularization.html#cb59-45" aria-hidden="true" tabindex="-1"></a>models <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">ridge=</span> fit.ridge.caret,<span class="at">lasso =</span> fit.lasso.caret)</span>
+<span id="cb59-46"><a href="regularization.html#cb59-46" aria-hidden="true" tabindex="-1"></a><span class="fu">resamples</span>(models) <span class="sc">%&gt;%</span> <span class="fu">summary</span>( <span class="at">metric =</span> <span class="st">&quot;RMSE&quot;</span>)</span></code></pre></div>
+
+</div>
+</div>
+<h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-elements" class="csl-entry">
+Hastie, Trevor, Robert Tibshirani, and Jerome Friedman. 2001. <em>The Elements of Statistical Learning</em>. Springer Series in Statistics. New York, NY, USA: Springer New York Inc.
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="multiple-linear-regression.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="classification.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/staedlern/highdim_stats/edit/main/02-constraint.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["highdimstats.pdf", "highdimstats.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
