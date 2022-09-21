@@ -3,7 +3,6 @@ title: |
   ![](logo2.jpg){width=3.5in}   
   Prediction and Feature Assessment
 author: "Nicolas Städler"
-date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
