@@ -86,7 +86,9 @@ cv.ridge.glmnet$lambda.1se
 
 The OLS estimator becomes unstable (high variance) in presence of collinearity. A nice property of Ridge regression is that it counteracts this by shrinking low-variance components more than high-variance components. 
 
-This can be best understood by rotating the data using a principle component analysis (see Figure \@ref(fig:principlecomponent)). In particular, we consider the singular value decomposition
+This can be best understood by rotating the data using a principle component analysis (see Figure \@ref(fig:principlecomponent)). 
+
+In particular, we consider the singular value decomposition
 
 $$\textbf{X}=\textbf{U}\textbf{D}\textbf{V}^T,$$
 
@@ -100,17 +102,39 @@ Similarly, we can represent the fitted values from Ridge regression as
 
 This shows that the level of shrinkage $\frac{d_j^2}{d_j^2+\lambda}$ is largest in the direction of the last principle component, which in return is the direction where the data exhibits smallest variance.
 
+```{r principlecomponent, echo=FALSE, fig.height=5, fig.width=10, fig.cap="Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis."}
 
-```{r principlecomponent, echo=FALSE,fig.height=5, fig.width=10, fig.cap="Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis."}
-library(MASS)
 set.seed(1315)
 n <- 50
 x <- mvrnorm(n=50,mu=c(0,0),Sigma=cbind(c(1,0.8),c(0.8,1)))
 colnames(x) <- c("X1","X2")
-fit.pc <- prcomp(x)
+pc <- prcomp(x)
+
 par(mfrow=c(1,2))
 plot(x,xlim=c(-2,2),ylim=c(-2,2))
-plot(fit.pc$x,xlim=c(-2,2),ylim=c(-2,2))
+plot(pc$x,xlim=c(-2,2),ylim=c(-2,2))
+```
+
+The following code shows how to perform a principle component analysis using the functions `prcomp` and `svd`.
+
+```{r eval=FALSE}
+# simulated correlated bivariate data
+set.seed(1315)
+n <- 50
+x <- mvrnorm(n=50,mu=c(0,0),Sigma=cbind(c(1,0.8),c(0.8,1)))
+colnames(x) <- c("X1","X2")
+
+# run a principle component analysis
+pc <- prcomp(x)
+pc$sdev # standard dev
+
+# same analysis using svd
+cx <- sweep(x, 2, colMeans(x), "-")
+sv <- svd(cx)
+sqrt(sv$d^2/(nrow(x)-1))
+pc$sdev
+head(pc$x)
+head(sv$u%*%diag(sv$d))
 ```
 
 ```{r include=FALSE, eval=FALSE}
