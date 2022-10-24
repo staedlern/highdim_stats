@@ -1,37 +1,54 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2022-05-06
+2022-10-24
 
--   [1 Diabetes data and linear
-    regression](#1-diabetes-data-and-linear-regression)
--   [2 Diabetes data and model
-    validation](#2-diabetes-data-and-model-validation)
--   [3 Calculus, optimization and OLS](#3-calculus-optimization-and-ols)
--   [4 Diabetes data and
-    regularization](#4-diabetes-data-and-regularization)
--   [5 Diabetes data and the `caret`
-    package](#5-diabetes-data-and-the-caret-package)
--   [6 Closed form solution for Ridge
-    regression](#6-closed-form-solution-for-ridge-regression)
--   [7 Bayesian interpretation of Ridge regression
-    (difficult)](#7-bayesian-interpretation-of-ridge-regression-difficult)
--   [8 Riboflavin data and elasticnet mixing
-    parameter](#8-riboflavin-data-and-elasticnet-mixing-parameter)
--   [9 Ridge and Lasso for the orthonormal design
-    (difficult)](#9-ridge-and-lasso-for-the-orthonormal-design-difficult)
--   [10 Heart disease data and logistic
-    regression](#10-heart-disease-data-and-logistic-regression)
--   [11 Phoneme recognition](#11-phoneme-recognition)
--   [12 Classification and the `caret`
-    package](#12-classification-and-the-caret-package)
--   [13 Survival analysis and the Lymphoma
-    data](#13-survival-analysis-and-the-lymphoma-data)
--   [14 Decision trees, Random Forest and
-    AdaBoost](#14-decision-trees-random-forest-and-adaboost)
--   [15 Email spam and data mining](#15-email-spam-and-data-mining)
--   [16 Multiple testing and gene
-    expression](#16-multiple-testing-and-gene-expression)
+- <a href="#1-diabetes-data-and-linear-regression"
+  id="toc-1-diabetes-data-and-linear-regression">1 Diabetes data and
+  linear regression</a>
+- <a href="#2-diabetes-data-and-model-validation"
+  id="toc-2-diabetes-data-and-model-validation">2 Diabetes data and model
+  validation</a>
+- <a href="#3-calculus-optimization-and-ols"
+  id="toc-3-calculus-optimization-and-ols">3 Calculus, optimization and
+  OLS</a>
+- <a href="#4-diabetes-data-and-regularization"
+  id="toc-4-diabetes-data-and-regularization">4 Diabetes data and
+  regularization</a>
+- <a href="#5-diabetes-data-and-the-caret-package"
+  id="toc-5-diabetes-data-and-the-caret-package">5 Diabetes data and the
+  <code>caret</code> package</a>
+- <a href="#6-closed-form-solution-for-ridge-regression"
+  id="toc-6-closed-form-solution-for-ridge-regression">6 Closed form
+  solution for Ridge regression</a>
+- <a href="#7-bayesian-interpretation-of-ridge-regression-difficult"
+  id="toc-7-bayesian-interpretation-of-ridge-regression-difficult">7
+  Bayesian interpretation of Ridge regression (difficult)</a>
+- <a href="#8-riboflavin-data-and-elasticnet-mixing-parameter"
+  id="toc-8-riboflavin-data-and-elasticnet-mixing-parameter">8 Riboflavin
+  data and elasticnet mixing parameter</a>
+- <a href="#9-ridge-and-lasso-for-the-orthonormal-design-difficult"
+  id="toc-9-ridge-and-lasso-for-the-orthonormal-design-difficult">9 Ridge
+  and Lasso for the orthonormal design (difficult)</a>
+- <a href="#10-heart-disease-data-and-logistic-regression"
+  id="toc-10-heart-disease-data-and-logistic-regression">10 Heart disease
+  data and logistic regression</a>
+- <a href="#11-phoneme-recognition" id="toc-11-phoneme-recognition">11
+  Phoneme recognition</a>
+- <a href="#12-classification-and-the-caret-package"
+  id="toc-12-classification-and-the-caret-package">12 Classification and
+  the <code>caret</code> package</a>
+- <a href="#13-survival-analysis-and-the-lymphoma-data"
+  id="toc-13-survival-analysis-and-the-lymphoma-data">13 Survival analysis
+  and the Lymphoma data</a>
+- <a href="#14-decision-trees-random-forest-and-adaboost"
+  id="toc-14-decision-trees-random-forest-and-adaboost">14 Decision trees,
+  Random Forest and AdaBoost</a>
+- <a href="#15-email-spam-and-data-mining"
+  id="toc-15-email-spam-and-data-mining">15 Email spam and data mining</a>
+- <a href="#16-multiple-testing-and-gene-expression"
+  id="toc-16-multiple-testing-and-gene-expression">16 Multiple testing and
+  gene expression</a>
 
 # 1 Diabetes data and linear regression
 
@@ -39,8 +56,7 @@ The data that we consider consist of 442 diabetes patients, with the
 response of interest being a quantitative measure of disease progression
 one year after baseline. There are ten baseline variables — age, sex,
 body-mass index, average blood pressure, and six blood serum
-measurements — plus quadratic terms, giving a total of *p* = 64
-features.
+measurements — plus quadratic terms, giving a total of $p=64$ features.
 
 1.  Read the diabetes data set and make a histogram for the response
     variable `y`. Describe the distribution of the variable.
@@ -53,22 +69,22 @@ features.
 4.  Run a univariate regression model with `bmi` as covariate. Study the
     `summary` output.
 
-    -   How do you interpret the regression coefficients for `bmi`?
-    -   What is the meaning of the *multiple R-squared*?
-    -   What is the *residual standard error*?
-    -   Generate a scatter plot of `y` against `bmi` and add the
-        regression line with confidence band (use `geom_smooth`,
-        `method="lm"`).
-    -   Draw the Tukey Anscombe plot and the QQ plot (check `?plot.lm`).
-        What are these two plots telling us?
+    - How do you interpret the regression coefficients for `bmi`?
+    - What is the meaning of the *multiple R-squared*?
+    - What is the *residual standard error*?
+    - Generate a scatter plot of `y` against `bmi` and add the
+      regression line with confidence band (use `geom_smooth`,
+      `method="lm"`).
+    - Draw the Tukey Anscombe plot and the QQ plot (check `?plot.lm`).
+      What are these two plots telling us?
 
 5.  Run a multiple regression model using all covariates. Study the
     `summary` output.
 
-    -   What does change in the interpretation of the coefficient for
-        `bmi`?
-    -   What do you conclude from the *multiple R-squared*?
-    -   Create a Tukey Anscombe plot and a QQ plot.
+    - What does change in the interpretation of the coefficient for
+      `bmi`?
+    - What do you conclude from the *multiple R-squared*?
+    - Create a Tukey Anscombe plot and a QQ plot.
 
 6.  Calculate the RSS for both models. Write down your observation.
 
@@ -127,19 +143,18 @@ summary(fit1)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -162.10  -52.32   -7.63   51.61  154.64 
+    ## -137.92  -39.28  -10.15   45.83  155.87 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  149.383      4.425  33.761   <2e-16 ***
-    ## bmi          948.442     95.283   9.954   <2e-16 ***
+    ## (Intercept)   149.34       4.09   36.52   <2e-16 ***
+    ## bmi          1024.42      87.36   11.73   <2e-16 ***
     ## ---
-    ## Signif. codes:  
-    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 65.73 on 219 degrees of freedom
-    ## Multiple R-squared:  0.3115, Adjusted R-squared:  0.3084 
-    ## F-statistic: 99.08 on 1 and 219 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 60.77 on 219 degrees of freedom
+    ## Multiple R-squared:  0.3857, Adjusted R-squared:  0.3829 
+    ## F-statistic: 137.5 on 1 and 219 DF,  p-value: < 2.2e-16
 
 Scatter plot with regression line.
 
@@ -202,13 +217,13 @@ Calculate the RSS.
 sum(residuals(fit1)^2)
 ```
 
-    ## [1] 946270.9
+    ## [1] 808675.9
 
 ``` r
 sum(residuals(fit2)^2)
 ```
 
-    ## [1] 504889.4
+    ## [1] 451752.7
 
 Compare the 2 models using the `anova` function.
 
@@ -229,12 +244,11 @@ anova(fit1,fit2)
     ##     map.tch + map.ltg + map.glu + tc.ldl + tc.hdl + tc.tch + 
     ##     tc.ltg + tc.glu + ldl.hdl + ldl.tch + ldl.ltg + ldl.glu + 
     ##     hdl.tch + hdl.ltg + hdl.glu + tch.ltg + tch.glu + ltg.glu
-    ##   Res.Df    RSS Df Sum of Sq      F   Pr(>F)    
-    ## 1    219 946271                                 
-    ## 2    156 504889 63    441381 2.1647 6.02e-05 ***
+    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+    ## 1    219 808676                                  
+    ## 2    156 451753 63    356923 1.9564 0.0004338 ***
     ## ---
-    ## Signif. codes:  
-    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 # 2 Diabetes data and model validation
 
@@ -264,13 +278,13 @@ data.
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 ```
 
-    ## [1] 65.43522
+    ## [1] 60.49105
 
 ``` r
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
 
-    ## [1] 47.79715
+    ## [1] 45.21206
 
 We draw calibration plots for the 2 models. Model 1 calibrates slightly
 better.
@@ -311,26 +325,26 @@ Calculate RMSEs on test data.
 RMSE(data_test$y,predict(fit1,newdata=data_test))
 ```
 
-    ## [1] 59.28132
+    ## [1] 64.51956
 
 ``` r
 RMSE(data_test$y,predict(fit2,newdata=data_test))
 ```
 
-    ## [1] 66.46369
+    ## [1] 65.65087
 
 # 3 Calculus, optimization and OLS
 
-1.  Consider the function *f*(*x*) = 2*x*<sup>2</sup> + *x* − 5. Draw a
-    plot of the function.
-2.  Use `optimize` to find the minimum of *f*(*x*).
-3.  Obtain the minimum of *f*(*x*) by taking the derivative and setting
+1.  Consider the function $f(x)=2x^2 + x -5$. Draw a plot of the
+    function.
+2.  Use `optimize` to find the minimum of $f(x)$.
+3.  Obtain the minimum of $f(x)$ by taking the derivative and setting
     equal to zero.
-4.  Show that ∥*a*∥<sub>2</sub><sup>2</sup> = *a*<sup>*T*</sup>*a*.
+4.  Show that $\|a\|^2_2=a^Ta$.
 5.  Use the result in 4. and show that
-    $\\bf RSS(\\beta)=\\bf y^Ty-2 y^T X \\beta +\\beta^T X^T X \\beta$.
+    $\bf RSS(\beta)=\bf y^Ty-2 y^T X \beta +\beta^T X^T X \beta$.
 6.  Invoke the result obtained in 4. and show that
-    $$\\frac{\\partial}{\\partial \\beta} \\bf RSS(\\beta)=\\bf -2X^Ty+2X^TX\\beta.$$
+    $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$
     Hint: review the “Identities” section of
     [Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
 7.  Do you understand the derivation of the least squares estimator?
@@ -366,7 +380,7 @@ hopes are, that the model would produce accurate baseline predictions of
 response for future patients, and also that the form of the model would
 suggest which covariates were important factors in disease progression.
 
-1.  Read the prostate cancer data set.
+1.  Read in the diabetes data set.
 2.  Run forward stepwise regression. Which is the first variable
     included in the selection process? Print the coefficients of the
     AIC-optimal model as a table.
@@ -424,19 +438,22 @@ kable(as.data.frame(fit.fw$anova),digits=2,
 
 | Step       |  Df |  Deviance | Resid. Df | Resid. Dev |     AIC |
 |:-----------|----:|----------:|----------:|-----------:|--------:|
-|            |  NA |        NA |       220 |  1294242.9 | 1919.24 |
-| \+ bmi     |   1 | 464526.00 |       219 |   829716.9 | 1822.98 |
-| \+ ltg     |   1 | 140742.50 |       218 |   688974.4 | 1783.90 |
-| \+ map     |   1 |  51709.26 |       217 |   637265.2 | 1768.66 |
-| \+ tc      |   1 |  42850.45 |       216 |   594414.7 | 1755.27 |
-| \+ age.sex |   1 |  21617.22 |       215 |   572797.5 | 1749.09 |
-| \+ sex     |   1 |  18434.54 |       214 |   554363.0 | 1743.86 |
-| \+ ldl     |   1 |  10198.21 |       213 |   544164.8 | 1741.75 |
-| \+ bmi.map |   1 |  11269.59 |       212 |   532895.2 | 1739.13 |
-| \+ age.tch |   1 |   5753.15 |       211 |   527142.0 | 1738.73 |
-| \+ ldl.glu |   1 |   5071.43 |       210 |   522070.6 | 1738.59 |
-| \+ tc.ldl  |   1 |   9323.33 |       209 |   512747.2 | 1736.61 |
-| \+ age.ltg |   1 |   8421.82 |       208 |   504325.4 | 1734.95 |
+|            |  NA |        NA |       220 |  1357214.8 | 1929.73 |
+| \+ bmi     |   1 | 472869.29 |       219 |   884345.5 | 1837.07 |
+| \+ ltg     |   1 | 153061.63 |       218 |   731283.8 | 1797.07 |
+| \+ sex.bmi |   1 |  49254.96 |       217 |   682028.9 | 1783.66 |
+| \+ map     |   1 |  22651.08 |       216 |   659377.8 | 1778.20 |
+| \+ tc      |   1 |  18920.28 |       215 |   640457.5 | 1773.76 |
+| \+ ldl     |   1 |  13958.97 |       214 |   626498.5 | 1770.89 |
+| \+ sex     |   1 |  27200.86 |       213 |   599297.7 | 1763.08 |
+| \+ age.sex |   1 |  13926.00 |       212 |   585371.7 | 1759.89 |
+| \+ hdl.glu |   1 |  10176.09 |       211 |   575195.6 | 1758.01 |
+| \+ tc.tch  |   1 |   7111.77 |       210 |   568083.8 | 1757.26 |
+| \+ bmi.map |   1 |   6135.21 |       209 |   561948.6 | 1756.86 |
+| \+ age.tc  |   1 |   5257.27 |       208 |   556691.3 | 1756.78 |
+| \+ ldl.tch |   1 |   5768.72 |       207 |   550922.6 | 1756.48 |
+| \+ tch.glu |   1 |   6610.08 |       206 |   544312.6 | 1755.81 |
+| \+ age.map |   1 |   5025.59 |       205 |   539286.9 | 1755.76 |
 
 The regression coefficients and the corresponding statistics of the
 AIC-optimal model are shown next.
@@ -448,19 +465,22 @@ kable(broom::tidy(fit.fw),digits=2,
 
 | term        | estimate | std.error | statistic | p.value |
 |:------------|---------:|----------:|----------:|--------:|
-| (Intercept) |   155.31 |      3.34 |     46.44 |    0.00 |
-| bmi         |   412.50 |     87.67 |      4.70 |    0.00 |
-| ltg         |   912.33 |    109.11 |      8.36 |    0.00 |
-| map         |   404.82 |     83.13 |      4.87 |    0.00 |
-| tc          |  -902.88 |    224.46 |     -4.02 |    0.00 |
-| age.sex     |   276.69 |     77.48 |      3.57 |    0.00 |
-| sex         |  -224.02 |     76.61 |     -2.92 |    0.00 |
-| ldl         |   572.77 |    209.33 |      2.74 |    0.01 |
-| bmi.map     |   160.68 |     71.89 |      2.24 |    0.03 |
-| age.tch     |  -279.46 |    104.35 |     -2.68 |    0.01 |
-| ldl.glu     |   201.48 |     82.37 |      2.45 |    0.02 |
-| tc.ldl      |  -166.55 |     75.08 |     -2.22 |    0.03 |
-| age.ltg     |   198.49 |    106.50 |      1.86 |    0.06 |
+| (Intercept) |   145.13 |      3.52 |     41.24 |    0.00 |
+| bmi         |   418.34 |     98.77 |      4.24 |    0.00 |
+| ltg         |   996.56 |    116.82 |      8.53 |    0.00 |
+| sex.bmi     |   172.62 |     84.95 |      2.03 |    0.04 |
+| map         |   336.32 |     86.83 |      3.87 |    0.00 |
+| tc          |  -955.32 |    213.64 |     -4.47 |    0.00 |
+| ldl         |   759.15 |    203.17 |      3.74 |    0.00 |
+| sex         |  -250.43 |     82.62 |     -3.03 |    0.00 |
+| age.sex     |   199.58 |     79.48 |      2.51 |    0.01 |
+| hdl.glu     |     3.89 |    130.30 |      0.03 |    0.98 |
+| tc.tch      |  -493.91 |    178.78 |     -2.76 |    0.01 |
+| bmi.map     |   151.31 |     81.49 |      1.86 |    0.06 |
+| age.tc      |   165.33 |     87.35 |      1.89 |    0.06 |
+| ldl.tch     |   281.31 |    164.24 |      1.71 |    0.09 |
+| tch.glu     |   235.51 |    138.36 |      1.70 |    0.09 |
+| age.map     |  -122.07 |     88.32 |     -1.38 |    0.17 |
 
 We continue by fitting Ridge regression. We show the trace plot and the
 cross-validation plot.
@@ -520,10 +540,10 @@ kable(res.rmse,digits = 2,
 
 | method  |  rmse |
 |:--------|------:|
-| full    | 65.92 |
-| forward | 58.39 |
-| ridge   | 57.75 |
-| lasso   | 57.64 |
+| full    | 64.06 |
+| forward | 58.11 |
+| ridge   | 58.23 |
+| lasso   | 55.78 |
 
 The Lasso has the lowest generalization error (RMSE). We plot the
 regression coefficients for all 3 methods.
@@ -611,15 +631,15 @@ resamples(models) %>% summary( metric = "RMSE")
     solution
 
 Hint: calculate the gradient of the loss function
-$\\ell\_{\\rm Ridge}(\\beta\|\\bf y,\\bf X)=\\rm{RSS}(\\beta)+\\lambda\\\|\\beta\\\|\_2^2$,
-set equal to zero and solve for *β*.
+$\ell_{\rm Ridge}(\beta|\bf y,\bf X)=\rm{RSS}(\beta)+\lambda\|\beta\|_2^2$,
+set equal to zero and solve for $\beta$.
 
 2.  Use the code below to generate simulated data. Use the formula from
-    the script to calculate the Ridge coefficients for *λ* = 35. Compare
-    the coefficients with those obtained using `glmnet`. Hint: Read the
-    following
+    the script to calculate the Ridge coefficients for $\lambda=35$.
+    Compare the coefficients with those obtained using `glmnet`. Hint:
+    Read the following
     [blog](https://stats.stackexchange.com/questions/129179/why-is-glmnet-ridge-regression-giving-me-a-different-answer-than-manual-calculat)
-    on how to scale the *λ*.
+    on how to scale the $\lambda$.
 
 ``` r
 set.seed(1)
@@ -645,8 +665,7 @@ coef.ridge <- as.vector(coef(fit.ridge))[-1]
 head(coef.ridge)
 ```
 
-    ## [1]  0.27330465 -0.24799766  0.19686435 -0.21942808
-    ## [5]  0.05302251 -0.02458886
+    ## [1]  0.27330465 -0.24799766  0.19686435 -0.21942808  0.05302251 -0.02458886
 
 Next we calculate the coefficients based on the formula from the script.
 Note that we need to re-scale the lambda.
@@ -658,21 +677,19 @@ coef.ridge2 <- solve(t(x)%*%x+my.lambda2*diag(nrow=ncol(x)))%*%t(x)%*%y
 head(coef.ridge2)[,1]
 ```
 
-    ## [1]  0.27031012 -0.24528806  0.19469189 -0.21696366
-    ## [5]  0.05244081 -0.02429057
+    ## [1]  0.27031012 -0.24528806  0.19469189 -0.21696366  0.05244081 -0.02429057
 
 # 7 Bayesian interpretation of Ridge regression (difficult)
 
 1.  Write down the log-likelihood of the linear regression model. Note:
-    *Y*<sub>*i*</sub> = *X*<sub>*i*</sub><sup>*T*</sup>*β* + *ϵ*<sub>*i*</sub>,
-    where *ϵ*<sub>1</sub>, …, *ϵ*<sub>*n*</sub> iid
-    *N*(0,*σ*<sup>2</sup>) and $\\bf{X}$ is a fixed *n* × *p* design
+    $Y_i=X_{i}^T\beta +\epsilon_i,$ where $\epsilon_1,\ldots,\epsilon_n$
+    iid $N(0,\sigma^2)$ and $\bf{X}$ is a fixed $n\times p$ design
     matrix.
 2.  Find the expression for the maximum likelihood estimator.
-3.  Assuming a prior distribution *β*<sub>1</sub>, …, *β*<sub>*p*</sub>
-    iid  ∼ *N*(0,*τ*<sup>2</sup>), derive the posterior distribution of
-    *β* and show that the maximum a posteriori estimator (MAP) coincides
-    with the Ridge estimator.
+3.  Assuming a prior distribution $\beta_1,\ldots,\beta_p$ iid
+    $\sim N(0,\tau^2)$, derive the posterior distribution of $\beta$ and
+    show that the maximum a posteriori estimator (MAP) coincides with
+    the Ridge estimator.
 
 The solution to this exercise.
 
@@ -683,9 +700,9 @@ The solution to this exercise.
 1.  Load the `hdi` package and read the riboflavin data set
     (`?riboflavin`).
 2.  Run the Lasso and generate the trace plot.
-3.  Run the Elastic net with mixing parameters *α* = 0.25, 0.5, 0.75 and
-    1 and compare the cross-validation curves. Hint: use the `foldid`
-    argument in `glmnet`.
+3.  Run the Elastic net with mixing parameters $\alpha=0.25, 0.5, 0.75$
+    and $1$ and compare the cross-validation curves. Hint: use the
+    `foldid` argument in `glmnet`.
 4.  Show the selected genes for the best performing model.
 
 The solution to this exercise.
@@ -694,6 +711,11 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
+```
+
+    ## Loading required package: scalreg
+
+``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -757,17 +779,11 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"    
-    ##  [4] "GAPB_at"     "LYSC_at"     "PKSA_at"    
-    ##  [7] "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"    
-    ## [10] "XKDS_at"     "XTRA_at"     "YBFI_at"    
-    ## [13] "YCDH_at"     "YCGO_at"     "YCKE_at"    
-    ## [16] "YCLB_at"     "YCLF_at"     "YDDH_at"    
-    ## [19] "YDDK_at"     "YEBC_at"     "YEZB_at"    
-    ## [22] "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"  
-    ## [25] "YKBA_at"     "YOAB_at"     "YQJU_at"    
-    ## [28] "YRVJ_at"     "YTGB_at"     "YURQ_at"    
-    ## [31] "YXLD_at"     "YXLE_at"     "YYDA_at"
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"  
+    ##  [9] "XHLB_at"     "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCDH_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"    
+    ## [17] "YCLF_at"     "YDDH_at"     "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"  
+    ## [25] "YKBA_at"     "YOAB_at"     "YQJU_at"     "YRVJ_at"     "YTGB_at"     "YURQ_at"     "YXLD_at"     "YXLE_at"    
+    ## [33] "YYDA_at"
 
 ``` r
 ## By default, the selected variables are based on the largest value of
@@ -824,8 +840,7 @@ summary(fit)
     ## (Intercept) -3.521710   0.416031  -8.465  < 2e-16 ***
     ## age          0.064108   0.008532   7.513 5.76e-14 ***
     ## ---
-    ## Signif. codes:  
-    ## 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
@@ -844,8 +859,8 @@ exp(coef(fit)[2])
     ##      age 
     ## 1.066208
 
-This means that an increase of 1 year in age leads to a 6.6% increase in
-the odds of having a heart disease.
+This means that an increase of 1 year in age leads to a $6.6\%$ increase
+in the odds of having a heart disease.
 
 The estimated probability of having a heart disease at age 65 can be
 calculated using the `predict` function.
@@ -983,12 +998,11 @@ dtest <- dtest[,-257]
 5.  In the previous approaches we assumed logit-link
 
 Next we assume that the coefficients are a smooth function of the
-frequency *β*(*f*), i.e.  where *h*<sub>*m*</sub> are B-spline basis
-functions for a natural cubic spline with *ν* = 12 degrees of freedom
-(defined on the set of frequencies). Consider filtered inputs
-*x*<sup>\*</sup> = **H**<sup>*T*</sup>*x* and fit *θ* by logistic
-regression on the *x*<sup>\*</sup>. Evaluate the training and test
-misclassification errors.
+frequency $\beta(f)$, i.e.  where $h_m$ are B-spline basis functions for
+a natural cubic spline with $\nu=12$ degrees of freedom (defined on the
+set of frequencies). Consider filtered inputs $x^*=\textbf{H}^T x$ and
+fit $\theta$ by logistic regression on the $x^*$. Evaluate the training
+and test misclassification errors.
 
 6.  Plot the coefficients of the different models.
 
@@ -1083,7 +1097,7 @@ mean(pred_test!=ytest)
 
     ## [1] 0.2050114
 
-We use the natural cubic spline basis with *ν* = 12 to express the
+We use the natural cubic spline basis with $\nu=12$ to express the
 coefficients as a smooth function of the frequencies. We calculate the
 train and test errors.
 
@@ -1355,9 +1369,9 @@ heart disease data.
     (choose `rpart.control(cp=0, minsplit=50)`). How many leaves has the
     tree now?
 3.  Plot the cross-validation error against the complexity parameter
-    *α*. What is the tree size of the optimal model?
-4.  Prune the tree using `prune` and by choosing cp (=*α*) to achieve
-    minimal cross-validation error.
+    $\alpha$. What is the tree size of the optimal model?
+4.  Prune the tree using `prune` and by choosing cp (=$\alpha$) to
+    achieve minimal cross-validation error.
 5.  Calculate the confusion matrix and the misclassification error.
 6.  Generate a bootstrap sample. Grow a tree and calculate the
     out-of-bag error.
@@ -1409,7 +1423,7 @@ fit.tree2$cptable[fit.tree2$cptable[,"CP"]==0,"nsplit"]+1 # number of leaves
     ## [1] 43
 
 Next, we plot the cross-validation error against the complexity
-parameter *α*.
+parameter $\alpha$.
 
 ``` r
 plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
@@ -1568,12 +1582,9 @@ t.tab <- printcp(fit.rpart)
     ##     cp = 1e-05)
     ## 
     ## Variables actually used in tree construction:
-    ##  [1] capavg      caplong     captot      cf.dollar  
-    ##  [5] cf.exclaim  wf.000      wf.650      wf.all     
-    ##  [9] wf.business wf.edu      wf.free     wf.george  
-    ## [13] wf.hp       wf.hpl      wf.internet wf.money   
-    ## [17] wf.our      wf.over     wf.pm       wf.re      
-    ## [21] wf.remove   wf.you      wf.your    
+    ##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000      wf.650      wf.all      wf.business
+    ## [10] wf.edu      wf.free     wf.george   wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
+    ## [19] wf.pm       wf.re       wf.remove   wf.you      wf.your    
     ## 
     ## Root node error: 1223/3065 = 0.39902
     ## 
@@ -1762,6 +1773,41 @@ class(esetmouse)
 dim(esetmouse)
 ```
 
+    ## Loading required package: Biobase
+
+    ## Loading required package: BiocGenerics
+
+    ## 
+    ## Attaching package: 'BiocGenerics'
+
+    ## The following object is masked from 'package:randomForest':
+    ## 
+    ##     combine
+
+    ## The following object is masked from 'package:gridExtra':
+    ## 
+    ##     combine
+
+    ## The following objects are masked from 'package:dplyr':
+    ## 
+    ##     combine, intersect, setdiff, union
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     IQR, mad, sd, var, xtabs
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     anyDuplicated, append, as.data.frame, basename, cbind, colnames, dirname, do.call, duplicated,
+    ##     eval, evalq, Filter, Find, get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply, match,
+    ##     mget, order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce, rownames,
+    ##     sapply, setdiff, sort, table, tapply, union, unique, unsplit, which.max, which.min
+
+    ## Welcome to Bioconductor
+    ## 
+    ##     Vignettes contain introductory material; view with 'browseVignettes()'. To cite Bioconductor, see
+    ##     'citation("Biobase")', and for packages 'citation("pkgname")'.
+
     ## Features  Samples 
     ##    15923       24
 
@@ -1772,10 +1818,8 @@ genes.
 exprs(esetmouse)[1:6,1]
 ```
 
-    ## 1367452_at 1367453_at 1367454_at 1367455_at 
-    ##  10.051651  10.163334  10.211724  10.334899 
-    ## 1367456_at 1367457_at 
-    ##  10.889349   9.666755
+    ## 1367452_at 1367453_at 1367454_at 1367455_at 1367456_at 1367457_at 
+    ##  10.051651  10.163334  10.211724  10.334899  10.889349   9.666755
 
 An overview on the phenotype data can be obtained using the following
 commands.
@@ -1788,7 +1832,7 @@ table(pData(esetmouse)$strain)
     ##  A  B 
     ## 12 12
 
-We run a two-sample t-test for gene *j* = 11425.
+We run a two-sample t-test for gene $j=11425$.
 
 ``` r
 x <- esetmouse$strain # strain information
@@ -1845,6 +1889,16 @@ expression analysis and we plot the results using a volcano plot.
 
 ``` r
 library(limma)
+```
+
+    ## 
+    ## Attaching package: 'limma'
+
+    ## The following object is masked from 'package:BiocGenerics':
+    ## 
+    ##     plotMA
+
+``` r
 # first argument: gene expression matrix with genes in rows and sample in columns
 # second argument: design matrix
 fit.limma <- lmFit(t(y), design=model.matrix(~ x)) 
