@@ -239,6 +239,7 @@ The solution to this exercise.
 Read the data set and create training and test data.
 
 ```{r}
+set.seed(007)
 diabetes <- readRDS(file="data/diabetes.rds")
 data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
 colnames(data) <- gsub(":",".",colnames(data))
@@ -254,18 +255,17 @@ ytest <- data_test[,1]
 We perform forward stepwise regression.
 
 ```{r}
+# Full model
+fit.full <- lm(y~.,data=data_train)
+
 # Forward regression
 fit0 <- lm(y~1,data=data_train)
-up.model <- paste("~", 
-                  paste(
-                    colnames(data_train[,-1]),collapse=" + ")
-                  )
 fit.fw <- stepAIC(fit0,direction="forward",
                   scope=list(lower=fit0,
-                             upper=up.model
+                             upper=fit.full
                              
                   ),
-                  trace = FALSE
+                  trace = TRUE
 )
 #summary(fit.fw)
 ```
@@ -309,8 +309,6 @@ plot(fit.lasso.cv)#fit.lasso.cv$lambda.1se
 We calculate the root-mean-square errors (RMSE) on the test data and compare with the full model.
 
 ```{r}
-# Full model
-fit.full <- lm(y~.,data=data_train)
 # RMSE
 pred.full <- predict(fit.full,newdata=data_test)
 pred.fw <- predict(fit.fw,newdata=data_test)
