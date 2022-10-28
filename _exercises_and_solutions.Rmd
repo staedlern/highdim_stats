@@ -852,6 +852,7 @@ y <- read.table("data/lymphtime.txt",header = TRUE)%>%
 ```
 
 Plot the distribution of the survival times.
+
 ```{r echo=FALSE,fig.height=3, warning=FALSE, message=FALSE}
 dd <- data.frame(y)
 p1 <- dd%>%
@@ -864,6 +865,7 @@ ggarrange(p1,p2)
 ```
 
 Plot of the Kaplan-Meier estimates.
+
 ```{r}
 dat <- data.frame(y)
 fit.surv <- survfit(Surv(time, status) ~ 1, 
@@ -872,6 +874,7 @@ ggsurvplot(fit.surv,conf.int=FALSE)
 ```
 
 Fit a Cox regression model.
+
 ```{r}
 dat <- data.frame(cbind(y,x[,1:3]))
 fit <- coxph(Surv(time,status)~.,data=dat)
@@ -887,6 +890,7 @@ x <- scale(x[,topvar.genes])
 ```
 
 Run `glmnet` using `family="cox"`.
+
 ```{r}
 set.seed(1)
 y.surv <- Surv(y[,"time"],y[,"status"])
