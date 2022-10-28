@@ -158,6 +158,7 @@ which covariates were important factors in disease progression.
 We start by splitting the data into training and test data.
 
 ```{r}
+set.seed(007)
 diabetes <- readRDS(file="data/diabetes.rds")
 data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
 colnames(data) <- gsub(":",".",colnames(data))
@@ -180,15 +181,14 @@ We perform forward stepwise regression.
 
 
 ```{r}
+# Full model
+fit.full <- lm(y~.,data=data_train)
+
 # Forward regression
-fit0 <- lm(y~1,data=data_train)
-up.model <- paste("~", 
-                  paste(
-                    colnames(data_train[,-1]),collapse=" + ")
-                  )
-fit.fw <- stepAIC(fit0,direction="forward",
-                  scope=list(lower=fit0,
-                             upper=up.model
+fit.null <- lm(y~1,data=data_train)
+fit.fw <- stepAIC(fit.null,direction="forward",
+                  scope=list(lower=fit.null,
+                             upper=fit.full
                              
                   ),
                   trace = FALSE
@@ -235,8 +235,6 @@ plot(fit.lasso.cv)#fit.lasso.cv$lambda.1se
 We calculate the root-mean-square errors (RMSE) on the test data and compare with the full model.
 
 ```{r}
-# Full model
-fit.full <- lm(y~.,data=data_train)
 # RMSE
 pred.full <- predict(fit.full,newdata=data_test)
 pred.fw <- predict(fit.fw,newdata=data_test)
@@ -252,7 +250,7 @@ kable(res.rmse,digits = 2,
 
 The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
 
-```{r, echo=FALSE}
+```{r warning=FALSE}
 beta.fw <- coef(fit.fw)
 beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
 beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)

@@ -90,6 +90,7 @@ pairs(data[,1:5])
 ```
 
 Create training and test data.
+
 ```{r}
 train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
 data_train <- data[train_ind,]
@@ -99,7 +100,9 @@ data_test <- data[-train_ind,]
 xtest <- as.matrix(data_test[,-1])
 ytest <- data_test[,1]
 ```
+
 Fit a univariate regression model.
+
 ```{r}
 fit1 <- lm(y~bmi,data=data_train)
 summary(fit1)
@@ -145,6 +148,7 @@ Compare the 2 models using the `anova` function.
 ```{r}
 anova(fit1,fit2)
 ```
+
 # Diabetes data and model validation
 
 In the previous section we developed 2 models to predict `y`. In this section we explore the generalizability of these models.
@@ -259,13 +263,13 @@ We perform forward stepwise regression.
 fit.full <- lm(y~.,data=data_train)
 
 # Forward regression
-fit0 <- lm(y~1,data=data_train)
-fit.fw <- stepAIC(fit0,direction="forward",
-                  scope=list(lower=fit0,
+fit.null <- lm(y~1,data=data_train)
+fit.fw <- stepAIC(fit.null,direction="forward",
+                  scope=list(lower=fit.null,
                              upper=fit.full
                              
                   ),
-                  trace = TRUE
+                  trace = FALSE
 )
 #summary(fit.fw)
 ```
@@ -323,7 +327,7 @@ kable(res.rmse,digits = 2,
 
 The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
 
-```{r, echo=FALSE}
+```{r, warning=FALSE}
 beta.fw <- coef(fit.fw)
 beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
 beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
