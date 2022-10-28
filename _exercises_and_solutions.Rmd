@@ -831,7 +831,7 @@ for (i in 1:n.fold){
   # calculated linear predictor on samples in the kth fold
   lp <- predict(fitk,
                 newx=x[omitk,],
-                s=cv.coxnet$lambda.min,
+                s=fitk$lambda.1se,
                 type="link")
   dat.preval$lp[omitk] <- lp
 }
@@ -946,7 +946,7 @@ for (i in 1:n.fold){
   # calculated linear predictor on samples in the kth fold
   lp <- predict(fitk,
                 newx=x[omitk,],
-                s=cv.coxnet$lambda.min,
+                s=fitk$lambda.1se,
                 type="link")
   dat.preval$lp[omitk] <- lp
 }
