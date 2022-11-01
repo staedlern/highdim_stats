@@ -22,7 +22,15 @@ output:
 knitr::opts_chunk$set(echo = TRUE,warnings=FALSE,fig.align='center')
 ```
 
-```{r, include=FALSE, warning=FALSE}
+
+---
+
+# Prerequisites
+
+The data sets used in the following exercises can be downloaded from [here](https://github.com/staedlern/highdim_stats/tree/main/data). We recommend to install the following R packages.
+
+
+```{r}
 library(knitr)
 library(caret)
 library(glmnet)
@@ -47,7 +55,7 @@ measure of disease progression one year after baseline. There are ten baseline
 variables — age, sex, body-mass index, average blood pressure, and six blood
 serum measurements — plus quadratic terms, giving a total of $p=64$ features. 
 
-1. Read the diabetes data set and make a histogram for the response variable `y`. Describe the distribution of the variable.
+1. Read the diabetes data set `diabetes.rds` and make a histogram for the response variable `y`. Describe the distribution of the variable.
 2. Create a scatterplot matrix for the 5 first variables in the data set. Use `pairs` or `ggpairs`.
 3. Randomly assign patients to training and test data (use `sample`). 
 4. Run a univariate regression model with `bmi` as covariate. Study the `summary` output. 
@@ -200,6 +208,7 @@ Calculate RMSEs on test data.
 RMSE(data_test$y,predict(fit1,newdata=data_test))
 RMSE(data_test$y,predict(fit2,newdata=data_test))
 ```
+
 # Calculus, optimization and OLS
 
 1. Consider the function $f(x)=2x^2 + x -5$. Draw a plot of the function.
@@ -481,7 +490,7 @@ knitr::include_graphics("ridge_map.jpg")
 
 # Riboflavin data and elasticnet mixing parameter
 
-1. Load the `hdi` package and read the riboflavin data set (`?riboflavin`).
+1. Load the `hdi` package and load the riboflavin data set `riboflavin.rds`. More information on the data can be obtained using `?riboflavin`. 
 2. Run the Lasso and generate the trace plot.
 3. Run the Elastic net with mixing parameters $\alpha=0.25, 0.5, 0.75$ and $1$ and compare the cross-validation curves. Hint: use the `foldid` argument in `glmnet`. 
 4. Show the selected genes for the best performing model.
@@ -506,10 +515,11 @@ plot(fit)
 ```
 
 We run 10-fold cross-validation for the different mixing parameters and plot the error curves.
+
 ```{r}
 set.seed(1)
 n.fold <- 10
-foldid <- sample(1:n.fold, size = length(y), replace = TRUE)
+foldid <- sample(rep(1:n.fold,length=length(y)))
 cv1 <- cv.glmnet(x, y, foldid = foldid, alpha = 1) 
 cv2  <- cv.glmnet(x, y, foldid = foldid, alpha = 0.75)
 cv3  <- cv.glmnet(x, y, foldid = foldid, alpha = 0.5)
@@ -554,7 +564,7 @@ knitr::include_graphics("lasso_orthonormal.jpg")
 
 # Heart disease data and logistic regression
 
-We explore logistic regression based on the South African heart disease data. Proceed as follows:
+We explore logistic regression based on the South African heart disease data `sahd.rds`. Proceed as follows:
 
 1. Fit a univariate logistic regression model with `age` as the covariate. Calculate the odds-ratio and elaborate on the interpretation. 
 2. Predict the probability of heart disease at age 65.   
@@ -796,7 +806,7 @@ Follow the short [tutorial](https://cran.r-project.org/web/packages/caret/vignet
 
 In this exercise we explore the Lymphoma data set to predict survival based on gene expression data.
 
-1. Load the Lymphoma data and make a histogram of the survival times.
+1. Load the Lymphoma data and make a histogram of the survival times (`lymphx.txt` and `lymphtime.txt`) .
 
 2. Plot the estimated survival curve using `survfit` (Kaplan-Meier method).
 
@@ -812,7 +822,7 @@ In this exercise we explore the Lymphoma data set to predict survival based on g
 ```{r eval=FALSE}
 # split data into K=5 folds
 n.fold <- 5
-foldid <- sample(1:n.fold, size = nrow(x), replace = TRUE)
+foldid <- sample(rep(1:n.fold, length = nrow(x)))
 
 # pre-validation
 dat.preval <- data.frame(y) 
@@ -931,7 +941,7 @@ set.seed(150381)
 
 # split data into K=5 folds
 n.fold <- 5
-foldid <- sample(1:n.fold, size = nrow(x), replace = TRUE)
+foldid <- sample(rep(1:n.fold, length = nrow(x)))
 
 # pre-validation
 dat.preval <- data.frame(y) 
@@ -967,7 +977,7 @@ ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 
 # Decision trees, Random Forest and AdaBoost
 
-In this exercise we explore decision trees based on the South African heart disease data.
+In this exercise we explore decision trees based on the South African heart disease data `sahd.rds`.
 
 1. Load the South African heart disease data and grow a decision tree using `rpart`. Visualize the tree using `rpart.plot`. How many leave nodes has the tree?
 2. Re-grow the tree but now relax the "default" control parameters (choose `rpart.control(cp=0, minsplit=50)`). How many leaves has the tree now?
