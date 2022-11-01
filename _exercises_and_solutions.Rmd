@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = TRUE,warnings=FALSE,fig.align='center')
 The data sets used in the following exercises can be downloaded from [here](https://github.com/staedlern/highdim_stats/tree/main/data). We recommend to install the following R packages.
 
 
-```{r}
+```{r echo=FALSE}
 library(knitr)
 library(caret)
 library(glmnet)
