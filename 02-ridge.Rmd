@@ -51,6 +51,19 @@ Note that for $\lambda>0$ the matrix $\textbf{X}^T \textbf{X}+\lambda \textbf{I}
 
 Ridge regression is implemented in the package `glmnet`. We use `alpha=0` and can call 
 
+```{r include=FALSE}
+set.seed(1)
+n <- 10
+p <- 9
+beta <- c(2,rep(0,p-1))
+
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+ytrain <- as.numeric(xtrain%*%beta+rnorm(n,sd=0.5))
+dtrain <- data.frame(xtrain)
+dtrain$y <- ytrain
+```
+
 ```{r}
 fit.ridge.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=0) 
 plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)

@@ -40,6 +40,19 @@ Similar to Ridge regression the Lasso can be formulated as a penalisation proble
 
 To fit the Lasso we use `glmnet` (with $\alpha=1$).
 
+```{r include=FALSE}
+set.seed(1)
+n <- 10
+p <- 9
+beta <- c(2,rep(0,p-1))
+
+# simulate covariates
+xtrain <- matrix(rnorm(n*p),n,p)
+ytrain <- as.numeric(xtrain%*%beta+rnorm(n,sd=0.5))
+dtrain <- data.frame(xtrain)
+dtrain$y <- ytrain
+```
+
 ```{r}
 fit.lasso.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=1) 
 ```

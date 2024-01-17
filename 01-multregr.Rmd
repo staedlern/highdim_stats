@@ -6,6 +6,7 @@ library(knitr)
 library(tidyverse)
 library(caret)
 library(MASS)
+library(leaps)
 ```
 
 In this chapter we review multiple linear regression and in particular the Ordinary Least Squares (OLS) estimator. We investigate the challenges which arise in the high-dimensional setting where the number of covariates is large compared to the number of observations, i.e. $p>>n$. We discuss model selection and introduce subset- and stepwise-regression.

@@ -4,6 +4,7 @@
 library(knitr)
 library(caret)
 library(mlbench)
+library(pheatmap)
 library(tidyverse)
 library(MASS)
 library(glmnet)
