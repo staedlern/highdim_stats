@@ -27,26 +27,14 @@ knitr::opts_chunk$set(echo = TRUE,warning=FALSE,fig.align='center')
 
 # Prerequisites
 
-The data sets used in the following exercises can be downloaded from [here](https://github.com/staedlern/highdim_stats/tree/main/data). We recommend to install the following R packages.
+The data sets used in the following exercises can be downloaded from [here](https://github.com/staedlern/highdim_stats/tree/main/data). We recommend to install the following R packages: `tidyverse`, `knitr`, `caret`, `glmnet`, `MASS`, `lars`, `gbm`, `splines`, `randomForest`, `rpart`, `rpart.plot`, `ggpubr`, `survival`, `survminer`.
 
 
 ```{r message=FALSE}
-library(knitr)
-library(caret)
-library(glmnet)
 library(tidyverse)
-library(MASS)
-library(lars)
-library(gridExtra)
-library(gbm)
-library(splines)
-library(randomForest)
-library(rpart)
-library(rpart.plot)
-library(ggpubr)
-library(survminer)
-library(survival)
+library(knitr)
 ```
+
 
 # Diabetes data and linear regression
 
@@ -87,6 +75,7 @@ colnames(data) <- gsub(":",".",colnames(data))
 ```
 
 Generate a histogram of `y`.
+
 ```{r}
 hist(data$y)
 ```
@@ -100,6 +89,7 @@ pairs(data[,1:5])
 Create training and test data.
 
 ```{r}
+set.seed(1111)
 train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
 data_train <- data[train_ind,]
 xtrain <- as.matrix(data_train[,-1])
@@ -133,7 +123,7 @@ plot(fit1,which=1) # Tukey Anscombe plot
 
 The QQ plot. This plot is used to check the normality assumption of the residuals. The residuals show slight tendency to be right-skewed (see also the histogram).
 ```{r}
-plot(fit1,which=2) # Tukey Anscombe plot
+plot(fit1,which=2) # QQ plot
 hist(residuals(fit1))
 ```
 
@@ -151,7 +141,7 @@ sum(residuals(fit1)^2)
 sum(residuals(fit2)^2)
 ```
 
-Compare the 2 models using the `anova` function.
+As expected the model with more covariates has a smaller RSS. We can compare the 2 models using the `anova` function. Based on the result we would favor the 2nd model.
 
 ```{r}
 anova(fit1,fit2)
@@ -161,7 +151,7 @@ anova(fit1,fit2)
 
 In the previous section we developed 2 models to predict `y`. In this section we explore the generalizability of these models.
 
-1. Calculate the RMSEs on the training data. Which model will perform best on future data?
+1. Calculate the RMSEs on the training data. Which model will perform better on future data?
 2. Use the test data and make scatter plots of the observed against predicted outcomes. Use `ggplot` to create one plot per model and add the regression line (`geom_smooth`) and the "y=x" (`geom_abline`) line to the graph. This plot is also called "calibration plot". The model is "well" calibrated if the regression line agrees with the "y=x" line.
 3. Generate boxplots of `predicted - observed` for the 2 models. What do you conclude?
 4. Calculate the generalization error, i.e., the RMSE on the test data.
@@ -170,13 +160,14 @@ In the previous section we developed 2 models to predict `y`. In this section we
 Solution to the exercise.
 
 We calculate the RMSEs on the training data. RMSE on training data tells you how good the model "fits" the data. We
-cannot make any conclusion about the generalizability of the models based on RMSEs on training data.
+cannot make any conclusion about the generalizability of the models based on RMSEs on training data. Model 2 includes many more covariates and therefore "fits" the data better (smaller training RMSE).
 
 ```{r}
+library(caret) # RMSE is implemented in caret 
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
-We draw calibration plots for the 2 models. Model 1 calibrates slightly better.
+We draw calibration plots for the 2 models. Model 1 is slightly better calibrated.
 
 ```{r  fig.width=8,fig.height=4}
 dd <- data.frame(pred=c(predict(fit1,newdata=data_test),
@@ -202,7 +193,7 @@ dd%>%
   geom_point()
 ```
 
-Calculate RMSEs on test data.
+Calculate RMSEs on test data. The RMSE on test data is smaller for model 1.
 
 ```{r}
 RMSE(data_test$y,predict(fit1,newdata=data_test))
@@ -216,7 +207,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
 3. Obtain the minimum of $f(x)$ by taking the derivative and setting equal to zero.
 4. Show that $\|a\|^2_2=a^Ta$.
 5. Use the result in 4. and show that $\bf RSS(\beta)=\bf y^Ty-2 y^T X \beta +\beta^T X^T X \beta$. 
-6. Invoke the result obtained in 4. and show that $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$ Hint: review the "Identities" section of [Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
+6. Invoke the result obtained in 4. and show that $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$ Hint: review the "Identities" section of [Matrix calculus - Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
 7. Do you understand the derivation of the least squares estimator?
 
 
@@ -268,6 +259,11 @@ ytest <- data_test[,1]
 We perform forward stepwise regression.
 
 ```{r}
+library(MASS) # stepAIC
+```
+
+
+```{r}
 # Full model
 fit.full <- lm(y~.,data=data_train)
 
@@ -302,6 +298,7 @@ We continue by fitting Ridge regression. We show the trace plot and the cross-va
 ```{r}
 # Ridge
 set.seed(1515)
+library(glmnet)
 fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
 fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
 plot(fit.ridge,xvar="lambda")
@@ -329,7 +326,7 @@ pred.ridge <- as.vector(predict(fit.ridge,newx=xtest,s=fit.ridge.cv$lambda.1se))
 pred.lasso <- as.vector(predict(fit.lasso,newx=xtest,s=fit.lasso.cv$lambda.1se))
 res.rmse <- data.frame(
   method=c("full","forward","ridge","lasso"),
-  rmse=c(RMSE(pred.full,ytest),RMSE(pred.fw,ytest),RMSE(pred.ridge,ytest),RMSE(pred.lasso,ytest)))
+  rmse=c(caret::RMSE(pred.full,ytest),caret::RMSE(pred.fw,ytest),caret::RMSE(pred.ridge,ytest),caret::RMSE(pred.lasso,ytest)))
 kable(res.rmse,digits = 2,
       booktabs=TRUE)
 ```
@@ -365,6 +362,7 @@ In the previous exercise we build predictive models for the Diabetes data. The `
 library(caret)
 
 ## Read and prepare the data
+set.seed(007)
 diabetes <- readRDS(file="data/diabetes.rds")
 data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
 colnames(data) <- gsub(":",".",colnames(data))
@@ -623,6 +621,10 @@ AIC(fit.bw)
 We fit a logistic regression model using natural splines.
 
 ```{r}
+library(splines) # to fit splines
+```
+
+```{r}
 # Computes the logistic regression model using natural splines (note famhist is included as a factor): 
 form <-  "chd ~ ns(sbp,df=4) + ns(tobacco,df=4) + ns(ldl,df=4) + famhist + ns(obesity,df=4)+ ns(alcohol,df=4)  + ns(age,df=4)"
 form <-  formula(form)
@@ -703,7 +705,6 @@ We prepare the data set.
 <!-- dat <- read.csv("https://web.stanford.edu/~hastie/ElemStatLearn/datasets/phoneme.data") -->
 
 ```{r}
-library(splines)
 dat <- readRDS(file="data/phoneme.rds")
 dat2 <- dat[dat$g%in%c("aa","ao"),]
 
@@ -723,6 +724,7 @@ dtest <- dtest[,-257]
 We plot the log-periodograms.
 
 ```{r}
+set.seed(2)
 id.ao <- sample(which(ytrain==1),5)
 id.aa <- sample(which(ytrain==0),5)
 plot(xtrain[id.ao[1],],type="l",
@@ -871,12 +873,15 @@ p1 <- dd%>%
   theme_bw()
 p2 <- p1+
   scale_x_continuous(trans='log2')
+library(ggpubr)
 ggarrange(p1,p2)
 ```
 
 Plot of the Kaplan-Meier estimates.
 
 ```{r}
+library(survival) # survival analysis
+library(survminer) # nice survival plots
 dat <- data.frame(y)
 fit.surv <- survfit(Surv(time, status) ~ 1, 
                     data = dat)
@@ -966,7 +971,7 @@ for (i in 1:n.fold){
 }
 ```
 
-Plot the Kaplan-Meier curves for the good and poor prognosic groups based on the pre-validated data.
+Plot the Kaplan-Meier curves for the good and poor prognostic groups based on the pre-validated data.
 
 ```{r}
 dat.preval$prognosis <- ifelse(dat.preval$lp>0,"poor","good")
@@ -1044,7 +1049,7 @@ Finally, we compute the confusion matrix and the misclassification error.
 # confusion matrix of actual and fitted class labels
 table(Actual=sahd$chd,Fitted=predict(fit.prune,type="class"))
 
-# missclassification error
+# misclassification error
 mean(sahd$chd!=predict(fit.prune,type="class"))
 ```
 
@@ -1076,6 +1081,7 @@ varImpPlot(fit.rf,type=1)
 We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`.
 
 ```{r}
+library(gbm)
 fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
 summary(fit.boost)
 newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
@@ -1204,6 +1210,7 @@ Solution to the exercise.
 We load the `ExpressionSet`.
 
 ```{r}
+library(Biobase)
 esetmouse <- readRDS(file="data/esetmouse.rds")
 class(esetmouse)
 dim(esetmouse)
