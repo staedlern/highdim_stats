@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2024-01-21
+2024-02-01
 
 - [1 Prerequisites](#1-prerequisites)
 - [2 Diabetes data and linear
@@ -43,6 +43,8 @@ The data sets used in the following exercises can be downloaded from
 recommend to install the following R packages: `tidyverse`, `knitr`,
 `caret`, `glmnet`, `MASS`, `lars`, `gbm`, `splines`, `randomForest`,
 `rpart`, `rpart.plot`, `ggpubr`, `survival`, `survminer`.
+
+Let’s load `knitr` and `tidyverse`:
 
 ``` r
 library(tidyverse)
@@ -280,18 +282,6 @@ data better (smaller training RMSE).
 
 ``` r
 library(caret) # RMSE is implemented in caret 
-```
-
-    ## Loading required package: lattice
-
-    ## 
-    ## Attaching package: 'caret'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     lift
-
-``` r
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 ```
 
@@ -303,7 +293,7 @@ RMSE(data_train$y,predict(fit2,newdata=data_train))
 
     ## [1] 40.71655
 
-We draw calibration plots for the 2 models. Model 1 is slightly better
+We draw calibration plots for the 2 models. Model 1 is better
 calibrated.
 
 ``` r
@@ -318,7 +308,7 @@ dd%>%
   geom_smooth(se=FALSE,method="lm")+
   geom_abline(slope=1,intercept=0)+
   theme_bw()+
-  facet_wrap(~model)
+  facet_wrap(~model,scales="free")
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
@@ -435,13 +425,6 @@ We perform forward stepwise regression.
 library(MASS) # stepAIC
 ```
 
-    ## 
-    ## Attaching package: 'MASS'
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     select
-
 ``` r
 # Full model
 fit.full <- lm(y~.,data=data_train)
@@ -510,20 +493,6 @@ cross-validation plot.
 # Ridge
 set.seed(1515)
 library(glmnet)
-```
-
-    ## Loading required package: Matrix
-
-    ## 
-    ## Attaching package: 'Matrix'
-
-    ## The following objects are masked from 'package:tidyr':
-    ## 
-    ##     expand, pack, unpack
-
-    ## Loaded glmnet 4.1-8
-
-``` r
 fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
 fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
 plot(fit.ridge,xvar="lambda")
@@ -579,8 +548,8 @@ kable(res.rmse,digits = 2,
 | ridge   | 60.62 |
 | lasso   | 59.64 |
 
-The Lasso has the lowest generalization error (RMSE). We plot the
-regression coefficients for all 3 methods.
+Forward stepwise regression has the lowest generalization error (RMSE).
+We plot the regression coefficients for all 3 methods.
 
 ``` r
 beta.fw <- coef(fit.fw)
@@ -767,15 +736,6 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
-```
-
-    ## Loading required package: scalreg
-
-    ## Loading required package: lars
-
-    ## Loaded lars 1.3
-
-``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -1219,9 +1179,9 @@ based on gene expression data.
     Use the function `coxph`.
 
 4.  Build a predictive model using `glmnet` (data pre-processing: use
-    the top 100 genes and scale the resulting predictor matrix). Which
-    genes are selected? What is the C-index for the optimal tuning
-    parameter?
+    the 100 genes with largest variance and standardize the resulting
+    predictor matrix to have zero-mean and unit-variance). Which genes
+    are selected? What is the C-index for the optimal tuning parameter?
 
 5.  Use the predictive model and classify patients into “good” and
     “poor” prognostic groups by thresholding the linear predictor at
@@ -1285,27 +1245,7 @@ Plot of the Kaplan-Meier estimates.
 
 ``` r
 library(survival) # survival analysis
-```
-
-    ## 
-    ## Attaching package: 'survival'
-
-    ## The following object is masked from 'package:caret':
-    ## 
-    ##     cluster
-
-``` r
 library(survminer) # nice survival plots
-```
-
-    ## 
-    ## Attaching package: 'survminer'
-
-    ## The following object is masked from 'package:survival':
-    ## 
-    ##     myeloma
-
-``` r
 dat <- data.frame(y)
 fit.surv <- survfit(Surv(time, status) ~ 1, 
                     data = dat)
@@ -1506,7 +1446,8 @@ fit.tree2$cptable[fit.tree2$cptable[,"CP"]==0,"nsplit"]+1 # number of leaves
     ## [1] 43
 
 Next, we plot the cross-validation error against the complexity
-parameter $\alpha$.
+parameter $\alpha$. A tree of size $4$ has smallest cross-validation
+error.
 
 ``` r
 plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
@@ -1565,7 +1506,8 @@ mean(sahd$chd[outofbag]!=pred.oob)
     ## [1] 0.3559322
 
 We fit the random forest, plot the error as a function of the number of
-trees and plot the variable importance.
+trees and plot the variable importance. The out-of-bag error estimate
+(black line) stabilizes with increasing number of fitted trees.
 
 ``` r
 library(randomForest)
@@ -1587,13 +1529,6 @@ variable importance. Prediction can be made using `predict`.
 
 ``` r
 library(gbm)
-```
-
-    ## Loaded gbm 2.1.9
-
-    ## This version of gbm is no longer under development. Consider transitioning to gbm3, https://github.com/gbm-developers/gbm3
-
-``` r
 fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
 summary(fit.boost)
 ```
@@ -1853,42 +1788,6 @@ We load the `ExpressionSet`.
 
 ``` r
 library(Biobase)
-```
-
-    ## Loading required package: BiocGenerics
-
-    ## 
-    ## Attaching package: 'BiocGenerics'
-
-    ## The following object is masked from 'package:randomForest':
-    ## 
-    ##     combine
-
-    ## The following objects are masked from 'package:lubridate':
-    ## 
-    ##     intersect, setdiff, union
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     combine, intersect, setdiff, union
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     IQR, mad, sd, var, xtabs
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     anyDuplicated, aperm, append, as.data.frame, basename, cbind, colnames, dirname, do.call, duplicated, eval, evalq, Filter,
-    ##     Find, get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget, order, paste, pmax, pmax.int, pmin,
-    ##     pmin.int, Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply, union, unique, unsplit,
-    ##     which.max, which.min
-
-    ## Welcome to Bioconductor
-    ## 
-    ##     Vignettes contain introductory material; view with 'browseVignettes()'. To cite Bioconductor, see 'citation("Biobase")',
-    ##     and for packages 'citation("pkgname")'.
-
-``` r
 esetmouse <- readRDS(file="data/esetmouse.rds")
 class(esetmouse)
 ```
@@ -1982,16 +1881,6 @@ expression analysis and we plot the results using a volcano plot.
 
 ``` r
 library(limma)
-```
-
-    ## 
-    ## Attaching package: 'limma'
-
-    ## The following object is masked from 'package:BiocGenerics':
-    ## 
-    ##     plotMA
-
-``` r
 # first argument: gene expression matrix with genes in rows and sample in columns
 # second argument: design matrix
 fit.limma <- lmFit(t(y), design=model.matrix(~ x)) 

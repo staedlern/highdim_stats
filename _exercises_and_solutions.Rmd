@@ -29,6 +29,7 @@ knitr::opts_chunk$set(echo = TRUE,warning=FALSE,fig.align='center')
 
 The data sets used in the following exercises can be downloaded from [here](https://github.com/staedlern/highdim_stats/tree/main/data). We recommend to install the following R packages: `tidyverse`, `knitr`, `caret`, `glmnet`, `MASS`, `lars`, `gbm`, `splines`, `randomForest`, `rpart`, `rpart.plot`, `ggpubr`, `survival`, `survminer`.
 
+Let's load `knitr` and `tidyverse`:
 
 ```{r message=FALSE}
 library(tidyverse)
@@ -167,7 +168,7 @@ library(caret) # RMSE is implemented in caret
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 RMSE(data_train$y,predict(fit2,newdata=data_train))
 ```
-We draw calibration plots for the 2 models. Model 1 is slightly better calibrated.
+We draw calibration plots for the 2 models. Model 1 is better calibrated.
 
 ```{r  fig.width=8,fig.height=4}
 dd <- data.frame(pred=c(predict(fit1,newdata=data_test),
@@ -181,7 +182,7 @@ dd%>%
   geom_smooth(se=FALSE,method="lm")+
   geom_abline(slope=1,intercept=0)+
   theme_bw()+
-  facet_wrap(~model)
+  facet_wrap(~model,scales="free")
 ```
 
 Boxplots of predicted minus observed. 
@@ -331,7 +332,7 @@ kable(res.rmse,digits = 2,
       booktabs=TRUE)
 ```
 
-The Lasso has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
+Forward stepwise regression has the lowest generalization error (RMSE). We plot the regression coefficients for all 3 methods.
 
 ```{r, warning=FALSE}
 beta.fw <- coef(fit.fw)
@@ -814,7 +815,7 @@ In this exercise we explore the Lymphoma data set to predict survival based on g
 
 3. Fit a Cox regression model with the first three genes as predictors. Use the function `coxph`.
 
-4. Build a predictive model using `glmnet` (data pre-processing: use the top 100 genes and scale the resulting predictor matrix). Which genes are selected? What is the C-index for the optimal tuning parameter?
+4. Build a predictive model using `glmnet` (data pre-processing: use the 100 genes with largest variance and standardize the resulting predictor matrix to have zero-mean and unit-variance). Which genes are selected? What is the C-index for the optimal tuning parameter?
 
 5. Use the predictive model and classify patients into "good" and "poor" prognostic groups by thresholding the linear predictor at zero. Calculate the Kaplan-Meier curves for the two groups. What is your conclusion? Do you have any concerns?
 
@@ -872,7 +873,8 @@ p1 <- dd%>%
   geom_histogram(alpha=0.8)+
   theme_bw()
 p2 <- p1+
-  scale_x_continuous(trans='log2')
+  scale_x_continuous(trans='log2')+
+  xlab("time (log2 scale)")
 library(ggpubr)
 ggarrange(p1,p2)
 ```
@@ -1026,7 +1028,7 @@ We can get the tree size from the cptable (tree size=number of leaves=number spl
 fit.tree2$cptable[fit.tree2$cptable[,"CP"]==0,"nsplit"]+1 # number of leaves
 ```
 
-Next, we plot the cross-validation error against the complexity parameter $\alpha$.
+Next, we plot the cross-validation error against the complexity parameter $\alpha$. A tree of size $4$ has smallest cross-validation error.
 
 ```{r}
 plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
@@ -1069,7 +1071,7 @@ pred.oob <- predict(fit.in,newdata=sahd[outofbag,],type="class")
 mean(sahd$chd[outofbag]!=pred.oob)
 ```
 
-We fit the random forest, plot the error as a function of the number of trees and plot the variable importance.
+We fit the random forest, plot the error as a function of the number of trees and plot the variable importance. The out-of-bag error estimate (black line) stabilizes with increasing number of fitted trees.
 
 ```{r message=FALSE, warning=FALSE}
 library(randomForest)
