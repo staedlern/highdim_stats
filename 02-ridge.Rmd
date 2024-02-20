@@ -72,7 +72,7 @@ plot(fit.ridge.glmnet,xvar="lambda",label=TRUE)
 
 ## Choice of penalty parameter
 
-In subset- and stepwise regression we had to identify the optimal subset. Similarly, for Ridge regression model selection consists of selecting the tuning parameter $\lambda$. We proceed by choosing a grid of values $0<\lambda_1<\lambda_2<\ldots<\lambda_M<\infty$ and proceed as explained in Section \@ref(model-selection), that is we choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation using the command `cv.glmnet`.
+In subset- and stepwise regression we had to identify the optimal subset. Similarly, for Ridge regression model selection consists of selecting the tuning parameter $\lambda$. We take a grid of values $0<\lambda_1<\lambda_2<\ldots<\lambda_M<\infty$ and proceed as explained in Section \@ref(model-selection), that is we choose the optimal $\lambda_{\rm opt}$ by either re-sampling or information criteria. In `glmnet` we use cross-validation using the command `cv.glmnet`.
 
 ```{r warning=FALSE}
 cv.ridge.glmnet <-cv.glmnet(x=xtrain,y=ytrain,alpha=0) 
@@ -271,9 +271,9 @@ hist(matrix.postsamples[,"tau"])
 colMeans(matrix.postsamples) # posterior mean
 ```
 
-Finally, we compare the regression coefficients from OLS, Ridge regression ($\lambda$ obtained using cross-validation) and Bayesian Ridge regression.
+Finally, we compare the regression coefficients from OLS, Ridge regression ($\lambda$ obtained using cross-validation) and Bayesian Ridge regression (posterior mean).
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 beta.ridgecv <- as.numeric(coef(cv.ridge.glmnet,s=cv.ridge.glmnet$lambda.min))[-1]
 beta.ols <- coef(lm(ytrain~xtrain))[-1]
 beta.bayesian <- colMeans(matrix.postsamples)[1:9]
