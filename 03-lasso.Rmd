@@ -22,11 +22,11 @@ In Ridge regression we minimize $\rm RSS(\beta)$ given constraints on the so-cal
 
 \[\|\beta\|^2_2=\sum_{j=1}^p \beta^2_j \leq c.\] 
 
-Another very popular approach in high-dimensional statistics is *Lasso regression* (Lasso=least absolute shrinkage and selection operator). The Lasso works very similarly. The only difference is that constraints are imposed on the *L1-norm* of the coefficients
+Another very popular approach in high-dimensional statistics is *Lasso regression* (Lasso=least absolute shrinkage and selection operator). The Lasso works similarly. The only difference is that constraints are imposed on the *L1-norm* of the coefficients
 
 \[\|\beta\|_1=\sum_{j=1}^p |\beta_j| \leq c.\]
 
-Therefore the Lasso is referred to as L1 regularization. The change in the form of the constraints (L2 vs L1) has important implications. Figure \@ref(fig:lassogeom) illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with "corners" (the Ridge constraint is a circle). If the sum of squares "hits" one of these corners then the coefficient corresponding to the axis is shrunk to zero. As $p$ increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the "diamond" geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).
+Therefore the Lasso is referred to as L1 regularization. The change in the form of the constraints (L2 vs L1) has important implications. Figure \@ref(fig:lassogeom) illustrates the geometry of the Lasso optimization. Geometrically the Lasso constraint is a diamond with "corners" (the Ridge constraint is a circle). If the residual sum of squares "hits" one of these corners then the coefficient corresponding to the axis is shrunk to zero. As $p$ increases, the multidimensional diamond has an increasing number of corners, and so it is highly likely that some coefficients will be set to zero. Hence, the Lasso performs not only shrinkage but it also sets some coefficients to zero, in other words the Lasso simultaneously performs variable selection. A disadvantage of the "diamond" geometry is that in general there is no closed form solution for the Lasso (the Lasso optimisation problem is not differentiable at the corners of the diamond).
 
 ```{r lassogeom,echo=FALSE,out.width="80%",fig.cap="Geometry of Lasso regression."}
 knitr::include_graphics("lasso_geometry.JPG")
@@ -57,7 +57,7 @@ dtrain$y <- ytrain
 fit.lasso.glmnet <-glmnet(x=xtrain,y=ytrain,alpha=1) 
 ```
 
-The following figure shows the Lasso solution for a grid of $\lambda$ values. We note that the Lasso shrinks some coefficients to exactly zero.
+The following figure shows the Lasso solution for a grid of $\lambda$ values. We note that the Lasso shrinks some coefficients to exactly zero. The number of active covariates (i.e., the number of non-zero coefficients) is indicated at the top of the graph.
 
 ```{r}
 plot(fit.lasso.glmnet,xvar="lambda",label=TRUE)
@@ -150,11 +150,11 @@ In `glmnet` the elastic net regression is implemented using the mixing parameter
 
 ## P-values for high-dimensional regression
 
-The Lasso is a very effective method in the $p>>n$ context. It avoids overfitting by shrinking the regression coefficient and eases interpretation by simultaneously performing variable selection. The Lasso has inspired many researcher which developed new statistical methods. One such approach uses the Lasso combined with the idea of "sample splitting" to obtain p-values in the high-dimensional regression context. The method proceed with the following steps:
+The Lasso is a very effective method in the $p>>n$ context. It avoids overfitting by shrinking the regression coefficients and eases interpretation by simultaneously performing variable selection. The Lasso has inspired many researchers which developed new statistical methods. One such approach uses the Lasso combined with the idea of "sample splitting" to obtain p-values in the high-dimensional regression context. The method consists of the following steps:
 
 1. Sample splitting: Randomly divide the data into two parts, the *in-* and *out*-sample. 
 2. Screening: Use the Lasso to identify the key variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *in-* sample)
-3. P-value calculation: Obtain p-values using OLS regression on selected variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *out-*sample) 
+3. P-value calculation: Obtain p-values using OLS regression on the selected variables $\hat S^{\rm Lasso}_{\lambda}$ (based on the *out-*sample) 
 
 The p-values obtained in step 3 are sensitive to the random split chosen in step 1. Therefore, in order to avoid a "p-value lottery", the steps 1-3 are repeated many times and the results are aggregated. For more details we refer to @meinshausen_p_2009. The approach is implemented in the R package `hdi`.
 
@@ -206,7 +206,6 @@ fit.fw <- stepAIC(fit.null,direction="forward",
                   ),
                   trace = FALSE
 )
-#summary(fit.fw)
 ```
 
 The selection process is depicted in the following table.
@@ -219,7 +218,8 @@ kable(as.data.frame(fit.fw$anova),digits=2,
 The regression coefficients and the corresponding statistics of the AIC-optimal model are shown next.
 
 ```{r}
-kable(broom::tidy(fit.fw),digits=2,
+kable(broom::tidy(fit.fw)%>%
+        dplyr::select(-p.value),digits=2,
       booktabs=TRUE)
 ```
 
