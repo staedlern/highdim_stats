@@ -61,6 +61,8 @@ set, and a sample of 302 controls. The variables are:
 <!-- data source: https://web.stanford.edu/~hastie/ElemStatLearn/ -->
 <!-- dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1) -->
 
+We start by drawing a scatter plots of pairs of risk factors and by color coding cases and controls.
+
 ```{r sahd, fig.cap="Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).",fig.height=10,fig.width=10}
 dat <- readRDS(file="data/sahd.rds")
 pairs(data.matrix(dat[,-1]),
@@ -68,7 +70,7 @@ pairs(data.matrix(dat[,-1]),
       pch=ifelse(dat$chd==1,1,2))
 ```
 
-We first fit a logistic regression model using the function `glm`.
+Next, we fit a logistic regression model using the function `glm`.
 
 ```{r}
 fit.logistic <- glm(chd~sbp+tobacco+ldl+famhist+obesity+alcohol+age,
@@ -90,7 +92,7 @@ $\exp(0.081 ± 2 × 0.026)$=`r paste0(paste0("(",paste0(round(exp(c(0.080 -2*0.0
 
 ## Regularized logistic regression
 
-Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize these approaches to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
+Similar as for linear regression, in the high-dimensional setting where $n$ is small compared to $p$, the maximum likelihood estimator does lead to overfitting and a poor generalisation error. In the context of linear regression we introduced regularization by imposing constraints on the regression coefficients. It is easy to generalize this idea to logistic regression. In `R` subset- and stepwise logistic regression is implemented in `stepAIC` and elastic net regularization in `glmnet` (with argument `family="binomial"`). In the latter case the algorithm optimizes the negative log-likelihood penalized with the elastic net term: 
 
 \begin{align*}
 \hat{\beta}^{\rm EN}_{\alpha,\lambda}&=\text{arg}\min\limits_{\beta}\;-\frac{1}{n}\ell(\beta|{\bf y},{\bf X})+\lambda\big(\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\big).
@@ -130,7 +132,7 @@ The first coefficient which is shrunk to zero is alcohol followed by sbp and obe
 
 <!--  Example from https://cran.r-project.org/web/packages/varbvs/vignettes/leukemia.html -->
 
-We now turn to a truly high-dimensional example. The data consists of expression levels recorded for $3'571$ genes in $72$ patients with leukemia. The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $\bf X$ of gene expression values, and a vector $\bf y$ of 72 binary disease outcomes. We first create training and test data.
+Let's now turn to a truly high-dimensional example. The data consists of expression levels recorded for $3'571$ genes in $72$ patients with leukemia. The binary outcome encodes the disease subtype: acute lymphobastic leukemia (ALL) or acute myeloid leukemia (AML). The data are represented as a 72 x 3,571 matrix $\bf X$ of gene expression values, and a vector $\bf y$ of 72 binary disease outcomes. We first create training and test data.
 
 ```{r}
 # set seed
@@ -169,22 +171,16 @@ print(hp)
 ```
 
 
-We now run the elastic net logistic regression approach.
+We now run the elastic net logistic regression approach and make a trace plot
 
 ```{r}
 # run glmnet
 alpha  <- 0.95                # elastic net mixing parameter.
 fit.glmnet <-glmnet(xtrain,ytrain,family = "binomial",alpha=alpha)
-
-```
-
-The following Figure shows the trace plot.
-
-```{r}
 plot(fit.glmnet,xvar="lambda",label=TRUE)
 ```
 
-We run 10-fold cross-validation and show the misclassification error. 
+We perform 10-fold cross-validation and plot the misclassification error. 
 
 ```{r}
 set.seed(118)
@@ -196,7 +192,7 @@ cv.glmnet <- cv.glmnet(xtrain,ytrain,
 plot(cv.glmnet)
 ```
 
-We take `lambda.1se` as the optimal tuning parameter.
+We take `lambda.1se` as the optimal tuning parameter
 
 ```{r}
 #sum(coef(fit.glmnet, s = cv.glmnet$lambda.1se)!=0)
@@ -204,7 +200,7 @@ We take `lambda.1se` as the optimal tuning parameter.
 (lambda.opt <- cv.glmnet$lambda.1se)
 ```
 
-We extract the coefficients and plot them as a barplot.
+and visualize the size of the coefficients using a barplot
 
 ```{r}
 beta.glmnet <- coef(fit.glmnet, s = cv.glmnet$lambda.min)
