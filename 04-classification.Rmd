@@ -61,7 +61,7 @@ set, and a sample of 302 controls. The variables are:
 <!-- data source: https://web.stanford.edu/~hastie/ElemStatLearn/ -->
 <!-- dat <-  read.table("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/SAheart.data",sep=",",head=T,row.names=1) -->
 
-We start by drawing a scatter plots of pairs of risk factors and by color coding cases and controls.
+We start by drawing scatter plots of pairs of risk factors and by color coding cases and controls.
 
 ```{r sahd, fig.cap="Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).",fig.height=10,fig.width=10}
 dat <- readRDS(file="data/sahd.rds")
