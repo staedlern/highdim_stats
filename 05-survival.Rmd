@@ -245,13 +245,13 @@ We use forward selection on the training data to obtain a prediction model.
 ```{r}
 dtrain <- data.frame(cbind(ytrain,xtrain))
 dtest <- data.frame(cbind(ytest,xtest))
-fit.lo <- coxph(Surv(time,status)~1,data=dtrain,
-              x=TRUE,y=TRUE)
+lo <- coxph(Surv(time,status)~1,data=dtrain,
+            x=TRUE,y=TRUE)
 up <- as.formula(paste("~", 
                        paste(colnames(xtrain), 
                              collapse="+")))
-fit.fw <- stepAIC(fit.lo,
-                  scope=list(lower=fit.lo,
+fit.fw <- stepAIC(lo,
+                  scope=list(lower=lo,
                              upper=up),
                   direction="both",
                   trace=FALSE)

@@ -23,7 +23,9 @@ We can look at the expression values of the first sample and the first 6 genes.
 ```{r }
 exprs(esetmouse)[1:6,1]
 ```
-An overview on the phenotype data can be obtained using the following commands.
+
+An overview on the phenotype data can be obtained using the following command.
+
 ```{r}
 table(pData(esetmouse)$strain)
 ```
@@ -43,26 +45,26 @@ n <- nrow(y)
 p <- ncol(y)
 ```
 
-We start by visualizing the expression of gene $j=11425$.
+We start by visualizing the expression of gene $j=11425$
 
 ```{r}
 boxplot(y[,11425]~x)
 ```
 
-This gene seems to be higher expressed in A. To nail down this observeration we can do a more formal hypothesis test. We build the ordinary t-statistic
+This gene seems to be higher expressed in A. To validate this observation, we could perform a formal hypothesis test by calculating the standard t-statistic
 
 \begin{align*}
-t_{j}&=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}.
+t_{j}&=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}
 \end{align*}
 
-We can calculate the two-sided p-value
+and the corresponding two-sided p-value
 
 \begin{align*}
 q_j&=2\left(1-F(|t_j|,\nu=n_A+n_B-2)\right).
 \end{align*}
 
 
-In R we can perform a two-sample t-test using the function `t.test`. 
+In R this can be achieved using the function `t.test` 
 
 ```{r}
 ttest <- t.test(y[,11425]~x,var.equal=TRUE)
@@ -70,7 +72,7 @@ ttest$statistic #tscore
 ttest$p.value
 ```
 
-We obtain $q_{11425}$=`r round(ttest$p.value,3)` and based on that we would not reject the null-hypothesis for this specific gene at the $\alpha=0.05$ level. What about the other genes? We continue by repeating the analysis for all $p=$ `r ncol(y)` genes. We save the results in a data frame.
+Based on the p-value $q_{11425}$=`r round(ttest$p.value,3)` one would not reject the null-hypothesis at the $\alpha=0.05$ level for this specific gene. What about the other genes? We continue by repeating the analysis for all $p=$ `r ncol(y)` genes and save the results in a data frame.
 
 ```{r}
 pvals <- apply(y,2,FUN=
@@ -86,17 +88,17 @@ res.de <- data.frame(p.value=pvals,
                      geneid=names(tscore))
 ```
 
-Next we count the number of significant genes.
+Let's count the number of genes
 
 ```{r}
 sum(res.de$p.value<0.05)
 ```
 
-According to this analysis `r sum(res.de$p.value<0.05)` genes are differentially expressed between strains A and B. This is `r round(100*sum(res.de$p.value<0.05)/p,1)`% of all genes. In the next section we will explain that this analysis misses an important point, namely it neglects the issue of multiple testing.
+According to this analysis `r sum(res.de$p.value<0.05)` genes are differentially expressed between strains A and B. This is `r round(100*sum(res.de$p.value<0.05)/p,1)`% of all genes! In the next section we will explain that this analysis misses an important point, namely it neglects the issue of multiple testing.
 
 ## Multiple testing
 
-To illustrate the multiple testing problem we create an artificial gene expression data set where we are certain that none of the genes is differentially expressed.  
+To demonstrate the shortcomings of the previous analysis, we can generate a synthetic gene expression data set with known parameters, ensuring that none of the genes are differentially expressed.
 
 ```{r}
 set.seed(1)
@@ -105,7 +107,7 @@ n <- nrow(y)
 ysim <- matrix(rnorm(n*p),n,p)
 ```
 
-Now we repeat the gene-wise two-sample comparisons for the artificial data set.
+We then repeat the gene-wise two-sample comparisons from the previous section
 
 ```{r}
 pvals.sim <- apply(ysim,2,FUN=
@@ -119,17 +121,19 @@ tscore.sim <- apply(ysim,2,FUN=
 res.de.sim <- data.frame(p.value=pvals.sim,t.score=tscore.sim)
 ```
 
-We count the number of significant genes.
+and count the number of "differentially" expressed genes
 
 ```{r}
 sum(res.de.sim$p.value<0.05)
 ```
-This is a surprise! According to the analysis `r sum(res.de.sim$p.value<0.05)` genes are differentially expressed. However, we know that this cannot be true. What did we miss? The reason for the large number of falsely declared significant genes is that we performed multiple significance tests simultaneously. Each test is associated with an error which accumulate over the various test. In particular, we re-call that the probability of falsely rejecting the null-hypothesis (=Type-I error) is
+
+Clearly, the observed result cannot be accurate. The question arises: why are there so many false positives? The issue stems from conducting a multitude of significance tests simultaneously, where each test carries an associated error that accumulates. Specifically, we recall that the probability of incorrectly rejecting the null hypothesis (known as the Type I error rate) is
+
 \[
 {\rm Prob}(q_j<\alpha)\leq \alpha. 
 \]
 
-We performed a significance test for each gene which makes the expected number of falsely rejected null-hypotheses $p\times\alpha$=`r p*0.05`. Under the null hypothesis we would expect the p-values to follow a uniform distribution. Indeed, that is what we observe in our simulation example.
+We performed a significance test for each gene which makes the expected number of falsely rejected null-hypotheses $p\times\alpha$=`r p*0.05`. Under the null hypothesis we would expect the p-values to follow a uniform distribution. Indeed, that is what we observe in our simulation example
 
 ```{r}
 hist(res.de.sim$p.value)
@@ -174,8 +178,9 @@ sum(res.de$p.value.bf<0.05)
 sum(res.de.sim$p.value.bf<0.05)
 ```
 
+In R, the function `p.adjust` provides a variety of adjustment procedures for multiple testing. These methods are grounded in distinct assumptions and aim to control different types of error measures. The Bonferroni correction is known for its conservative nature, which frequently results in an overly limited number of significant findings, thereby reducing statistical power. A less conservative alternative is the False Discovery Rate (FDR) approach, which controls the False Discovery Rate rather than the Family-Wise Error Rate (FWER).
 
-The R function `p.adjust` offers various adjustment procedures. The different methods are based on different assumptions and/or they control a different error measure. The Bonferroni correction is the most conservative approach and often leads to too few significant result (loss of statistical power). Less conservative is the so-called FDR approach which controls the False Discovery Rate (instead of FWER). We calculate the FDR adjusted p-values and print the number of significant genes.
+We calculate the FDR adjusted p-values and print the number of significant genes.
 
 ```{r}
 res.de$p.value.fdr <- p.adjust(res.de$p.value,method="fdr")
@@ -187,7 +192,7 @@ sum(res.de.sim$p.value.fdr<0.05)
 
 ## Volcano plot
 
-It is important to effectively display statistical results obtained from high-dimensional data. We have discussed how to calculate p-values and how to adjust them for multiplicity. However, the p-value is often not the only quantity of interest. In differential gene expression analysis we are also interested in the magnitude of change in expression. 
+It is important to effectively display statistical results obtained from high-dimensional data. We have discussed how to calculate p-values and how to adjust them for multiplicity. However, p-values are not the only quantity of interest. In differential gene expression analysis we are also interested in the magnitude of change in expression. 
 
 ```{r}
 magn<- apply(y,2,FUN=
@@ -243,7 +248,7 @@ res.de.sim%>%
 
 ## Variance shrinkage and empirical bayes
 
-The basis of the statistical analyses are the t-statistics 
+The basis of the previous analysis is the t-statistic 
 
 \begin{align*}
 t_{j}&=\frac{\overline{y}_{j}^B-\overline{y}_{j}^A}{s_{j}\sqrt{\frac{1}{n_A}+\frac{1}{n_B}}}.
@@ -255,7 +260,7 @@ In a small sample size setting the estimated standard deviations exhibit high va
 \widetilde{s}_{j}^2&=\frac{d_0 s_0^2+d s^2_{j}}{d_0+d}.
 \end{align*}
 
-A so-called *moderated* t-statistic is obtained by replacing in the denominator $s_{j}$ with the "shrunken" $\widetilde{s}_{j}$. The *moderated* t-statistic has favourable statistical properties in the small $n$ setting. The statistical methodology behind the approach is referred to as empirical Bayes and is implemented in the function `eBayes` of the `limma` package. Limma starts with running gene-wise linear regression using the `lmFit` function.
+A so-called *moderated* t-statistic is obtained by replacing in the denominator $s_{j}$ with the "shrunken" $\widetilde{s}_{j}$. The *moderated* t-statistic has favourable statistical properties in the small $n$ setting. The statistical methodology behind the approach is referred to as empirical Bayes and is implemented in the function `eBayes` of the `limma` package. Limma starts by running gene-wise linear regression using the `lmFit` function.
 
 ```{r}
 library(limma)
@@ -271,7 +276,7 @@ coef(lm(y[,1]~x)) # gene 1
 coef(lm(y[,2]~x)) # gene 2
 ```
 
-Next, we use the `eBayes` function to calculate the moderated t statistics and p-values. 
+Next, the `eBayes` function is used to calculate the moderated t statistics and p-values. 
 
 ```{r}
 ebfit <- eBayes(fit)
