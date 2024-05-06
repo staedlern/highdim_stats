@@ -106,6 +106,11 @@ Fit a univariate regression model.
 fit1 <- lm(y~bmi,data=data_train)
 summary(fit1)
 ```
+We see the regression coefficient for `bmi` is highly significant. An increase in `bmi` of 1 unit is associated with an increase in `y` of 977.72 units. 
+
+A Multiple R-squared of 0.3602 means that 36 % of the variance in `y` can be explained by our simple linear regression.
+
+The residual standard error is the standard deviation of the residuals (The residuals are the true `y` values minus the predicted `y` values).
 
 Scatter plot with regression line.
 
@@ -128,13 +133,21 @@ plot(fit1,which=2) # QQ plot
 hist(residuals(fit1))
 ```
 
-We run the multiple regression model with all covariates. We print the `summary` and create TA and QQ plots.
+We run the multiple regression model with all covariates. We print and study the `summary` output.
 ```{r}
 fit2 <- lm(y~.,data=data_train)
 #summary(fit2)
+```
+The coefficient for `bmi` is still significant on the 5% level. Now the interpretation is more complex as we need to keep everything else fixed and we also need to consider the interaction terms. 
+
+The multiple R-squared is now 0.7144, which indicates that the model fits the data well. But we can't directly compare the R-squared of our two models, because by definition the multiple R-squared always increases for a more complex model. To compare models we would need to look at, for example, the adjusted R-squared.
+
+We create TA and QQ plots.
+```{r}
 plot(fit2,which=1)
 plot(fit2,which=2)
 ```
+
 Calculate the RSS. 
 
 ```{r}
@@ -193,6 +206,7 @@ dd%>%
   geom_boxplot()+
   geom_point()
 ```
+From looking at the boxplots, we prefer model 1, as the median is a bit closer to 0 and there are fewer large deviations.
 
 Calculate RMSEs on test data. The RMSE on test data is smaller for model 1.
 
@@ -206,7 +220,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
 1. Consider the function $f(x)=2x^2 + x -5$. Draw a plot of the function.
 2. Use `optimize` to find the minimum of $f(x)$.
 3. Obtain the minimum of $f(x)$ by taking the derivative and setting equal to zero.
-4. Show that $\|a\|^2_2=a^Ta$.
+4. Show that $\|a\|^2_2=a^Ta$, for any vector $a \in \mathbb{R}^n$.
 5. Use the result in 4. and show that $\bf RSS(\beta)=\bf y^Ty-2 y^T X \beta +\beta^T X^T X \beta$. 
 6. Invoke the result obtained in 4. and show that $$\frac{\partial}{\partial \beta} \bf RSS(\beta)=\bf -2X^Ty+2X^TX\beta.$$ Hint: review the "Identities" section of [Matrix calculus - Wikipedia](https://en.wikipedia.org/wiki/Matrix_calculus).
 7. Do you understand the derivation of the least squares estimator?
@@ -215,7 +229,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
 Solution to the exercise.
 
 
-Plot of the function.
+1. Plot of the function.
 ```{r}
 myf <- function(x){
   2*x^2 + x -5
@@ -223,10 +237,22 @@ myf <- function(x){
 curve(myf,from=-1,to=1)
 ```
 
-
+2.
 ```{r}
 optimize(myf,interval=c(-5,5))
 ```
+
+3. The derivative of $f(x)= 2x^2 + x - 5$ is $f'(x)=4x +1$. Setting this equal to 0 gives us $x =- 1/4$, the same value as we got using the optimize function. ($f(-1/4)$ is indeed the minimum, as $f''(x) = 4 \geq 0$.)
+
+4. For arbitrary vectors $a = (a_1, \cdots, a_n) \in \mathbb{R}^n$ it holds that: 
+$$ \| a \|_2^2 = \sum\limits_{i=1}^n a_i^2 = a^T a $$
+
+5. By definition we have that $\textbf{RSS}(\beta)= \| y - X \beta \|_2^2$. We apply 4. and get 
+    $$ \bf{RSS}(\beta)= (y - X \beta)^T (y - X \beta ) = y^T y - 2 y^T X \beta  + \beta ^T X^T X \beta $$
+
+6. We use that $\frac{\partial}{\partial a} a^T Xa = 2 X a$ and $\frac{\partial}{\partial a} c^T a = c$, for vectors $a, c \in \mathbb{R}^n$ and a ($n \times n$) matrix $X$. Thus,
+    $$ \frac{\partial}{\partial \beta} \bf{RSS} (\beta) = 0 - 2 X^T y  + 2 X^T X \beta $$
+
 
 # Diabetes data and regularization
 
