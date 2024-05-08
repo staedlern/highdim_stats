@@ -1,7 +1,7 @@
 Exercises - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2024-02-20
+2024-05-08
 
 - [1 Prerequisites](#1-prerequisites)
 - [2 Diabetes data and linear
@@ -426,9 +426,7 @@ heart disease data `sahd.rds`.
 7.  Fit a random forest using `randomForest`. Plot the fitted object.
     What is this plot telling us? Calculate the variable importance.
     Which are the most important variables?
-8.  Run AdaBoost using `gbm`. What is the prediction for a patient with
-    covariates sbp=100, tobacco=0, ldl=5, famhist=“Present”, obesity=25,
-    alcohol=10 and age=50. Compute the variable importance.
+    <!-- 8. Run AdaBoost using `gbm`. What is the prediction for a patient with covariates sbp=100, tobacco=0, ldl=5, famhist="Present", obesity=25, alcohol=10 and age=50. Compute the variable importance. -->
 
 # 16 Email spam and data mining
 

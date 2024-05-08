@@ -1401,9 +1401,7 @@ heart disease data `sahd.rds`.
 7.  Fit a random forest using `randomForest`. Plot the fitted object.
     What is this plot telling us? Calculate the variable importance.
     Which are the most important variables?
-8.  Run AdaBoost using `gbm`. What is the prediction for a patient with
-    covariates sbp=100, tobacco=0, ldl=5, famhist=“Present”, obesity=25,
-    alcohol=10 and age=50. Compute the variable importance.
+    <!-- 8. Run AdaBoost using `gbm`. What is the prediction for a patient with covariates sbp=100, tobacco=0, ldl=5, famhist="Present", obesity=25, alcohol=10 and age=50. Compute the variable importance. -->
 
 The solution to this exercise.
 
@@ -1526,65 +1524,19 @@ varImpPlot(fit.rf,type=1)
 ```
 
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-74-2.png" style="display: block; margin: auto;" />
-We run AdaBoost using `gbm` and by specifying
-`distribution = "adaboost"`. The `summary` provides a measure of
-variable importance. Prediction can be made using `predict`.
+<!-- We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`. -->
 
-``` r
-library(gbm)
-fit.boost <-gbm(chd~.,
-                data=sahd,
-                distribution = "adaboost")# note: for adaboost the outcome must be numeric
-summary(fit.boost)
-```
-
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-75-1.png" style="display: block; margin: auto;" />
-
-    ##             var    rel.inf
-    ## tobacco tobacco 96.4821033
-    ## age         age  2.9567803
-    ## ldl         ldl  0.5611164
-    ## sbp         sbp  0.0000000
-    ## famhist famhist  0.0000000
-    ## obesity obesity  0.0000000
-    ## alcohol alcohol  0.0000000
-
-``` r
-newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
-predict(fit.boost,
-        newdata=newd,
-        type="response" )
-```
-
-    ## Using 100 trees...
-
-    ## [1] 1
-
-``` r
-fit.boost <-gbm(chd~.,
-                data=sahd,
-                distribution = "bernoulli",# note: for adaboost the outcome must be numeric
-                 #n.trees=1000,
-                 #interaction.depth=1,
-                 #shrinkage=0.1,
-                 #cv.folds=5,# iteraction.depth=1 <-> stump
-                ) # number of boosting iterations 
-summary(fit.boost)
-newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
-predict(fit.boost,
-        newdata=newd,
-        type="response" )
-
-# find index for n trees with minimum CV error
-min_error <- which.min(fit.boost$cv.error)
-
-# get MSE and compute RMSE
-fit.boost$cv.error[min_error]
-## [1] 23112.1
-
-# plot loss function as a result of n trees added to the ensemble
-gbm.perf(fit.boost, method = "cv")
-```
+<!-- ```{r} -->
+<!-- library(gbm) -->
+<!-- fit.boost <-gbm(chd~., -->
+<!--                 data=sahd, -->
+<!--                 distribution = "adaboost")# note: for adaboost the outcome must be numeric -->
+<!-- summary(fit.boost) -->
+<!-- newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50) -->
+<!-- predict(fit.boost, -->
+<!--         newdata=newd, -->
+<!--         type="response" ) -->
+<!-- ``` -->
 
 # 16 Email spam and data mining
 
@@ -1604,10 +1556,13 @@ class variable email/spam. It is also called a classification problem.
     output, prune the tree and calculate the misclassification error.
 
 3.  Use `randomForest`, calculate the misclassification error and plot
-    the variable importance.
+    the variable importance. How do you check whether the number of
+    fitted trees was sufficient?
 
-4.  Run AdaBoost using `gbm`, print the misclassication error and plot
-    the relative influence of the variables.
+4.  Use `gbm` to perform boosting with `distribution="bernoulli"`. How
+    do you set the tuning parameters, i.e. tree size, shrinkage factor
+    and the number of boosting iterations? Calculate the misclassication
+    error and plot the relative influence of the variables.
 
 The solution to the exercise.
 
@@ -1701,7 +1656,7 @@ fit.rpart2 <- prune(fit.rpart,cp=.0033)
 rpart.plot(fit.rpart2,extra=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-79-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-77-1.png" style="display: block; margin: auto;" />
 We compute the misclassification error.
 
 ``` r
@@ -1717,35 +1672,44 @@ the variable importance.
 fit.rf <- randomForest(spam ~ ., 
                        data = spam.train%>%
                          dplyr::mutate(spam=factor(spam)), 
-                       ntree = 100,
+                       ntree = 200,
                        importance=TRUE)
 fit.rf
 ```
 
     ## 
     ## Call:
-    ##  randomForest(formula = spam ~ ., data = spam.train %>% dplyr::mutate(spam = factor(spam)),      ntree = 100, importance = TRUE) 
+    ##  randomForest(formula = spam ~ ., data = spam.train %>% dplyr::mutate(spam = factor(spam)),      ntree = 200, importance = TRUE) 
     ##                Type of random forest: classification
-    ##                      Number of trees: 100
+    ##                      Number of trees: 200
     ## No. of variables tried at each split: 7
     ## 
-    ##         OOB estimate of  error rate: 4.96%
+    ##         OOB estimate of  error rate: 4.86%
     ## Confusion matrix:
     ##      0    1 class.error
-    ## 0 1787   55  0.02985885
-    ## 1   97 1126  0.07931316
+    ## 0 1791   51  0.02768730
+    ## 1   98 1125  0.08013083
 
 ``` r
 (err.rf <- mean(spam.test$spam!=predict(fit.rf,newdata=spam.test)))
 ```
 
-    ## [1] 0.05533854
+    ## [1] 0.05403646
 
 ``` r
 varImpPlot(fit.rf,type=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-83-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-81-1.png" style="display: block; margin: auto;" />
+
+The out-of-bag error stabilizes with ~100 trees.
+
+``` r
+plot(fit.rf)
+```
+
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-82-1.png" style="display: block; margin: auto;" />
+
 We run gradient boosting `gbm` with `distribution = "bernoulli"` and
 tuning parameters `shrinkage=0.1`, `interaction.depth=3` and
 `n.trees=1000`. In addition we perform cross-validation `cv.folds=5` in
@@ -1766,8 +1730,8 @@ fit.boost
     ##     n.trees = 1000, interaction.depth = 3, shrinkage = 0.1, cv.folds = 5)
     ## A gradient boosted model with bernoulli loss function.
     ## 1000 iterations were performed.
-    ## The best cross-validation iteration was 382.
-    ## There were 57 predictors of which 50 had non-zero influence.
+    ## The best cross-validation iteration was 361.
+    ## There were 57 predictors of which 48 had non-zero influence.
 
 We explore the performance as a function of the number of boosting
 iterations.
@@ -1777,16 +1741,16 @@ iterations.
 which.min(fit.boost$cv.error)
 ```
 
-    ## [1] 382
+    ## [1] 361
 
 ``` r
 # plot loss as a function of the number of boosting iteration
 gbm.perf(fit.boost, method = "cv")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-85-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-84-1.png" style="display: block; margin: auto;" />
 
-    ## [1] 382
+    ## [1] 361
 
 We plot the relative influence of each variable:
 
@@ -1807,7 +1771,7 @@ drelimp2%>%
   xlab("")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-86-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-85-1.png" style="display: block; margin: auto;" />
 
 Finally, we calculate the misclassification error.
 
@@ -1815,13 +1779,13 @@ Finally, we calculate the misclassification error.
 pred.boost <- ifelse(predict(fit.boost, newdata = spam.test,type="response")>0.5,1,0)
 ```
 
-    ## Using 382 trees...
+    ## Using 361 trees...
 
 ``` r
 (err.adaboost <- mean(spam.test$spam!=pred.boost))
 ```
 
-    ## [1] 0.05143229
+    ## [1] 0.05729167
 
 # 17 Multiple testing and gene expression
 
@@ -1917,7 +1881,7 @@ pvals <- apply(y,2,FUN=
 hist(pvals)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-93-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-92-1.png" style="display: block; margin: auto;" />
 
 ``` r
 sum(pvals<0.05)
@@ -1955,7 +1919,7 @@ ebfit <- eBayes(fit.limma)
 volcanoplot(ebfit,coef=2)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-95-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-94-1.png" style="display: block; margin: auto;" />
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
