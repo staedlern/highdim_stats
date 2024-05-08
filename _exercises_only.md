@@ -446,10 +446,13 @@ class variable email/spam. It is also called a classification problem.
     output, prune the tree and calculate the misclassification error.
 
 3.  Use `randomForest`, calculate the misclassification error and plot
-    the variable importance.
+    the variable importance. How do you check whether the number of
+    fitted trees was sufficient?
 
-4.  Run AdaBoost using `gbm`, print the misclassication error and plot
-    the relative influence of the variables.
+4.  Use `gbm` to perform boosting with `distribution="bernoulli"`. How
+    do you set the tuning parameters, i.e. tree size, shrinkage factor
+    and the number of boosting iterations? Calculate the misclassication
+    error and plot the relative influence of the variables.
 
 # 17 Multiple testing and gene expression
 
