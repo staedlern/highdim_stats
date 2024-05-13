@@ -1203,6 +1203,7 @@ plot(fit.rf)
 We run gradient boosting `gbm` with `distribution = "bernoulli"` and tuning parameters `shrinkage=0.1`, `interaction.depth=3` and `n.trees=1000`. In addition we perform cross-validation `cv.folds=5` in order to monitor performance as a function of the boosting iterations. 
 
 ```{r}
+library(gbm)
 fit.boost <-gbm(spam~.,
                 data=spam.train,
                 distribution = "bernoulli",

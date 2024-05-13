@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2024-05-08
+2024-05-13
 
 - [1 Prerequisites](#1-prerequisites)
 - [2 Diabetes data and linear
@@ -159,6 +159,16 @@ summary(fit1)
     ## Multiple R-squared:  0.3602, Adjusted R-squared:  0.3572 
     ## F-statistic: 123.3 on 1 and 219 DF,  p-value: < 2.2e-16
 
+We see the regression coefficient for `bmi` is highly significant. An
+increase in `bmi` of 1 unit is associated with an increase in `y` of
+977.72 units.
+
+A Multiple R-squared of 0.3602 means that 36 % of the variance in `y`
+can be explained by our simple linear regression.
+
+The residual standard error is the standard deviation of the residuals
+(The residuals are the true `y` values minus the predicted `y` values).
+
 Scatter plot with regression line.
 
 ``` r
@@ -198,22 +208,38 @@ hist(residuals(fit1))
 
 <img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-9-2.png" style="display: block; margin: auto;" />
 
-We run the multiple regression model with all covariates. We print the
-`summary` and create TA and QQ plots.
+We run the multiple regression model with all covariates. We print and
+study the `summary` output.
 
 ``` r
 fit2 <- lm(y~.,data=data_train)
 #summary(fit2)
+```
+
+The coefficient for `bmi` is still significant on the 5% level. Now the
+interpretation is more complex as we need to keep everything else fixed
+and we also need to consider the interaction terms.
+
+The multiple R-squared is now 0.7144, which indicates that the model
+fits the data well. But we can’t directly compare the R-squared of our
+two models, because by definition the multiple R-squared always
+increases for a more complex model. To compare models we would need to
+look at, for example, the adjusted R-squared.
+
+We create TA and QQ plots.
+
+``` r
 plot(fit2,which=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
 
 ``` r
 plot(fit2,which=2)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-10-2.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-11-2.png" style="display: block; margin: auto;" />
+
 Calculate the RSS.
 
 ``` r
@@ -313,7 +339,7 @@ dd%>%
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
 
 Boxplots of predicted minus observed.
 
@@ -324,7 +350,9 @@ dd%>%
   geom_point()
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
+From looking at the boxplots, we prefer model 1, as the median is a bit
+closer to 0 and there are fewer large deviations.
 
 Calculate RMSEs on test data. The RMSE on test data is smaller for model
 1.
@@ -348,7 +376,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
 2.  Use `optimize` to find the minimum of $f(x)$.
 3.  Obtain the minimum of $f(x)$ by taking the derivative and setting
     equal to zero.
-4.  Show that $\|a\|^2_2=a^Ta$.
+4.  Show that $\|a\|^2_2=a^Ta$, for any vector $a \in \mathbb{R}^n$.
 5.  Use the result in 4. and show that
     $\bf RSS(\beta)=\bf y^Ty-2 y^T X \beta +\beta^T X^T X \beta$.
 6.  Invoke the result obtained in 4. and show that
@@ -359,7 +387,7 @@ RMSE(data_test$y,predict(fit2,newdata=data_test))
 
 Solution to the exercise.
 
-Plot of the function.
+1.  Plot of the function.
 
 ``` r
 myf <- function(x){
@@ -368,7 +396,9 @@ myf <- function(x){
 curve(myf,from=-1,to=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-18-1.png" style="display: block; margin: auto;" />
+
+2.  
 
 ``` r
 optimize(myf,interval=c(-5,5))
@@ -379,6 +409,23 @@ optimize(myf,interval=c(-5,5))
     ## 
     ## $objective
     ## [1] -5.125
+
+3.  The derivative of $f(x)= 2x^2 + x - 5$ is $f'(x)=4x +1$. Setting
+    this equal to 0 gives us $x =- 1/4$, the same value as we got using
+    the optimize function. ($f(-1/4)$ is indeed the minimum, as
+    $f''(x) = 4 \geq 0$.)
+
+4.  For arbitrary vectors $a = (a_1, \cdots, a_n) \in \mathbb{R}^n$ it
+    holds that: $$ \| a \|_2^2 = \sum\limits_{i=1}^n a_i^2 = a^T a $$
+
+5.  By definition we have that
+    $\textbf{RSS}(\beta)= \| y - X \beta \|_2^2$. We apply 4. and get
+    $$ \bf{RSS}(\beta)= (y - X \beta)^T (y - X \beta ) = y^T y - 2 y^T X \beta  + \beta ^T X^T X \beta $$
+
+6.  We use that $\frac{\partial}{\partial a} a^T Xa = 2 X a$ and
+    $\frac{\partial}{\partial a} c^T a = c$, for vectors
+    $a, c \in \mathbb{R}^n$ and a ($n \times n$) matrix $X$. Thus,
+    $$ \frac{\partial}{\partial \beta} \bf{RSS} (\beta) = 0 - 2 X^T y  + 2 X^T X \beta $$
 
 # 5 Diabetes data and regularization
 
@@ -498,13 +545,13 @@ fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
 plot(fit.ridge,xvar="lambda")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-24-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-25-1.png" style="display: block; margin: auto;" />
 
 ``` r
 plot(fit.ridge.cv)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-24-2.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-25-2.png" style="display: block; margin: auto;" />
 
 Finally, we run the Lasso approach and show the trace and the
 cross-validation plots.
@@ -517,13 +564,13 @@ fit.lasso.cv <- cv.glmnet(xtrain,ytrain,alpha=1)
 plot(fit.lasso,xvar="lambda")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-25-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-26-1.png" style="display: block; margin: auto;" />
 
 ``` r
 plot(fit.lasso.cv)#fit.lasso.cv$lambda.1se
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-25-2.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-26-2.png" style="display: block; margin: auto;" />
 
 We calculate the root-mean-square errors (RMSE) on the test data and
 compare with the full model.
@@ -571,7 +618,7 @@ res.coef.l%>%
   xlab("")+ylab("beta")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-27-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-28-1.png" style="display: block; margin: auto;" />
 
 # 6 Diabetes data and the `caret` package
 
@@ -758,7 +805,7 @@ fit <- glmnet(x = x, y = y)
 plot(fit)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-33-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-34-1.png" style="display: block; margin: auto;" />
 
 We run 10-fold cross-validation for the different mixing parameters and
 plot the error curves.
@@ -789,7 +836,7 @@ lines(log(cv3$lambda) , cv3$cvm , pch = 19, col = "blue")
 lines(log(cv4$lambda) , cv4$cvm , pch = 19, col = "green")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-34-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-35-1.png" style="display: block; margin: auto;" />
 
 Finally, we print the gene names of the non-zero coefficients.
 
@@ -974,7 +1021,7 @@ We can plot the natural spline function for the first term as follows.
 termplot(fit.bw,se=TRUE,rug=TRUE,term=6)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-46-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-47-1.png" style="display: block; margin: auto;" />
 
 The plot shows how the log-odds change with age (keeping the other
 variables fixed). We observe a slight deviation from linearity, i.e. the
@@ -1068,7 +1115,7 @@ for(i in 1:5){
 }
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-49-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-50-1.png" style="display: block; margin: auto;" />
 
 We run logistic regression and calculate the train and test errors.
 
@@ -1100,7 +1147,7 @@ coef.lasso <- as.numeric(coefficients(fit.glmnet,s = cv.glmnet$lambda.1se))[-1]
 plot(cv.glmnet)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-52-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-53-1.png" style="display: block; margin: auto;" />
 
 ``` r
 pred_train <- c(predict(fit.glmnet,xtrain,s = cv.glmnet$lambda.1se,type = "class"))
@@ -1155,7 +1202,7 @@ lines(coef.smooth,col="red",lwd=3)
 abline(h=0)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-54-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-55-1.png" style="display: block; margin: auto;" />
 
 # 13 Classification and the `caret` package
 
@@ -1239,7 +1286,7 @@ y <- read.table("data/lymphtime.txt",header = TRUE)%>%
 
 Plot the distribution of the survival times.
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-57-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-58-1.png" style="display: block; margin: auto;" />
 
 Plot of the Kaplan-Meier estimates.
 
@@ -1252,7 +1299,7 @@ fit.surv <- survfit(Surv(time, status) ~ 1,
 ggsurvplot(fit.surv,conf.int=FALSE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-58-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-59-1.png" style="display: block; margin: auto;" />
 
 Fit a Cox regression model.
 
@@ -1299,7 +1346,7 @@ fit.coxnet <- glmnet(x, y.surv, family = "cox")
 plot(fit.coxnet,xvar="lambda")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-61-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-62-1.png" style="display: block; margin: auto;" />
 
 Calculate the cross-validated C-index.
 
@@ -1311,7 +1358,7 @@ cv.coxnet <- cv.glmnet(x,y.surv,
 plot(cv.coxnet)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-62-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-63-1.png" style="display: block; margin: auto;" />
 
 Classify patients into groups with good and poor prognosis (based on
 thresholding the linear predictor at zero).
@@ -1329,7 +1376,7 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-63-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-64-1.png" style="display: block; margin: auto;" />
 
 The curves are very well separated. However, these linear predictor
 scores are biased: we are evaluating their performance on the same data
@@ -1378,7 +1425,7 @@ fit.surv <- survfit(Surv(time, status) ~ prognosis,
 ggsurvplot(fit.surv,conf.int = TRUE,pval=TRUE)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-65-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-66-1.png" style="display: block; margin: auto;" />
 
 # 15 Decision trees, Random Forest and AdaBoost
 
@@ -1420,7 +1467,7 @@ fit.tree <- rpart(chd~.,data=sahd,method="class")
 rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-66-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-67-1.png" style="display: block; margin: auto;" />
 
 We re-grow the tree using different control parameters.
 
@@ -1435,7 +1482,7 @@ fit.tree2 <- rpart(chd~.,data=sahd,method="class",
 rpart.plot(fit.tree2,extra=1,under=TRUE,tweak = 1.2,faclen=3)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-67-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-68-1.png" style="display: block; margin: auto;" />
 
 We can get the tree size from the cptable (tree size=number of
 leaves=number splits+1).
@@ -1454,7 +1501,7 @@ error.
 plotcp(fit.tree2,cex.lab=1.5,cex.axis=1.2,cex=1.5)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-69-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-70-1.png" style="display: block; margin: auto;" />
 
 We prune the tree and visualize the result.
 
@@ -1465,7 +1512,7 @@ fit.prune<- prune(fit.tree2,
 rpart.plot(fit.prune,extra=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-70-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-71-1.png" style="display: block; margin: auto;" />
 
 Finally, we compute the confusion matrix and the misclassification
 error.
@@ -1517,13 +1564,13 @@ fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
 plot(fit.rf)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-74-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-75-1.png" style="display: block; margin: auto;" />
 
 ``` r
 varImpPlot(fit.rf,type=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-74-2.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-75-2.png" style="display: block; margin: auto;" />
 <!-- We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`. -->
 
 <!-- ```{r} -->
@@ -1656,7 +1703,7 @@ fit.rpart2 <- prune(fit.rpart,cp=.0033)
 rpart.plot(fit.rpart2,extra=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-77-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-78-1.png" style="display: block; margin: auto;" />
 We compute the misclassification error.
 
 ``` r
@@ -1700,7 +1747,7 @@ fit.rf
 varImpPlot(fit.rf,type=1)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-81-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-82-1.png" style="display: block; margin: auto;" />
 
 The out-of-bag error stabilizes with ~100 trees.
 
@@ -1708,7 +1755,7 @@ The out-of-bag error stabilizes with ~100 trees.
 plot(fit.rf)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-82-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-83-1.png" style="display: block; margin: auto;" />
 
 We run gradient boosting `gbm` with `distribution = "bernoulli"` and
 tuning parameters `shrinkage=0.1`, `interaction.depth=3` and
@@ -1716,6 +1763,7 @@ tuning parameters `shrinkage=0.1`, `interaction.depth=3` and
 order to monitor performance as a function of the boosting iterations.
 
 ``` r
+library(gbm)
 fit.boost <-gbm(spam~.,
                 data=spam.train,
                 distribution = "bernoulli",
@@ -1748,7 +1796,7 @@ which.min(fit.boost$cv.error)
 gbm.perf(fit.boost, method = "cv")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-84-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-85-1.png" style="display: block; margin: auto;" />
 
     ## [1] 361
 
@@ -1771,7 +1819,7 @@ drelimp2%>%
   xlab("")
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-85-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-86-1.png" style="display: block; margin: auto;" />
 
 Finally, we calculate the misclassification error.
 
@@ -1815,6 +1863,42 @@ We load the `ExpressionSet`.
 
 ``` r
 library(Biobase)
+```
+
+    ## Loading required package: BiocGenerics
+
+    ## 
+    ## Attaching package: 'BiocGenerics'
+
+    ## The following object is masked from 'package:randomForest':
+    ## 
+    ##     combine
+
+    ## The following objects are masked from 'package:lubridate':
+    ## 
+    ##     intersect, setdiff, union
+
+    ## The following objects are masked from 'package:dplyr':
+    ## 
+    ##     combine, intersect, setdiff, union
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     IQR, mad, sd, var, xtabs
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     anyDuplicated, aperm, append, as.data.frame, basename, cbind, colnames, dirname, do.call, duplicated,
+    ##     eval, evalq, Filter, Find, get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    ##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce, rownames, sapply, setdiff,
+    ##     sort, table, tapply, union, unique, unsplit, which.max, which.min
+
+    ## Welcome to Bioconductor
+    ## 
+    ##     Vignettes contain introductory material; view with 'browseVignettes()'. To cite Bioconductor, see
+    ##     'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+``` r
 esetmouse <- readRDS(file="data/esetmouse.rds")
 class(esetmouse)
 ```
@@ -1881,7 +1965,7 @@ pvals <- apply(y,2,FUN=
 hist(pvals)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-92-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-93-1.png" style="display: block; margin: auto;" />
 
 ``` r
 sum(pvals<0.05)
@@ -1908,6 +1992,16 @@ expression analysis and we plot the results using a volcano plot.
 
 ``` r
 library(limma)
+```
+
+    ## 
+    ## Attaching package: 'limma'
+
+    ## The following object is masked from 'package:BiocGenerics':
+    ## 
+    ##     plotMA
+
+``` r
 # first argument: gene expression matrix with genes in rows and sample in columns
 # second argument: design matrix
 fit.limma <- lmFit(t(y), design=model.matrix(~ x)) 
@@ -1919,7 +2013,7 @@ ebfit <- eBayes(fit.limma)
 volcanoplot(ebfit,coef=2)
 ```
 
-<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-94-1.png" style="display: block; margin: auto;" />
+<img src="_exercises_and_solutions_files/figure-gfm/unnamed-chunk-95-1.png" style="display: block; margin: auto;" />
 
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "html_document") -->
 <!-- rmarkdown::render("_exercises_and_solutions.Rmd",output_format = "github_document") -->
