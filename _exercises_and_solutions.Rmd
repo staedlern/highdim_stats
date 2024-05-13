@@ -1019,7 +1019,7 @@ In this exercise we explore decision trees based on the South African heart dise
 5. Calculate the confusion matrix and the misclassification error.
 6. Generate a bootstrap sample. Grow a tree and calculate the out-of-bag error.
 7. Fit a random forest using `randomForest`. Plot the fitted object. What is this plot telling us? Calculate the variable importance. Which are the most important variables?
-8. Run AdaBoost using `gbm`. What is the prediction for a patient with covariates sbp=100, tobacco=0, ldl=5, famhist="Present", obesity=25, alcohol=10 and age=50. Compute the variable importance.
+<!-- 8. Run AdaBoost using `gbm`. What is the prediction for a patient with covariates sbp=100, tobacco=0, ldl=5, famhist="Present", obesity=25, alcohol=10 and age=50. Compute the variable importance. -->
 
 The solution to this exercise. 
 
@@ -1029,6 +1029,9 @@ First we read the data and grow the tree.
 # load packages
 library(rpart)
 library(rpart.plot)
+
+# read data set
+sahd <- readRDS(file="data/sahd.rds")
 
 # grow a classification tree
 fit.tree <- rpart(chd~.,data=sahd,method="class")
@@ -1040,7 +1043,7 @@ We re-grow the tree using different control parameters.
 ```{r}
 # controlling the growth of the tree with rpart.control
 # cp: improvement in each split needs to be > cp
-# minsplit: minimal number of samples in a node inorder to do a split
+# minsplit: minimal number of samples in a node in order to do a split
 fit.tree2 <- rpart(chd~.,data=sahd,method="class",
                    control = rpart.control(cp = 0,minsplit=10)
                    
@@ -1106,18 +1109,19 @@ fit.rf <- randomForest(chd~.,data=sahd,importance=TRUE)
 plot(fit.rf)
 varImpPlot(fit.rf,type=1)
 ```
-We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`.
+<!-- We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. The `summary` provides a measure of variable importance. Prediction can be made using `predict`. -->
 
-```{r}
-library(gbm)
-fit.boost <-gbm(chd~.,data=sahd,distribution = "adaboost") # note: for adaboost the outcome must be numeric
-summary(fit.boost)
-newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50)
-predict(fit.boost,
-        newdata=newd,
-        type="response" )
-```
-
+<!-- ```{r} -->
+<!-- library(gbm) -->
+<!-- fit.boost <-gbm(chd~., -->
+<!--                 data=sahd, -->
+<!--                 distribution = "adaboost")# note: for adaboost the outcome must be numeric -->
+<!-- summary(fit.boost) -->
+<!-- newd <- data.frame(sbp=100,tobacco=0,ldl=5,famhist=factor("Present"),obesity=25,alcohol=10,age=50) -->
+<!-- predict(fit.boost, -->
+<!--         newdata=newd, -->
+<!--         type="response" ) -->
+<!-- ``` -->
 
 # Email spam and data mining
 
@@ -1133,9 +1137,9 @@ called a classification problem.
 
 2. Use `rpart` to fit a decision tree. Examine the cross-validation output, prune the tree and calculate the misclassification error.
 
-3. Use `randomForest`, calculate the misclassification error and plot the variable importance.
+3. Use `randomForest`, calculate the misclassification error and plot the variable importance. How do you check whether the number of fitted trees was sufficient?
 
-4. Run AdaBoost using `gbm`, print the misclassication error and plot the relative influence of the variables.
+4. Use `gbm` to perform boosting with `distribution="bernoulli"`. How do you set the tuning parameters, i.e. tree size, shrinkage factor and the number of boosting iterations? Calculate the misclassication error and plot the relative influence of the variables.
 
 
 The solution to the exercise.
@@ -1176,7 +1180,7 @@ We fit the random forest, calculate the misclassification error and plot the var
 fit.rf <- randomForest(spam ~ ., 
                        data = spam.train%>%
                          dplyr::mutate(spam=factor(spam)), 
-                       ntree = 100,
+                       ntree = 200,
                        importance=TRUE)
 fit.rf
 ```
@@ -1188,12 +1192,37 @@ fit.rf
 ```{r fig.height=8,fig.width=8}
 varImpPlot(fit.rf,type=1)
 ```
-We run AdaBoost using `gbm` and by specifying `distribution = "adaboost"`. 
-We plot the relative influence of each variable and calculate the misclassification error.
+
+The out-of-bag error stabilizes with ~100 trees. 
+
+```{r message=FALSE, warning=FALSE}
+plot(fit.rf)
+```
+
+
+We run gradient boosting `gbm` with `distribution = "bernoulli"` and tuning parameters `shrinkage=0.1`, `interaction.depth=3` and `n.trees=1000`. In addition we perform cross-validation `cv.folds=5` in order to monitor performance as a function of the boosting iterations. 
+
 ```{r}
-fit.boost <-gbm(spam~.,data=spam.train,distribution = "adaboost") 
+fit.boost <-gbm(spam~.,
+                data=spam.train,
+                distribution = "bernoulli",
+                shrinkage=0.1,
+                n.trees=1000,
+                interaction.depth = 3,
+                cv.folds=5) 
 fit.boost
 ```
+We explore the performance as a function of the number of boosting iterations. 
+
+```{r}
+# find index for n trees with minimum CV error
+which.min(fit.boost$cv.error)
+
+# plot loss as a function of the number of boosting iteration
+gbm.perf(fit.boost, method = "cv")
+```
+
+We plot the relative influence of each variable:
 
 ```{r fig.height=5,fig.width=8}
 drelimp <- summary(fit.boost,plotit=FALSE)%>%
@@ -1212,6 +1241,13 @@ drelimp2%>%
   xlab("")
 ```
 
+
+```{r eval=FALSE, include=FALSE}
+# partial dependence plot
+plot(fit.boost,i.var="cf.exclaim")
+```
+
+Finally, we calculate the misclassification error.
 
 ```{r}
 pred.boost <- ifelse(predict(fit.boost, newdata = spam.test,type="response")>0.5,1,0)
