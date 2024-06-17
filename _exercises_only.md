@@ -1,7 +1,7 @@
 Exercises - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2024-05-08
+2024-05-13
 
 - [1 Prerequisites](#1-prerequisites)
 - [2 Diabetes data and linear
