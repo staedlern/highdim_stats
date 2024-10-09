@@ -275,7 +275,7 @@ knitr::include_graphics("adaboost.JPG")
 
 ## AdaBoost.M1
 
-AdaBoost.M1 proceeds as follows:
+The following algorithm describes AdaBoost.M1:
 
 1. Initialize the weights $w_i=1/n$, $i=1,\ldots,n$
 2. For $m=1$ to $M$:
@@ -287,13 +287,11 @@ AdaBoost.M1 proceeds as follows:
 
 3. Output the combined classifier $G(X)={\rm sign}\left[\sum_{m=1}^M \alpha_m G_m(X)\right]$.
 
-In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence.
-
-Let's assume an additive model
+In line 2d the weights are updated. Interestingly, the observations that where misclassified by $G_{m}(x)$ receive a larger weight which forces the next classifier $G_{m+1}(x)$ to focus on the misclassified observations. In line 3 the final predictor is assembled. The parameters $\alpha_m$ balance the influence of the individual classifiers towards the more accurate classifiers in the sequence. AdaBoost can be viewed as special case of forward stagewise additive modeling. Let's assume an additive model
 
 $$f(x)=\sum_{m=1}^M \beta_m b(x,\gamma_m)$$ 
 
-with basis function $b(x,\gamma)$. Given a loss function $L(y,f(x))$ such models are fit by minimizing a loss function,
+with basis function $b(x,\gamma)$. Given a loss function $L(y,f(x))$ such models can be fitted by minimizing a loss function,
 
 \[\min_{\{\beta_m,\gamma_m\}} \sum_{i=1}^N L(y_i,\sum_{m=1}^{M}b(x_i; \gamma_m)).\]
 
@@ -301,7 +299,7 @@ Forward stagewise modelling solves this optimization problem by sequentially add
 
 \[ (\beta_m,\gamma_m)=\text{arg}\min\limits_{\beta,\gamma} \sum_{i=1}^N L(y_i,f_{m-1}(x_i)+\beta b(x_i; \gamma))\]
 
-and update $f_m(x)=f_{m-1}(x)+\beta_m b(x;\gamma_m)$. We now show that the m-th iteration of AdaBoost.M1 corresponds to forward stagewise modelling with exponential loss function and classification trees as basis functions.
+and update $$f_m(x)=f_{m-1}(x)+\beta_m b(x;\gamma_m).$$ The following sketch shows that the m-th iteration of AdaBoost.M1 corresponds to forward stagewise modelling with exponential loss function and classification trees as basis functions:
 
 ```{r echo=FALSE,out.width="80%",fig.cap="Forward stage-wise modelling and AdaBoost.M1."}
 knitr::include_graphics("adaboost_forwardstagewise.PNG")
@@ -309,30 +307,26 @@ knitr::include_graphics("adaboost_forwardstagewise.PNG")
 
 ## Gradient Boosting 
 
-Let's look into Gradient Boosting. Assume an additive expansion of trees
+We have seen the connection between AdaBoost and forward stagewise modeling. We will look now into Gradient Boosting which generalizes this approach. Let's assume an additive expansion of trees 
 
 \[f_M(x)=\sum_{m=1}^M T(x;\Theta_m)\] 
 
-where $T(x;\Theta)$ is a tree of fixed size $J$. In the m-th iteration of the forward stagewise algorithm we must solve
+where $T(x;\Theta)$ is a regression tree of fixed size $J$ (regression tree is a binary tree applied to a continuous response variable). In the m-th iteration of the forward stagewise algorithm we must solve
 
 \[\Theta_m=\text{arg}\min\limits_{\Theta_m} \sum_{i=1}^N L(y_i,f_{m-1}(x_i)+T(x_i;\Theta_m))\] 
 
-and then update $f_{m}(x)=f_{m-1}(x)+T(x;\Theta_m)$.
-
-In general, this is a very challenging optimization problem. Luckily, for the squared error loss the optimization greatly simplifies
+and then update $$f_{m}(x)=f_{m-1}(x)+T(x;\Theta_m).$$ In general, this is a very challenging optimization problem. Luckily, for the squared error loss the optimization simplifies to
 
 \[\Theta_m=\text{arg}\min\limits_{\Theta_m} \sum_{i=1}^N \left(y_i-(f_{m-1}(x_i)+T(x_i;\Theta_m))\right)^2\] 
 
-and it is easy to see that the solution is the regression tree which best predicts the residuals $r_{im}=y_i-f_{m-1}(x_i)$. How does one solve the optimization problem for more general loss functions? It can be shown that the more general optimization problem can be approximated by solving the squared error problem the but using pseudo residuals $\tilde{r}_{im}=-\left[\frac{\partial L(y_i,f(x_i))}{\partial f(x_i)}\right]_{f=f_{m-1}}$ which correspond to the negative gradient of the loss function. Finally, it has been shown that the performance of gradient boosting can be further improved by updating 
+and the solution is the regression tree which best predicts the residuals $$r_{im}=y_i-f_{m-1}(x_i).$$ How does one solve the optimization problem for more general loss functions? It can be shown that the more general optimization problem can be approximated by solving the squared error problem but using pseudo residuals $$\tilde{r}_{im}=-\left[\frac{\partial L(y_i,f(x_i))}{\partial f(x_i)}\right]_{f=f_{m-1}}$$ which correspond to the negative gradient of the loss function. Finally, it has been shown that the performance of gradient boosting can be further improved by updating 
 
 $$f_{m}(x)=f_{m-1}(x)+\nu \;T(x;\Theta_m)$$
 
-Where $0<\nu<1$ is a shrinkage factor which "moderates" the contribution of the new tree $T(x;\Theta_m)$ to the current approximation. 
-
-Gradient boosting has three tuning parameters, namely, the number of boosting iterations ($M$), the shrinkage parameter ($\nu$), and the tree size ($J$). Typically, $J = 6$, $\nu = 0.1$, and $M$ is chosen to reach the optimal generalization error.
+where $0<\nu<1$ is a shrinkage factor which "moderates" the contribution of the new tree $T(x;\Theta_m)$ to the current approximation. Gradient boosting has three tuning parameters, namely, the number of boosting iterations ($M$), the shrinkage parameter ($\nu$), and the tree size ($J$). Typically, $J = 6$, $\nu = 0.1$, and $M$ is chosen to reach the optimal generalization error.
 
 
-We illustrate Gradient Boosting using Email spam data. The data for this example consists of information from 4601 email messages. The aim is to predict whether the email is spam. For all 4601 email messages, the true outcome (email type) "email" or "spam" is available,
+Let's illustrate Gradient Boosting using Email spam data. The data consists of information from 4601 email messages. The aim is to predict whether the email is spam. For all 4601 email messages, the true outcome (email type) "email" or "spam" is available,
 along with the relative frequencies of 57 of the most commonly occurring
 words and punctuation marks in the email message. This is a supervised
 learning problem, with the outcome the class variable email/spam. It's also a classification problem. 
@@ -348,7 +342,7 @@ spam.train<- spam[train,]
 spam.test<- spam[-train,]
 ```
 
-We run gradient boosting `gbm` with `distribution = "bernoulli"` and tuning parameters $\nu=0.1$ (`shrinkage=0.1`), $J=4$ (`interaction.depth=3`) and M=1000 (`n.trees=1000`). 
+We run Gradient Boosting `gbm` with `distribution = "bernoulli"` and tuning parameters $\nu=0.1$ (`shrinkage=0.1`), $J=4$ (`interaction.depth=3`) and $M=1000$ (`n.trees=1000`). 
 
 ```{r message=FALSE, warning=FALSE}
 library(gbm)
