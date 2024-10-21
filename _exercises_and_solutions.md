@@ -840,12 +840,10 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"    
-    ##  [6] "PCKA_at"     "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"    
-    ## [11] "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCGO_at"     "YCKE_at"    
-    ## [16] "YCLB_at"     "YCLF_at"     "YDDK_at"     "YEBC_at"     "YEZB_at"    
-    ## [21] "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YOAB_at"     "YRVJ_at"    
-    ## [26] "YURQ_at"     "YXLD_at"     "YXLE_at"     "YYDA_at"
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PCKA_at"     "PKSA_at"     "SPOIISA_at" 
+    ##  [9] "SPOVAA_at"   "XHLB_at"     "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"    
+    ## [17] "YCLF_at"     "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YOAB_at"    
+    ## [25] "YRVJ_at"     "YURQ_at"     "YXLD_at"     "YXLE_at"     "YYDA_at"
 
 ``` r
 ## By default, the selected variables are based on the largest value of
@@ -1637,9 +1635,8 @@ t.tab <- printcp(fit.rpart)
     ##     cp = 1e-05)
     ## 
     ## Variables actually used in tree construction:
-    ##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000     
-    ##  [7] wf.650      wf.all      wf.business wf.edu      wf.free     wf.george  
-    ## [13] wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
+    ##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000      wf.650      wf.all      wf.business
+    ## [10] wf.edu      wf.free     wf.george   wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
     ## [19] wf.pm       wf.re       wf.remove   wf.you      wf.your    
     ## 
     ## Root node error: 1223/3065 = 0.39902
