@@ -15,7 +15,9 @@ Diabetes data.
 ```{r}
 library(lars) # lars package contains the diabetes data
 data("diabetes")
-saveRDS(diabetes,file="data/diabetes.rds")
+dat <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
+colnames(dat) <- gsub(":",".",colnames(dat))
+saveRDS(dat,file="data/diabetes.rds")
 ```
 
 South African heart disease data.

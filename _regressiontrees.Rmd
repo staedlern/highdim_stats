@@ -1,0 +1,77 @@
+---
+title: "Regression trees"
+author: "Nicolas Städler"
+date: "`r Sys.Date()`"
+output:
+    html_document:
+      number_sections: yes
+      toc: true
+      toc_depth: 2
+    pdf_document:
+      number_sections: yes
+      toc: true
+      toc_depth: 2
+    github_document:
+      math_method: NULL
+      number_sections: yes
+      toc: true
+      toc_depth: 2
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE,fig.align='center')
+```
+
+
+---
+  
+```{r message=FALSE}
+library(tidyverse)
+library(knitr)
+library(rpart)
+library(rpart.plot)
+```  
+  
+# Regression trees    
+
+The R package `rpart` can also be used to fit binary decision trees to continuous response variable. Let's look at the diabetes data set and fit a regression tree by specifying `method="anova"`:
+
+```{r}
+# read diabetes data
+data <- readRDS(file="data/diabetes.rds")
+
+# fit regression tree
+fit.tree <- rpart(y~.,data=data,method="anova")
+rpart.plot(fit.tree,extra=1,under=TRUE,tweak = 1.2,faclen=3)
+```
+
+Next, we plot the cross-validation error 
+
+```{r}
+plotcp(fit.tree,cex.lab=1.5,cex.axis=1.2,cex=1.5)
+```
+
+and prune the tree 
+
+```{r}
+# prune the tree
+fit.prune<- prune(fit.tree, 
+                  cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+rpart.plot(fit.prune,extra=1)
+```
+
+
+```{r include=FALSE, eval=FALSE}
+# Different cp values in rpart() using plotcp() and printcp()
+p.rpart <- x$cptable
+cp0 <- p.rpart[, 1L]
+cp <- sqrt(cp0 * c(Inf, cp0[-length(cp0)]))
+```
+
+
+```{r include=FALSE, eval=FALSE}
+par(mfrow=c(1,2)) # two plots on one page
+rsq.rpart(fit.tree) 
+```
+
+

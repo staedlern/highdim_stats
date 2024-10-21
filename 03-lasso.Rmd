@@ -172,9 +172,7 @@ We start by splitting the data into training and test data.
 
 ```{r}
 set.seed(007)
-diabetes <- readRDS(file="data/diabetes.rds")
-data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
-colnames(data) <- gsub(":",".",colnames(data))
+data <- readRDS(file="data/diabetes.rds")
 train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
 data_train <- data[train_ind,]
 xtrain <- as.matrix(data_train[,-1])

@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2024-05-13
+2024-10-21
 
 - [1 Prerequisites](#1-prerequisites)
 - [2 Diabetes data and linear
@@ -98,9 +98,7 @@ Solution to the exercise.
 Read the data set.
 
 ``` r
-diabetes <- readRDS(file="data/diabetes.rds")
-data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
-colnames(data) <- gsub(":",".",colnames(data))
+data <- readRDS(file="data/diabetes.rds")
 ```
 
 Generate a histogram of `y`.
@@ -454,9 +452,7 @@ Read the data set and create training and test data.
 
 ``` r
 set.seed(007)
-diabetes <- readRDS(file="data/diabetes.rds")
-data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
-colnames(data) <- gsub(":",".",colnames(data))
+data <- readRDS(file="data/diabetes.rds")
 train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
 data_train <- data[train_ind,]
 xtrain <- as.matrix(data_train[,-1])
@@ -637,9 +633,7 @@ library(caret)
 
 ## Read and prepare the data
 set.seed(007)
-diabetes <- readRDS(file="data/diabetes.rds")
-data <- as.data.frame(cbind(y=diabetes$y,diabetes$x2))
-colnames(data) <- gsub(":",".",colnames(data))
+data <- readRDS(file="data/diabetes.rds")
 train_ind <- sample(seq(nrow(data)),size=nrow(data)/2)
 data_train <- data[train_ind,]
 xtrain <- as.matrix(data_train[,-1])
@@ -846,10 +840,12 @@ b <- as.matrix(coef(cv1))
 rownames(b)[b!=0]
 ```
 
-    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"     "PCKA_at"     "PKSA_at"     "SPOIISA_at" 
-    ##  [9] "SPOVAA_at"   "XHLB_at"     "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCGO_at"     "YCKE_at"     "YCLB_at"    
-    ## [17] "YCLF_at"     "YDDK_at"     "YEBC_at"     "YEZB_at"     "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YOAB_at"    
-    ## [25] "YRVJ_at"     "YURQ_at"     "YXLD_at"     "YXLE_at"     "YYDA_at"
+    ##  [1] "(Intercept)" "ARGF_at"     "DNAJ_at"     "GAPB_at"     "LYSC_at"    
+    ##  [6] "PCKA_at"     "PKSA_at"     "SPOIISA_at"  "SPOVAA_at"   "XHLB_at"    
+    ## [11] "XKDS_at"     "XTRA_at"     "YBFI_at"     "YCGO_at"     "YCKE_at"    
+    ## [16] "YCLB_at"     "YCLF_at"     "YDDK_at"     "YEBC_at"     "YEZB_at"    
+    ## [21] "YFHE_r_at"   "YFIR_at"     "YHDS_r_at"   "YOAB_at"     "YRVJ_at"    
+    ## [26] "YURQ_at"     "YXLD_at"     "YXLE_at"     "YYDA_at"
 
 ``` r
 ## By default, the selected variables are based on the largest value of
@@ -1641,8 +1637,9 @@ t.tab <- printcp(fit.rpart)
     ##     cp = 1e-05)
     ## 
     ## Variables actually used in tree construction:
-    ##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000      wf.650      wf.all      wf.business
-    ## [10] wf.edu      wf.free     wf.george   wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
+    ##  [1] capavg      caplong     captot      cf.dollar   cf.exclaim  wf.000     
+    ##  [7] wf.650      wf.all      wf.business wf.edu      wf.free     wf.george  
+    ## [13] wf.hp       wf.hpl      wf.internet wf.money    wf.our      wf.over    
     ## [19] wf.pm       wf.re       wf.remove   wf.you      wf.your    
     ## 
     ## Root node error: 1223/3065 = 0.39902
@@ -1863,42 +1860,6 @@ We load the `ExpressionSet`.
 
 ``` r
 library(Biobase)
-```
-
-    ## Loading required package: BiocGenerics
-
-    ## 
-    ## Attaching package: 'BiocGenerics'
-
-    ## The following object is masked from 'package:randomForest':
-    ## 
-    ##     combine
-
-    ## The following objects are masked from 'package:lubridate':
-    ## 
-    ##     intersect, setdiff, union
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     combine, intersect, setdiff, union
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     IQR, mad, sd, var, xtabs
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     anyDuplicated, aperm, append, as.data.frame, basename, cbind, colnames, dirname, do.call, duplicated,
-    ##     eval, evalq, Filter, Find, get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
-    ##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce, rownames, sapply, setdiff,
-    ##     sort, table, tapply, union, unique, unsplit, which.max, which.min
-
-    ## Welcome to Bioconductor
-    ## 
-    ##     Vignettes contain introductory material; view with 'browseVignettes()'. To cite Bioconductor, see
-    ##     'citation("Biobase")', and for packages 'citation("pkgname")'.
-
-``` r
 esetmouse <- readRDS(file="data/esetmouse.rds")
 class(esetmouse)
 ```
@@ -1992,16 +1953,6 @@ expression analysis and we plot the results using a volcano plot.
 
 ``` r
 library(limma)
-```
-
-    ## 
-    ## Attaching package: 'limma'
-
-    ## The following object is masked from 'package:BiocGenerics':
-    ## 
-    ##     plotMA
-
-``` r
 # first argument: gene expression matrix with genes in rows and sample in columns
 # second argument: design matrix
 fit.limma <- lmFit(t(y), design=model.matrix(~ x)) 
