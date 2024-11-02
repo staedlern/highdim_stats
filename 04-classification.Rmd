@@ -293,7 +293,7 @@ $$f(x)=\sum_{m=1}^M \beta_m b(x,\gamma_m)$$
 
 with basis function $b(x,\gamma)$. Given a loss function $L(y,f(x))$ such models can be fitted by minimizing a loss function,
 
-\[\min_{\{\beta_m,\gamma_m\}} \sum_{i=1}^N L(y_i,\sum_{m=1}^{M}b(x_i; \gamma_m)).\]
+\[\min_{\{\beta_m,\gamma_m\}} \sum_{i=1}^N L(y_i,\sum_{m=1}^{M}\beta_m b(x_i; \gamma_m)).\]
 
 Forward stagewise modelling solves this optimization problem by sequentially adding new basis functions to the expansion without adjusting the parameters of those that have already been added, that is at the m-th iteration we obtain
 
