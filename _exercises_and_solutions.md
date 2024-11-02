@@ -1,7 +1,7 @@
 Exercises and Solutions - Analysis of High-Dimensional Data
 ================
 Nicolas Städler
-2024-10-21
+2024-11-02
 
 - [1 Prerequisites](#1-prerequisites)
 - [2 Diabetes data and linear
@@ -306,6 +306,18 @@ data better (smaller training RMSE).
 
 ``` r
 library(caret) # RMSE is implemented in caret 
+```
+
+    ## Loading required package: lattice
+
+    ## 
+    ## Attaching package: 'caret'
+
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     lift
+
+``` r
 RMSE(data_train$y,predict(fit1,newdata=data_train))
 ```
 
@@ -468,6 +480,13 @@ We perform forward stepwise regression.
 library(MASS) # stepAIC
 ```
 
+    ## 
+    ## Attaching package: 'MASS'
+
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     select
+
 ``` r
 # Full model
 fit.full <- lm(y~.,data=data_train)
@@ -536,6 +555,20 @@ cross-validation plot.
 # Ridge
 set.seed(1515)
 library(glmnet)
+```
+
+    ## Loading required package: Matrix
+
+    ## 
+    ## Attaching package: 'Matrix'
+
+    ## The following objects are masked from 'package:tidyr':
+    ## 
+    ##     expand, pack, unpack
+
+    ## Loaded glmnet 4.1-8
+
+``` r
 fit.ridge <- glmnet(xtrain,ytrain,alpha=0)
 fit.ridge.cv <- cv.glmnet(xtrain,ytrain,alpha=0)
 plot(fit.ridge,xvar="lambda")
@@ -777,6 +810,15 @@ We first load the data and check the data structure.
 
 ``` r
 library(hdi)
+```
+
+    ## Loading required package: scalreg
+
+    ## Loading required package: lars
+
+    ## Loaded lars 1.3
+
+``` r
 library(glmnet)
 riboflavin <- readRDS(file="data/riboflavin.rds")
 str(riboflavin)
@@ -1286,7 +1328,27 @@ Plot of the Kaplan-Meier estimates.
 
 ``` r
 library(survival) # survival analysis
+```
+
+    ## 
+    ## Attaching package: 'survival'
+
+    ## The following object is masked from 'package:caret':
+    ## 
+    ##     cluster
+
+``` r
 library(survminer) # nice survival plots
+```
+
+    ## 
+    ## Attaching package: 'survminer'
+
+    ## The following object is masked from 'package:survival':
+    ## 
+    ##     myeloma
+
+``` r
 dat <- data.frame(y)
 fit.surv <- survfit(Surv(time, status) ~ 1, 
                     data = dat)
@@ -1758,6 +1820,13 @@ order to monitor performance as a function of the boosting iterations.
 
 ``` r
 library(gbm)
+```
+
+    ## Loaded gbm 2.1.9
+
+    ## This version of gbm is no longer under development. Consider transitioning to gbm3, https://github.com/gbm-developers/gbm3
+
+``` r
 fit.boost <-gbm(spam~.,
                 data=spam.train,
                 distribution = "bernoulli",
@@ -1857,6 +1926,42 @@ We load the `ExpressionSet`.
 
 ``` r
 library(Biobase)
+```
+
+    ## Loading required package: BiocGenerics
+
+    ## 
+    ## Attaching package: 'BiocGenerics'
+
+    ## The following object is masked from 'package:randomForest':
+    ## 
+    ##     combine
+
+    ## The following objects are masked from 'package:lubridate':
+    ## 
+    ##     intersect, setdiff, union
+
+    ## The following objects are masked from 'package:dplyr':
+    ## 
+    ##     combine, intersect, setdiff, union
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     IQR, mad, sd, var, xtabs
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     anyDuplicated, aperm, append, as.data.frame, basename, cbind, colnames, dirname, do.call, duplicated,
+    ##     eval, evalq, Filter, Find, get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    ##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce, rownames, sapply, setdiff,
+    ##     sort, table, tapply, union, unique, unsplit, which.max, which.min
+
+    ## Welcome to Bioconductor
+    ## 
+    ##     Vignettes contain introductory material; view with 'browseVignettes()'. To cite Bioconductor, see
+    ##     'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+``` r
 esetmouse <- readRDS(file="data/esetmouse.rds")
 class(esetmouse)
 ```
@@ -1950,6 +2055,16 @@ expression analysis and we plot the results using a volcano plot.
 
 ``` r
 library(limma)
+```
+
+    ## 
+    ## Attaching package: 'limma'
+
+    ## The following object is masked from 'package:BiocGenerics':
+    ## 
+    ##     plotMA
+
+``` r
 # first argument: gene expression matrix with genes in rows and sample in columns
 # second argument: design matrix
 fit.limma <- lmFit(t(y), design=model.matrix(~ x)) 
