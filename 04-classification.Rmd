@@ -291,7 +291,7 @@ In line 2d the weights are updated. Interestingly, the observations that where m
 
 $$f(x)=\sum_{m=1}^M \beta_m b(x;\gamma_m)$$ 
 
-with basis function $b(x,\gamma)$. Given a loss function $L(y,f(x))$ such models can be fitted by minimizing a loss function,
+with basis function $b(x;\gamma)$. Given a loss function $L(y,f(x))$ such models can be fitted by minimizing a loss function,
 
 \[\min_{\{\beta_m,\gamma_m\}} \sum_{i=1}^N L(y_i,\sum_{m=1}^{M}\beta_m b(x_i; \gamma_m)).\]
 
