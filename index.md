@@ -7,5 +7,6 @@ on *Analysis of High-Dimensional Data* held at the [University of Bern](https://
 * Exercises ([md](https://github.com/staedlern/highdim_stats/blob/main/_exercises_only.md)/[pdf](https://github.com/staedlern/highdim_stats/blob/main/_exercises_only.pdf)) and solutions ([md](https://github.com/staedlern/highdim_stats/blob/main/_exercises_and_solutions.md)/[pdf](https://github.com/staedlern/highdim_stats/blob/main/_exercises_and_solutions.pdf)).
 * Data sets used in the book and in the exercises ([download here](https://github.com/staedlern/highdim_stats/tree/main/data)).
 * Course orientation ([pdf](https://github.com/staedlern/highdim_stats/blob/main/_slides/kursaufteilung.pdf)).
+* Notebooklm [link](https://notebooklm.google.com/notebook/5738a238-7735-443a-9522-8051ccb69be0)
 
 
