@@ -1,12 +1,15 @@
 --- 
 title: |
-  ![](logo2.jpg){width=3.5in}   
+  ![](logo2.jpg){width=2.5in}   
   Prediction and Feature Assessment
 author: "Nicolas Städler"
-site: bookdown::bookdown_site
-output: bookdown::gitbook
-documentclass: book
-bibliography: [book.bib, packages.bib]
+site: "bookdown::bookdown_site"
+output: 
+  bookdown::gitbook: default
+documentclass: report
+papersize: a4
+geometry: margin=1in
+bibliography: ["book.bib", "packages.bib"]
 biblio-style: apalike
 link-citations: yes
 github-repo: staedlern/highdim_stats

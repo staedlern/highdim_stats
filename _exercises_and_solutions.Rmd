@@ -795,7 +795,7 @@ We use the natural cubic spline basis with $\nu=12$ to express the coefficients 
 
 ```{r}
 # coefficient smoothing
-hmat <- ns(x=1:256,df=12)
+hmat <- splines::ns(x=1:256,df=12)
 xstar <- xtrain%*%hmat
 fit.smooth <- glm(dtrain$y~.,data=data.frame(xstar),family="binomial")
 coef.smooth <- as.numeric(hmat%*%coef(fit.smooth)[-1])
@@ -963,7 +963,7 @@ The curves are very well separated. However, these linear predictor scores are b
 
 In order to obtain a fair evaluation of the model we calculate a pre-validated data set.
 
-```{r}
+```{r, cache=TRUE}
 set.seed(150381)
 
 # split data into K=5 folds
@@ -1160,7 +1160,7 @@ kable(t.tab,digits = 3,booktabs=TRUE)
 
 We prune the tree and visualize the result.
 ```{r}
-fit.rpart2 <- prune(fit.rpart,cp=.0033)
+fit.rpart2 <- rpart::prune(fit.rpart,cp=.0033)
 rpart.plot(fit.rpart2,extra=1)
 ```
 We compute the misclassification error.
@@ -1171,11 +1171,11 @@ We compute the misclassification error.
 
 We fit the random forest, calculate the misclassification error and plot the variable importance.
 ```{r}
-fit.rf <- randomForest(spam ~ ., 
-                       data = spam.train%>%
-                         dplyr::mutate(spam=factor(spam)), 
-                       ntree = 200,
-                       importance=TRUE)
+fit.rf <- randomForest::randomForest(spam ~ ., 
+                                     data = spam.train%>%
+                                       dplyr::mutate(spam=factor(spam)), 
+                                     ntree = 200,
+                                     importance=TRUE)
 fit.rf
 ```
 
@@ -1196,7 +1196,7 @@ plot(fit.rf)
 
 We run gradient boosting `gbm` with `distribution = "bernoulli"` and tuning parameters `shrinkage=0.1`, `interaction.depth=3` and `n.trees=1000`. In addition we perform cross-validation `cv.folds=5` in order to monitor performance as a function of the boosting iterations. 
 
-```{r}
+```{r, cache=TRUE}
 library(gbm)
 fit.boost <-gbm(spam~.,
                 data=spam.train,

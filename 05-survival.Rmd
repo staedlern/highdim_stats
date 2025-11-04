@@ -11,6 +11,10 @@ library(pec)
 library(tidyverse)
 ```
 
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
 We turn our attention to survival analysis which deals with so-called time-to-event endpoints. To set the scene we will look at the *lymphoma* data and explain the basics of survival analysis. Then, we will discuss elastic net regularization in the context of cox regression, introduce the time-dependent Brier score as a measure of prediction accuracy, and we give an example on how to use the `pec` package to benchmark prediction algorithms.
 
 ## Survival endpoints and Cox regression
@@ -492,7 +496,7 @@ fit.cforest <- pec::pecCforest(fm, data =dat,
 
 and obtain the variable importance using the function `varimp`.
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=8}
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=7, fig.width=5,cache=TRUE}
 vp <- party::varimp(fit.cforest$forest)
 dvp <- data.frame(VARNAME=names(vp),VARIMP=vp)
 vplot <- dvp%>%
@@ -509,7 +513,7 @@ print(vplot)
 
 Finally, we compare the two models using the cross-validated Brier score. 
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, cache=TRUE}
 pec.cv <- pec::pec(
   object=list("cox.fw"=fit.coxfw,"cforest"=fit.cforest), 
   data = dat, 

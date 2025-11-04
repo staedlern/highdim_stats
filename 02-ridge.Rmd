@@ -15,6 +15,9 @@ library(ggmcmc)
 library(MCMCvis)
 ```
 
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center')
+```
 
 Subset selection as outlined above works by either including or
 excluding covariates, i.e. constrain specific regression coefficients to be zero.
@@ -115,7 +118,7 @@ Similarly, we can represent the fitted values from Ridge regression as
 
 This shows that the level of shrinkage $\frac{d_j^2}{d_j^2+\lambda}$ is largest in the direction of the last principle component, which in return is the direction where the data exhibits smallest variance.
 
-```{r principlecomponent, echo=FALSE, fig.height=5, fig.width=10, fig.cap="Left plot: 2-dimensional input data. Right plot: input data rotated using principle component analysis."}
+```{r principlecomponent, echo=FALSE, fig.height=10, fig.width=5, fig.cap="Upper plot: 2-dimensional input data. Lower plot: input data rotated using principle component analysis."}
 
 set.seed(1315)
 n <- 50
@@ -123,7 +126,7 @@ x <- mvrnorm(n=50,mu=c(0,0),Sigma=cbind(c(1,0.8),c(0.8,1)))
 colnames(x) <- c("X1","X2")
 pc <- prcomp(x)
 
-par(mfrow=c(1,2))
+par(mfrow=c(2,1))
 plot(x,xlim=c(-2,2),ylim=c(-2,2))
 plot(pc$x,xlim=c(-2,2),ylim=c(-2,2))
 ```
@@ -229,7 +232,7 @@ jags.m <- jags.model(textConnection(bayesian_ridge),
 
 After a burn-in period of $500$ steps we use `coda.samples` to generate the posterior samples (`n.iter=10000` with a thinning of `thin=10` results in a total of `1000` posterior samples per chain). 
 
-```{r message=FALSE}
+```{r message=FALSE, results='hide'}
 # burn-in
 update(jags.m, n.iter=500) 
 
@@ -277,7 +280,8 @@ Finally, we compare the regression coefficients from OLS, Ridge regression ($\la
 beta.ridgecv <- as.numeric(coef(cv.ridge.glmnet,s=cv.ridge.glmnet$lambda.min))[-1]
 beta.ols <- coef(lm(ytrain~xtrain))[-1]
 beta.bayesian <- colMeans(matrix.postsamples)[1:9]
-dd <- data.frame(beta.ols=beta.ols,beta.ridgecv=beta.ridgecv,beta.ridgebayesian=beta.bayesian)
+dd <- data.frame(beta.ols=beta.ols,beta.ridgecv=beta.ridgecv,
+                 beta.ridgebayesian=beta.bayesian)
 rownames(dd) <- paste0("beta",1:9)
 ddl <- pivot_longer(dd%>%
                       rownames_to_column(var="coef"),-coef) 

@@ -11,6 +11,10 @@ library(glmnet)
 library(rpart)
 ```
 
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
 Our high-dimensional considerations so far focused on the linear regression model. We now extend this to classification.
 
 ## Logistic regression
@@ -63,7 +67,7 @@ set, and a sample of 302 controls. The variables are:
 
 We start by drawing scatter plots of pairs of risk factors and by color coding cases and controls.
 
-```{r sahd, fig.cap="Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).",fig.height=10,fig.width=10}
+```{r sahd, fig.cap="Pairs plot of South African Heart Disease Data (red circles: cases, blue triangles: controls).",fig.height=7,fig.width=7}
 dat <- readRDS(file="data/sahd.rds")
 pairs(data.matrix(dat[,-1]),
       col=ifelse(dat$chd==1,"red","blue"),
@@ -258,8 +262,8 @@ The optimally pruned tree has size 4 (i.e., 4 leave nodes).
 
 ```{r}
 # prune the tree
-fit.prune<- prune(fit.tree, 
-                  cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+fit.prune<- rpart::prune(fit.tree, 
+                         cp=fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
 rpart.plot(fit.prune,extra=1)
 ```
 
@@ -344,7 +348,7 @@ spam.test<- spam[-train,]
 
 We run Gradient Boosting `gbm` with `distribution = "bernoulli"` and tuning parameters $\nu=0.1$ (`shrinkage=0.1`), $J=4$ (`interaction.depth=3`) and $M=1000$ (`n.trees=1000`). 
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE,cache=TRUE}
 library(gbm)
 fit.boost <-gbm(spam~.,
                 data=spam.train,
@@ -363,6 +367,6 @@ In addition we perform 5-fold cross-validation (`cv.folds=5`) in order to monito
 which.min(fit.boost$cv.error)
 
 # plot loss as a function of the number of boosting iteration
-gbm.perf(fit.boost, method = "cv")
+gbm::gbm.perf(fit.boost, method = "cv")
 ```
 

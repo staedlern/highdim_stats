@@ -8,6 +8,7 @@ in RStudio: create new projet from "git"
 ## Required to render the book
 install.packages('bookdown')
 install.packages('tinytex') --> requires download and installation of rtools
+install.packages("downlit") --> for bs4_book format
 
 ## Packages required for running code in the book and exercises
 
@@ -28,15 +29,16 @@ install.packages('rpart.plot')
 install.packages('ggpubr')
 install.packages('survminer')
 install.packages('survival')
-install.packages(rjags)
-install.packages(ggmcmc)
-install.packages(MCMCvis)
-install.packages(pheatmap)
-install.packages(mlbench)
-install.packages(pec)
-install.packages(e1071)
+install.packages('rjags')
+install.packages('ggmcmc')
+install.packages('MCMCvis')
+install.packages('pheatmap')
+install.packages('mlbench')
+install.packages('pec')
+install.packages('e1071')
 install.packages('broom')
 install.packages('dplyr')
+install.packages('party')
 
 install.packages("BiocManager")
 BiocManager::install("Biobase")

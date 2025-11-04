@@ -16,6 +16,11 @@ library(MCMCvis)
 ```
 
 
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+
 We have discussed Ridge regression and discussed its properties. Although Ridge regression can deal with high-dimensional data a disadvantage compared to subset- and stepwise regression is that it does not perform variable selection and therefore the interpretation of the final model is more challenging. 
 
 In Ridge regression we minimize $\rm RSS(\beta)$ given constraints on the so-called *L2-norm* of the regression coefficients
@@ -265,18 +270,21 @@ The Lasso has the lowest generalization error (RMSE). We plot the regression coe
 beta.fw <- coef(fit.fw)
 beta.ridge <- coef(fit.ridge,s=fit.ridge.cv$lambda.1se)
 beta.lasso <- coef(fit.lasso,s=fit.lasso.cv$lambda.1se)
-res.coef <- data.frame(forward=0,ridge=as.numeric(beta.ridge),lasso=as.numeric(beta.lasso))
+res.coef <- data.frame(forward=0,ridge=as.numeric(beta.ridge),
+                       lasso=as.numeric(beta.lasso))
 rownames(res.coef) <- rownames(beta.ridge)
 res.coef[names(beta.fw),"forward"] <- beta.fw
 res.coef$coef <- rownames(res.coef)
-res.coef.l <- pivot_longer(res.coef,cols=c("forward","ridge","lasso"),names_to="method")
+res.coef.l <- pivot_longer(res.coef,cols=c("forward","ridge","lasso"),
+                           names_to="method")
 
 res.coef.l%>%
   dplyr::mutate(coef=factor(coef,levels = unique(coef)))%>%
   ggplot(.,aes(x=coef,y=value,fill=method))+
   geom_bar(width=0.5,position = position_dodge(width = 0.8),stat="identity")+
   theme_bw()+
-  theme(legend.position = "top",axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
+  theme(legend.position = "top",
+        axis.text.x = element_text(angle = 90,vjust = 0.5, hjust=1))+
   scale_fill_grey(aesthetics = c("fill","color"))+
   xlab("")+ylab("beta")
 ```

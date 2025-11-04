@@ -5,6 +5,10 @@ library(Biobase)
 library(tidyverse)
 ```
 
+```{r include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
 A frequent task is to find features which differ with respect to one or more experimental factors. 
 We illustrate this type of analysis using a gene expression experiment ($p=15923$ genes) performed with $12$ randomly selected mice from two strains. The features are the $p=15923$ genes and the strain (A vs B) is the experimental factor.
 
@@ -74,7 +78,7 @@ ttest$p.value
 
 Based on the p-value $q_{11425}$=`r round(ttest$p.value,3)` one would not reject the null-hypothesis at the $\alpha=0.05$ level for this specific gene. What about the other genes? We continue by repeating the analysis for all $p=$ `r ncol(y)` genes and save the results in a data frame.
 
-```{r}
+```{r, cache=TRUE}
 pvals <- apply(y,2,FUN=
                  function(y){
                    t.test(y~x,var.equal=TRUE)$p.value
@@ -109,7 +113,7 @@ ysim <- matrix(rnorm(n*p),n,p)
 
 We then repeat the gene-wise two-sample comparisons from the previous section
 
-```{r}
+```{r, cache=TRUE}
 pvals.sim <- apply(ysim,2,FUN=
                  function(y){
                    t.test(y~x,var.equal=TRUE)$p.value
